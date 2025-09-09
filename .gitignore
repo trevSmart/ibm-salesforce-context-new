@@ -1,0 +1,77 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# IDE
+.idea/
+*.swp
+*.swo
+.cursor/mcp.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Salesforce
+.sfdx/
+.sf/
+sfdx-project.json
+force-app/
+SalesforceTestProject/
+
+# Environment variables and secrets
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+*.key
+*.pem
+*.p12
+*.pfx
+config/secrets.json
+credentials.json
+mcpInspectorConfig.json
+
+dist/
+tmp/
+*.old*
+*old.*
+*.new*
+*new.*
+.nvmrc
+
+# Python virtual environment
+venv/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.npm-cache/*
+
+# Jest
+coverage/
+.test-artifacts/
+
+# NPM
+.npm-cache
+
+# Dev
+.fiveserverrc

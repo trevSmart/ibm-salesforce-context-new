@@ -1,0 +1,107 @@
+name: "Copilot Setup Steps"
+
+on:
+    workflow_dispatch:
+    push:
+        paths: [.github/workflows/copilot-setup-steps.yml]
+    pull_request:
+        paths: [.github/workflows/copilot-setup-steps.yml]
+
+jobs:
+    copilot-setup-steps:
+        runs-on: ubuntu-latest
+        environment: copilot
+        permissions:
+            contents: read
+
+        env:
+            SF_ORG_CLIENT_ID: ${{ secrets.SF_ORG_CLIENT_ID }}
+            SF_ORG_CLIENT_SECRET: ${{ secrets.SF_ORG_CLIENT_SECRET }}
+            SF_ORG_CLIENT_USERNAME: ${{ secrets.SF_ORG_CLIENT_USERNAME }}
+            SF_ORG_CLIENT_PASSWORD: ${{ secrets.SF_ORG_CLIENT_PASSWORD }}
+            LOG_LEVEL: "debug"  # Options: trace, debug, info, warn, error, fatal, silent
+
+        steps:
+            - uses: actions/checkout@v5
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "22"
+                  cache: "npm"
+
+            - run: npm ci
+
+            - name: Install Salesforce CLI globally
+              run: npm install -g @salesforce/cli
+
+            - name: Authenticate with Salesforce org
+              run: |
+                  echo "Authenticating with Salesforce org..."
+
+                  if [ -z "${SF_ORG_CLIENT_ID:-}" ] || [ -z "${SF_ORG_CLIENT_SECRET:-}" ] || \
+                     [ -z "${SF_ORG_CLIENT_USERNAME:-}" ] || [ -z "${SF_ORG_CLIENT_PASSWORD:-}" ]; then
+                    echo "⚠️  Missing Salesforce org credentials in environment variables"
+                    echo "SF_AUTH_SUCCESS=false" >> "$GITHUB_ENV"
+                  else
+                    response=$(curl -s -X POST "https://test.salesforce.com/services/oauth2/token" \
+                      -H "Content-Type: application/x-www-form-urlencoded" \
+                      --data-urlencode "grant_type=password" \
+                      --data-urlencode "client_id=${SF_ORG_CLIENT_ID}" \
+                      --data-urlencode "client_secret=${SF_ORG_CLIENT_SECRET}" \
+                      --data-urlencode "username=${SF_ORG_CLIENT_USERNAME}" \
+                      --data-urlencode "password=${SF_ORG_CLIENT_PASSWORD}")
+
+                    SF_ACCESS_TOKEN=$(echo "$response" | jq -r '.access_token' 2>/dev/null)
+                    SF_INSTANCE_URL=$(echo "$response" | jq -r '.instance_url' 2>/dev/null)
+
+                    if [ -n "${SF_ACCESS_TOKEN:-}" ] && [ "${SF_ACCESS_TOKEN}" != "null" ]; then
+                      echo "✅ Successfully obtained access token"
+                      echo "SF_ACCESS_TOKEN=${SF_ACCESS_TOKEN}" >> "$GITHUB_ENV"
+                      echo "SF_INSTANCE_URL=${SF_INSTANCE_URL}" >> "$GITHUB_ENV"
+                      echo "SF_AUTH_SUCCESS=true" >> "$GITHUB_ENV"
+                    else
+                      echo "❌ Failed to get access token. Response:"
+                      echo "$response"
+                      echo "SF_AUTH_SUCCESS=false" >> "$GITHUB_ENV"
+                    fi
+                  fi
+
+            - name: Login and verify Salesforce org connection
+              if: env.SF_AUTH_SUCCESS == 'true'
+              run: |
+                  echo "Logging into Salesforce org..."
+                  sf org login access-token --instance-url "$SF_INSTANCE_URL" --no-prompt --set-default
+
+                  echo "Verifying Salesforce org connection..."
+                  if sf org display --json &>/dev/null; then
+                    echo "✅ Successfully connected to a Salesforce org"
+                    sf org display
+                  else
+                    echo "❌ Failed to connect to Salesforce org"
+                    exit 1
+                  fi
+
+            - name: Create Salesforce project
+              run: |
+                  echo "Creating Salesforce project..."
+                  if sf project generate --name SalesforceTestProject --output-dir . &>/dev/null; then
+                    echo "✅ Successfully created Salesforce project"
+                  else
+                    echo "❌ Failed to create Salesforce project"
+                    exit 1
+                  fi
+
+                  echo "Setting up project structure..."
+                  ls -la
+
+                  # Move force-app directory to current location
+                  mv SalesforceTestProject/force-app .
+
+                  # Copy sfdx-project.json to current location
+                  cp SalesforceTestProject/sfdx-project.json .
+
+                  # Clean up the generated project directory
+                  rm -rf SalesforceTestProject
+
+                  echo "Project setup completed:"
+                  ls -la

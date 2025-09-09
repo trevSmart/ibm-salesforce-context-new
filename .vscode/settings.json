@@ -1,0 +1,181 @@
+{
+    "squarl.bookmarks": [
+        {
+            "name": "Github repository",
+            "path": "https://github.com/trevsmart/ibm-salesforce-context",
+            "description": "",
+            "type": "link",
+            "iconName": "github"
+        },
+        {
+            "name": "Documentation",
+            "path": "https://modelcontextprotocol.io/introduction",
+            "description": "",
+            "type": "link",
+            "groupId": "mcp"
+        },
+        {
+            "name": "Typescript SDK",
+            "path": "https://github.com/modelcontextprotocol/typescript-sdk",
+            "description": "",
+            "type": "link",
+            "groupId": "mcp",
+            "iconName": "github-inverted"
+        },
+        {
+            "name": "\"Everything\" example server",
+            "path": "https://github.com/modelcontextprotocol/servers/tree/main/src/everything",
+            "description": "",
+            "type": "link",
+            "groupId": "mcp",
+            "iconName": "github-inverted"
+        },
+        {
+            "name": "Salesforce CLI Reference",
+            "path": "https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_unified.htm",
+            "description": "",
+            "type": "link",
+            "groupId": "salesforce"
+        }
+    ],
+    "squarl.groups": [
+        {
+            "id": "mcp",
+            "name": "Model Context Protocol"
+        },
+        {
+            "id": "salesforce",
+            "name": "Salesforce"
+        }
+    ],
+    "workbench.editor.highlightModifiedTabs": true,
+    "chat.mcp.discovery.enabled": {
+        "claude-desktop": false,
+        "windsurf": false,
+        "cursor-global": false,
+        "cursor-workspace": false
+    },
+    "search.exclude": {
+        "**.npm-cache/**": true,
+        "**/dist/*": true,
+        "**/node_modules/**": true
+    },
+    "outline.showFunctions": true,
+    "outline.showFiles": true,
+    "outline.showFields": false,
+    "outline.showConstants": false,
+    "outline.showVariables": true,
+    "outline.showMethods": true,
+    "outline.showModules": true,
+    "actionButtons": {
+        "commands": [
+            {
+                "name": "$(terminal)",
+                "useVsCodeApi": true,
+                "command": "workbench.action.terminal.toggleTerminal",
+                "color": "#e3e3e3"
+            },
+            {
+                "name": "$(telescope)",
+                "useVsCodeApi": true,
+                "command": "workbench.action.toggleZenMode",
+                "color": "#e3e3e3"
+            },
+            {
+                "name": ".",
+                "color": "#00000000",
+                "command": ""
+            },
+            {
+                "name": "$(lightbulb-autofix) Lint",
+                "useVsCodeApi": true,
+                "command": "workbench.action.tasks.runTask",
+                "args": [
+                    "Biome lint"
+                ],
+                "color": "#697cd8"
+            },
+            {
+                "name": "$(testing-debug-icon) Test",
+                "useVsCodeApi": true,
+                "command": "workbench.action.tasks.test",
+                "color": "#b69955"
+            },
+            {
+                "name": "$(run) Start (HTTP)",
+                "useVsCodeApi": true,
+                "command": "workbench.action.tasks.runTask",
+                "args": [
+                    "Start (HTTP)"
+                ],
+                "color": "#0f909c"
+            },
+            {
+                "name": "$(package) Publish server",
+                "useVsCodeApi": true,
+                "command": "workbench.action.tasks.runTask",
+                "args": [
+                    "Publish server package"
+                ],
+                "color": "#ac5858"
+            }
+        ],
+        "defaultColor": "#ffffe0",
+        "reloadButton": null,
+        "loadNpmCommands": false
+    },
+    "explorer.fileNesting.patterns": {
+        "*.js": "${capture}.md"
+    },
+    "notebook.outline.showCodeCells": false,
+    "workbench.colorCustomizations": {
+        "editor.selectionBackground": "#e788ff7c",
+        "editor.selectionHighlightBackground": "#ff00005b",
+        "tab.activeForeground": "#ffffff",
+        "tab.activeBorder": "#006bc9",
+        "tab.activeModifiedBorder": "#f4a238"
+    },
+    "typescript.workspaceSymbols.excludeLibrarySymbols": false,
+    "todohighlight.keywords": [
+        "TODO",
+    ],
+    "github-actions.workflows.pinned.workflows": [
+        ".github/workflows/push-checks.yml"
+    ],
+    "chatgpt.openOnStartup": false,
+    "breadcrumbs.filePath": "on",
+    "editor.fontLigatures": true,
+    "editor.fontFamily": "Fira Code",
+    "terminal.integrated.fontLigatures.enabled": false,
+    "terminal.integrated.fontFamily": "JetBrains Mono NL",
+    "terminal.integrated.fontLigatures.featureSettings": "",
+    "terminal.integrated.enableImages": true,
+    "jest.jestCommandLine": "node --experimental-vm-modules node_modules/.bin/jest",
+    "jest.autoRun": {
+        "watch": false,
+        "onStartup": []
+    },
+    "jest.testExplorer": {
+        "enabled": true,
+        "showInlineError": true
+    },
+    "jest.disabledWorkspaceFolders": [],
+    "jest.enableCodeLens": true,
+    "jest.showCoverageOnLoad": false,
+    "jest.coverageFormatter": "DefaultFormatter",
+    "files.exclude": {
+        "**/.npm-cache": true
+    },
+    "files.watcherExclude": {
+        "**.npm-cache": true
+    },
+    "task.autoDetect": "off",
+    "javascript.format.enable": false,
+    "typescript.format.enable": false,
+    "[javascript]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    },
+}
