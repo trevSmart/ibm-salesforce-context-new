@@ -12,6 +12,7 @@ import {connectTransport} from './lib/transport.js';
 //import { codeModificationPromptDefinition, codeModificationPrompt } from './prompts/codeModificationPrompt.js';
 import {apexRunScriptPrompt, apexRunScriptPromptDefinition} from './prompts/apex-run-script.js';
 import {toolsBasicRunPromptDefinition, toolsBasicRunPromptHandler} from './prompts/call-all-tools.js';
+import {orgOnboardingPromptDefinition, orgOnboardingPromptHandler} from './prompts/orgOnboarding.js';
 //Tools
 import {apexDebugLogsToolDefinition} from './tools/apexDebugLogs.js';
 import {createMetadataToolDefinition} from './tools/createMetadata.js';
@@ -241,6 +242,7 @@ function registerHandlers() {
 	// mcpServer.registerPrompt('code-modification', codeModificationPromptDefinition, codeModificationPrompt);
 	mcpServer.registerPrompt('apex-run-script', apexRunScriptPromptDefinition, apexRunScriptPrompt);
 	mcpServer.registerPrompt('tools-basic-run', toolsBasicRunPromptDefinition, toolsBasicRunPromptHandler);
+	mcpServer.registerPrompt('orgOnboarding', orgOnboardingPromptDefinition, orgOnboardingPromptHandler);
 
 	const StaticToolHandlers = {
 		salesforceContextUtils: salesforceContextUtilsToolHandler,
