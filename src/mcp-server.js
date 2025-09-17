@@ -116,9 +116,11 @@ async function updateOrgAndUserDetails() {
 		if (currentUsername !== newUsername) {
 			clearResources();
 			try {
+				const permissionSetFilter = config.bypassUserValidation
+					? ''
+					: " AND Id IN (SELECT AssigneeId FROM PermissionSetAssignment WHERE PermissionSet.Name = 'IBM_SalesforceContextUser')";
 				const result = await executeSoqlQuery(`SELECT Id, Name, Profile.Name, UserRole.Name
-					FROM User WHERE Username = '${state.org.username}'
-					AND Id IN (SELECT AssigneeId FROM PermissionSetAssignment WHERE PermissionSet.Name = 'IBM_SalesforceContextUser')`);
+					FROM User WHERE Username = '${state.org.username}'${permissionSetFilter}`);
 
 				if (result?.records?.length) {
 					const user = result.records[0];
@@ -134,7 +136,10 @@ async function updateOrgAndUserDetails() {
 					newResource('mcp://org/orgAndUserDetail.json', 'Org and user details', 'Org and user details', 'application/json', JSON.stringify(state.org, null, 3));
 				} else {
 					state.userValidated = false;
-					logger.error(`User "${newUsername}" not found or with insufficient permissions in org "${state.org.alias}"`);
+					const errorMessage = config.bypassUserValidation
+					        ? `User "${newUsername}" not found in org "${state.org.alias}"`
+					        : `User "${newUsername}" not found or with insufficient permissions in org "${state.org.alias}"`;
+					logger.error(errorMessage);
 				}
 			} catch (error) {
 				state.userValidated = false;
