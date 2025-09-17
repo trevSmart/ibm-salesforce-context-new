@@ -191,15 +191,32 @@ export async function executeSoqlQuery(query, useToolingApi = false) {
 			throw new Error('The SOQL query is required and must be a string');
 		}
 
-		query = query.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+		// More intelligent escaping that only escapes quotes inside string literals
+		// This regex finds string literals (text between single quotes) and escapes quotes inside them
+		query = query.replace(/'([^']*)'/g, (match, content) => {
+			// Escape backslashes and single quotes inside the string literal
+			const escapedContent = content.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+			return `'${escapedContent}'`;
+		});
 		const apiType = useToolingApi ? 'TOOLING' : 'REST';
 		const response = await callSalesforceApi('GET', apiType, '/query', null, {
 			queryParams: {q: query}
 		});
 
 		// Validate response structure
-		if (!response || typeof response !== 'object') {
+		if (!response) {
 			throw new Error('Invalid response structure from Salesforce API');
+		}
+
+		// If response is a string (e.g., HTML error page), treat it as an error
+		if (typeof response === 'string') {
+			throw new Error(`Salesforce API returned non-JSON response: ${response.substring(0, 500)}${response.length > 500 ? '...' : ''}`);
+		}
+
+		// If response is an error object from callSalesforceApi, extract the error message
+		if (response.isError && response.content) {
+			const errorMessage = response.content.find(c => c.type === 'text')?.text || 'Unknown error';
+			throw new Error(errorMessage.replace('❌ Error: ', ''));
 		}
 
 		// Check for Salesforce API errors

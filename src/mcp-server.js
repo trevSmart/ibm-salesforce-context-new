@@ -34,7 +34,7 @@ export const state = {
 	org: {},
 	releaseName: null,
 	startedDate: new Date(),
-	userValidated: true,
+	userValidated: false,
 	currentLogLevel: process.env.LOG_LEVEL || 'info'
 };
 
@@ -250,10 +250,11 @@ function registerHandlers() {
 		return async (params, args) => {
 			try {
 				if (tool !== 'salesforceContextUtils') {
+					if (!config.bypassUserValidation && !state.userValidated) {
+						throw new Error(`🚫 Request blocked due to unsuccessful user validation for "${state.org.username}".`);
+					}
 					if (!state.org.user.id) {
 						throw new Error('❌ Org and user details not available. The server may still be initializing.');
-					} else if (!state.userValidated) {
-						throw new Error(`🚫 Request blocked due to unsuccessful user validation for "${state.org.username}".`);
 					}
 				}
 				let toolHandler = StaticToolHandlers[tool];
@@ -369,7 +370,7 @@ export async function setupServer(transport) {
 
 	let connectedMessage;
 	if (transportInfo.transportType === 'stdio') {
-		connectedMessage = '\x1b[32m✓\x1b[0m Server started with STDIO transport';
+		connectedMessage = '✓ Server started with STDIO transport';
 	} else {
 		connectedMessage = `Starting server with HTTP transport on port ${transportInfo.port}`;
 	}

@@ -71,14 +71,13 @@ The user and me have worked together in the past, feel free when chatting with t
 
 ---
 
-## Agentforce Chats
-- Only start a chat if the user explicitly requests it.
-- Use the `chatWithAgentforce` tool.
-- Ask what message to send, and display Agentforce's response **exactly as received**, without edits or comments.
-
----
-
+## Flow Definitions
+- Example of SOQL query for getting all Flow and Process Builder definitions:
+```soql
+SELECT Id, DeveloperName, ActiveVersion.MasterLabel, ActiveVersion.VersionNumber, ActiveVersion.ProcessType, Description, ActiveVersionId, LastModifiedDate
+FROM FlowDefinition ORDER BY MasterLabel
+```
 ## Utility Instructions
-- To get the user name → use `getOrgAndUserDetails`.
+- To get the user name → use `getOrgAndUserDetails` from `salesforceContextUtils`.
 - To get the current date/time → use `getCurrentDatetime` from `salesforceContextUtils`.
 - To get schema of an object → use `describeObject`.

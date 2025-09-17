@@ -63,6 +63,11 @@ export async function executeSoqlQueryToolHandler({query, useToolingApi = false}
 			throw new Error('Invalid response structure from Salesforce API');
 		}
 
+		// Check for Salesforce API errors first
+		if (queryResult.errors?.length) {
+			throw new Error(queryResult.errors.map((err) => err.message || err).join('; '));
+		}
+
 		// Ensure records array exists
 		if (!(queryResult.records && Array.isArray(queryResult.records))) {
 			throw new Error('No records found in query response');

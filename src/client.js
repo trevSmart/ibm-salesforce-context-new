@@ -64,7 +64,7 @@ class Client {
 			case 'resources':
 			case 'embeddedResources':
 			case 'logging':
-				return Boolean(this.capabilities?.logging) || this.is(['Visual Studio Code', 'Cursor', 'microscope']);
+				return Boolean(this.capabilities?.logging) || this.is(['Visual Studio Code', 'microscope']);
 
 			case 'resource_links':
 				return this.is(['Visual Studio Code']) && semver.gte(this.clientInfo.version, '1.103.0');

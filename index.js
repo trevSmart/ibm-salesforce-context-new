@@ -46,7 +46,16 @@ export async function main(rawArgs) {
 	try {
 		// Load package.json for dynamic name and version
 		const {readFileSync} = await import('node:fs');
-		const pkg = JSON.parse(readFileSync('./package.json', 'utf8'));
+		const {dirname, join} = await import('node:path');
+		const {fileURLToPath} = await import('node:url');
+
+		// Get the directory of the current module
+		const __filename = fileURLToPath(import.meta.url);
+		const __dirname = dirname(__filename);
+
+		// Construct absolute path to package.json
+		const packageJsonPath = join(__dirname, 'package.json');
+		const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
 
 		// Parse CLI arguments
 		const config = parseCliArgs(rawArgs);
