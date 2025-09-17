@@ -257,6 +257,7 @@ function registerHandlers() {
 						throw new Error('❌ Org and user details not available. The server may still be initializing.');
 					}
 				}
+
 				let toolHandler = StaticToolHandlers[tool];
 				if (!toolHandler) {
 					const toolModule = await import(`./tools/${tool}.js`);
