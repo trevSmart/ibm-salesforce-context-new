@@ -39,6 +39,51 @@ export const state = {
 	currentLogLevel: process.env.LOG_LEVEL || 'info'
 };
 
+const ORG_COMPANY_DETAILS_QUERY = 'SELECT Name, OrganizationType, PrimaryContact, Phone, Street, City, PostalCode, Country, Division, InstanceName, IsSandbox, CreatedDate FROM Organization LIMIT 1';
+
+let companyDetailsFetchPromise = null;
+
+async function refreshOrgCompanyDetails() {
+	if (companyDetailsFetchPromise) {
+		return companyDetailsFetchPromise;
+	}
+
+	companyDetailsFetchPromise = (async () => {
+		try {
+			if (!state.org?.username) {
+				return;
+			}
+
+			const result = await executeSoqlQuery(ORG_COMPANY_DETAILS_QUERY);
+			const organizationRecord = result?.records?.[0];
+
+			if (!organizationRecord) {
+				logger.warn('Organization details query returned no records');
+				return;
+			}
+
+			const companyDetails = {...organizationRecord};
+			delete companyDetails.attributes;
+
+			state.org = {
+				...state.org,
+				companyDetails
+			};
+			logger.debug('Organization company details refreshed');
+
+			if (state.userValidated) {
+				newResource('mcp://org/orgAndUserDetail.json', 'Org and user details', 'Org and user details', 'application/json', JSON.stringify(state.org, null, 3));
+			}
+		} catch (error) {
+			logger.warn(error, 'Failed to refresh organization company details');
+		} finally {
+			companyDetailsFetchPromise = null;
+		}
+	})();
+
+	return companyDetailsFetchPromise;
+}
+
 // import { chatWithAgentforceDefinition } from './tools/chatWithAgentforce.js';
 // import { triggerExecutionOrderToolDefinition } from './tools/triggerExecutionOrder.js';
 //import {generateSoqlQueryToolDefinition} from './tools/generateSoqlQuery.js';
@@ -100,6 +145,7 @@ async function setWorkspacePath(workspacePath) {
 async function updateOrgAndUserDetails() {
 	try {
 		const currentUsername = state.org?.username;
+		const previousCompanyDetails = state.org?.companyDetails;
 		const org = await getOrgAndUserDetails(true);
 		state.org = {
 			...org,
@@ -108,7 +154,8 @@ async function updateOrgAndUserDetails() {
 				username: org.username,
 				profileName: null,
 				name: null
-			}
+			},
+			companyDetails: previousCompanyDetails
 		};
 		const newUsername = (org?.username ?? '').trim();
 		if (!newUsername) {
@@ -117,11 +164,9 @@ async function updateOrgAndUserDetails() {
 		if (currentUsername !== newUsername) {
 			clearResources();
 			try {
-				const permissionSetFilter = config.bypassUserValidation
-					? ''
-					: " AND Id IN (SELECT AssigneeId FROM PermissionSetAssignment WHERE PermissionSet.Name = 'IBM_SalesforceContextUser')";
+				const permissionSetFilter = config.bypassUserValidation ? '' : " AND Id IN (SELECT AssigneeId FROM PermissionSetAssignment WHERE PermissionSet.Name = 'IBM_SalesforceContextUser')";
 				const result = await executeSoqlQuery(`SELECT Id, Name, Profile.Name, UserRole.Name
-					FROM User WHERE Username = '${state.org.username}'${permissionSetFilter}`);
+                                        FROM User WHERE Username = '${state.org.username}'${permissionSetFilter}`);
 
 				if (result?.records?.length) {
 					const user = result.records[0];
@@ -137,15 +182,15 @@ async function updateOrgAndUserDetails() {
 					newResource('mcp://org/orgAndUserDetail.json', 'Org and user details', 'Org and user details', 'application/json', JSON.stringify(state.org, null, 3));
 				} else {
 					state.userValidated = false;
-					const errorMessage = config.bypassUserValidation
-					        ? `User "${newUsername}" not found in org "${state.org.alias}"`
-					        : `User "${newUsername}" not found or with insufficient permissions in org "${state.org.alias}"`;
+					const errorMessage = config.bypassUserValidation ? `User "${newUsername}" not found in org "${state.org.alias}"` : `User "${newUsername}" not found or with insufficient permissions in org "${state.org.alias}"`;
 					logger.error(errorMessage);
 				}
 			} catch (error) {
 				state.userValidated = false;
 				logger.error(error, 'Error validating user permissions');
 			}
+
+			refreshOrgCompanyDetails();
 		}
 		// Update the watcher with the new org alias
 		if (targetOrgWatcher && org?.alias) {
@@ -257,7 +302,7 @@ function registerHandlers() {
 		return async (params, args) => {
 			try {
 				if (tool !== 'salesforceContextUtils') {
-					if (!config.bypassUserValidation && !state.userValidated) {
+					if (!(config.bypassUserValidation || state.userValidated)) {
 						throw new Error(`🚫 Request blocked due to unsuccessful user validation for "${state.org.username}".`);
 					}
 					if (!state.org.user.id) {

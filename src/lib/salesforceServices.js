@@ -193,7 +193,7 @@ export async function executeSoqlQuery(query, useToolingApi = false) {
 
 		// More intelligent escaping that only escapes quotes inside string literals
 		// This regex finds string literals (text between single quotes) and escapes quotes inside them
-		query = query.replace(/'([^']*)'/g, (match, content) => {
+		query = query.replace(/'([^']*)'/g, (_match, content) => {
 			// Escape backslashes and single quotes inside the string literal
 			const escapedContent = content.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 			return `'${escapedContent}'`;
@@ -215,7 +215,7 @@ export async function executeSoqlQuery(query, useToolingApi = false) {
 
 		// If response is an error object from callSalesforceApi, extract the error message
 		if (response.isError && response.content) {
-			const errorMessage = response.content.find(c => c.type === 'text')?.text || 'Unknown error';
+			const errorMessage = response.content.find((c) => c.type === 'text')?.text || 'Unknown error';
 			throw new Error(errorMessage.replace('❌ Error: ', ''));
 		}
 
