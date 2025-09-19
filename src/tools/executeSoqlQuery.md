@@ -12,6 +12,7 @@ Allows you to run SOQL queries in the Salesforce Org.
 ### Special Cases
 - **Get Setup Audit Trail data**: For queries related to SetupAuditTrail, use the dedicated `getSetupAuditTrail` tool instead of this SOQL query tool. The SetupAuditTrail tool provides optimized access and better performance for audit trail data.
 - **Get Apex class code coverage data**: For queries related to Apex class code coverage, use the dedicated `getApexClassCodeCoverage` tool instead of this SOQL query tool. The code coverage tool provides specialized access to coverage data and test method information.
+- **Get Salesforce Flows from Setup**: For queries related to flows, use the dedicated `getFlows` tool instead of this SOQL query tool. The flows tool provides specialized access to flow data and information.
 
 ### Required Fields
 - ⚠️ **IMPORTANT**: Always retrieve the following:

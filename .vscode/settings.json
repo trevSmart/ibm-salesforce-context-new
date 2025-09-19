@@ -135,7 +135,7 @@
         "tab.activeBorder": "#006bc9",
         "tab.activeModifiedBorder": "#f4a238"
     },
-    "typescript.workspaceSymbols.excludeLibrarySymbols": false,
+    "typescript.workspaceSymbols.excludeLibrarySymbols": true,
     "todohighlight.keywords": [
         "TODO",
     ],

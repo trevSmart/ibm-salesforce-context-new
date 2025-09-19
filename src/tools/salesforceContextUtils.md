@@ -46,6 +46,10 @@ Allows you to execute utility actions like:
 ---
 ## Output Format
 
+### getOrgAndUserDetails with some error
+First of all show the error code and the error message when possible.
+Then show the available org and user details in the same format as if there was no error, but add ❌ after the fields related to the errors.
+
 ### Successful Issue Report
 When an issue is successfully reported, the tool returns:
 - **Status**: Success confirmation

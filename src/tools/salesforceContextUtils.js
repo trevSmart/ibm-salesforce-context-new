@@ -162,6 +162,7 @@ export async function salesforceContextUtilsToolHandler({action, issueDescriptio
 			};
 		} else if (action === 'getOrgAndUserDetails') {
 			const result = await getOrgAndUserDetails();
+			const companyDetails = result?.companyDetails ?? state.org?.companyDetails ?? null;
 			return {
 				content: [
 					{
@@ -169,7 +170,7 @@ export async function salesforceContextUtilsToolHandler({action, issueDescriptio
 						text: 'Successfully retrieved the org and user details'
 					}
 				],
-				structuredContent: result
+				structuredContent: {...result, companyDetails}
 			};
 		} else if (action === 'reportIssue') {
 			if (progressToken) {

@@ -377,21 +377,43 @@ function registerHandlers() {
 
 			//Lògica post-inicialització
 			const postInitialization = async () => {
-				if (!state.org.username) {
-					logger.error('Org details not available, skipping post-initialization logic');
-					throw new Error('Org details not available');
+				try {
+					if (!state.org.username) {
+						logger.warn('Org details not available, skipping post-initialization logic');
+						return;
+					}
+
+					// Iniciar el watcher
+					try {
+						targetOrgWatcher.start(updateOrgAndUserDetails, state.org?.alias);
+						logger.debug('OrgWatcher started successfully');
+					} catch (watcherError) {
+						logger.warn(watcherError, 'Failed to start OrgWatcher, continuing without it');
+					}
+
+					// Recupear la release de la org
+					try {
+						const releasesResult = await fetch(`${state.org.instanceUrl}/services/data/`, {});
+						if (releasesResult.ok) {
+							const releases = await releasesResult.json();
+							const releaseName = releases.find((r) => r.version === state.org.apiVersion)?.label ?? null;
+							state.org = {...state.org, releaseName};
+							logger.debug(`Org release name updated: ${releaseName}`);
+						} else {
+							logger.warn(`Failed to fetch org releases: ${releasesResult.status} ${releasesResult.statusText}`);
+						}
+					} catch (releaseError) {
+						logger.warn(releaseError, 'Failed to retrieve org release information, continuing without it');
+					}
+				} catch (error) {
+					logger.warn(error, 'Post-initialization logic failed, but server will continue running');
 				}
-
-				// Iniciar el watcher
-				targetOrgWatcher.start(updateOrgAndUserDetails, state.org?.alias);
-
-				// Recupear la release de la org
-				const releasesResult = await fetch(`${state.org.instanceUrl}/services/data/`, {});
-				const releases = await releasesResult.json();
-				const releaseName = releases.find((r) => r.version === state.org.apiVersion)?.label ?? null;
-				state.org = {...state.org, releaseName};
 			};
-			postInitialization();
+
+			// Executar post-inicialització de forma asíncrona sense bloquejar la inicialització
+			postInitialization().catch((error) => {
+				logger.warn(error, 'Post-initialization failed completely, some features may be unavailable or may not work as expected');
+			});
 
 			if (typeof resolveOrgReady === 'function') {
 				resolveOrgReady();

@@ -14,7 +14,6 @@ class TargetOrgWatcher extends EventEmitter {
 		this.fileWatcher = null;
 		this.isWatching = false;
 		this.debounceMs = 5000; // Debounce file system events to reduce noise
-		// this.debounceTimer = null;
 	}
 
 	async start(onChange, currentOrgAlias = null) {
@@ -32,14 +31,6 @@ class TargetOrgWatcher extends EventEmitter {
 			this.on('started', (orgAlias) => logger.debug(`Monitoring Salesforce CLI target org changes (current: ${orgAlias})`));
 			this.on('orgChanged', onChange);
 			this.on('error', (error) => logger.error(error, 'Error in Salesforce CLI target org watcher'));
-
-			/*
-			this.fileWatcher = fs.watch(path.dirname(this.configFilePath), (eventType, filename) => {
-				if (filename === 'config.json' && eventType === 'change') {
-					this.debouncedCheck();
-				}
-			});
-			*/
 
 			this.fileWatcher = chokidar.watch(this.configFilePath, {
 				ignoreInitial: true,
@@ -62,30 +53,15 @@ class TargetOrgWatcher extends EventEmitter {
 
 		logger.debug('Stopping Salesforce CLI target org watcher');
 		if (this.fileWatcher) {
-			// this.fileWatcher.close();
 			await this.fileWatcher.close();
 			this.fileWatcher = null;
 		}
-
-		/*
-		if (this.debounceTimer) {
-			clearTimeout(this.debounceTimer);
-			this.debounceTimer = null;
-		}
-		*/
 
 		// Cleanup all event listeners to prevent memory leaks
 		this.removeAllListeners();
 		this.isWatching = false;
 		this.emit('stopped');
 	}
-
-	/*
-	debouncedCheck() {
-		this.debounceTimer && clearTimeout(this.debounceTimer);
-		this.debounceTimer = setTimeout(() => this.check(), this.debounceMs);
-	}
-	*/
 
 	check() {
 		try {

@@ -9,7 +9,7 @@ Respond in the same language as the user's message. In case of doubt, use Catala
 You can act without asking for confirmation as long as the action is non destructive.
 
 ## Code Generation and Modification Guidelines
-All code must be en english, use camelCase for naming.
+All code entities must be en english, use camelCase for naming.
 
 When generating or modifying code, follow these guidelines:
 
