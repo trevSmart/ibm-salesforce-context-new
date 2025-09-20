@@ -1,0 +1,6 @@
+---
+description: Rules to follow when performing github related actions
+globs:
+alwaysApply: false
+---
+When the Github MCP server is active, prefer to use the Github MCP server tools instead of other methods like manually running Github CLI commands.
