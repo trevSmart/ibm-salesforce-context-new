@@ -29,17 +29,12 @@ describe("orgOnboarding prompt", () => {
       expect(result).toBeDefined();
       expect(result.messages).toBeDefined();
       expect(Array.isArray(result.messages)).toBe(true);
-      expect(result.messages.length).toBe(2);
+      expect(result.messages.length).toBe(1);
 
       // Check user message
       expect(result.messages[0].role).toBe("user");
       expect(result.messages[0].content.type).toBe("text");
       expect(result.messages[0].content.text).toContain("comprehensive support and guidance");
-
-      // Check assistant message
-      expect(result.messages[1].role).toBe("assistant");
-      expect(result.messages[1].content.type).toBe("text");
-      expect(result.messages[1].content.text).toContain("Org Discovery Strategy");
     });
 
     it("should include comprehensive discovery content", () => {

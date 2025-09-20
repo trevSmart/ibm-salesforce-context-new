@@ -267,7 +267,7 @@ function registerHandlers() {
 				logger.debug(`Requested roots list but client returned error: ${JSON.stringify(error, null, 3)}`);
 			}
 			if (!workspacePathSet && listRootsResult.roots?.[0]?.uri.startsWith('file://')) {
-				setWorkspacePath(listRootsResult.roots[0].uri);
+				await setWorkspacePath(listRootsResult.roots[0].uri);
 			}
 		} catch (error) {
 			logger.error(error, 'Failed to request roots from client');
@@ -368,7 +368,7 @@ function registerHandlers() {
 			logger.info(`Current log level: ${state.currentLogLevel}`);
 
 			if (process.env.WORKSPACE_FOLDER_PATHS) {
-				setWorkspacePath(process.env.WORKSPACE_FOLDER_PATHS);
+				await setWorkspacePath(process.env.WORKSPACE_FOLDER_PATHS);
 			} else if (client.supportsCapability('roots')) {
 				mcpServer.server.listRoots();
 			}
