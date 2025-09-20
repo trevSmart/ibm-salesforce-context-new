@@ -1,5 +1,5 @@
 ---
-description: When the user requests code examples, setup or configuration steps, or library/API documentation about the usage of external dependencies.
+description: When the user requests code examples, setup or configuration steps about external libraries/APIs
 alwaysApply: false
 ---
-Use Context7.
+When the Context7 MCP server is active, prefer to use Context7 tools instead of other methods like searching the internet.

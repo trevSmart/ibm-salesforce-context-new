@@ -363,8 +363,10 @@ function registerHandlers() {
 			});
 
 			logger.info(`IBM Salesforce Context (v${config.serverConstants.serverInfo.version})`);
-			const clientCapabilitiesString = `Capabilities: ${JSON.stringify(client.capabilities, null, 3)}`;
-			logger.info(`Connecting with client "${client.clientInfo.name}" (v${client.clientInfo.version}). ${clientCapabilitiesString}`);
+
+			const clientCapabilitiesString = `Client capabilities: ${JSON.stringify(client.capabilities, null, 3)}`;
+			logger.info(`Connecting with client "${client.clientInfo.name}" (v${client.clientInfo.version}).\n${clientCapabilitiesString}`);
+
 			logger.info(`Current log level: ${state.currentLogLevel}`);
 
 			if (process.env.WORKSPACE_FOLDER_PATHS) {

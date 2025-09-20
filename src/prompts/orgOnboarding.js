@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import {readFileSync} from 'node:fs';
 
 const orgOnboardingApexScript = readFileSync(new URL('../static/orgOnboarding.apex', import.meta.url), 'utf-8').trim();
 
@@ -19,13 +19,13 @@ export const orgOnboardingPromptDefinition = {
  * This prompt guides the agent to automatically discover essential org information
  */
 export function orgOnboardingPromptHandler() {
-    return {
-        messages: [
-            {
-                role: 'user',
-                content: {
-                    type: 'text',
-                    text: `I need comprehensive support and guidance to understand this Salesforce org and provide effective assistance. Please help me discover and analyze the essential information about this org.
+	return {
+		messages: [
+			{
+				role: 'user',
+				content: {
+					type: 'text',
+					text: `I need comprehensive support and guidance to understand this Salesforce org and provide effective assistance. Please help me discover and analyze the essential information about this org.
 
 - **MANDATORY**: STRICTLY FOLLOW THE FOLLOWING INSTRUCTIONS:
 - **PERFORMANCE OPTIMIZATION**: Run a single Anonymous Apex script that executes all the required queries together (instead of multiple tool calls). This significantly improves performance by reducing round-trips and server/client processing.
@@ -108,8 +108,8 @@ ${orgOnboardingApexScript}
    - Check sharing settings and security model
 
 Please start the discovery process immediately.`
-                }
-            }
-        ]
-    };
+				}
+			}
+		]
+	};
 }

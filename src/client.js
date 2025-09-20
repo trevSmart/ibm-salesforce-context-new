@@ -57,18 +57,22 @@ class Client {
 		return clientNames.some((name) => currentClientName.includes(name.toLowerCase()));
 	}
 
-	// Client support for the following features is not included in the capabilities
+	// Client support for the following features is not always included in the capabilities
 	// declared by the client. Therefore, we deduce them from other information provided.
 	supportsCapability(capabilityName) {
+		const _clientVersionGreaterThan = (version) => semver.gte(this.getClientVersion(), version);
 		switch (capabilityName) {
-			case 'resources':
-			case 'embeddedResources':
 			case 'logging':
-				return Boolean(this.capabilities?.logging) || this.is(['Visual Studio Code', 'microscope']);
+				return Boolean(this.capabilities?.logging) || this.is(['Visual Studio Code', 'Visual Studio Code - Insiders']);
+
+			case 'resources':
+				return Boolean(this.capabilities?.[capabilityName]) || this.is(['Visual Studio Code', 'Visual Studio Code - Insiders']);
+
+			case 'embeddedResources':
+				return this.is(['Visual Studio Code', 'Visual Studio Code - Insiders']);
 
 			case 'resource_links':
-				return this.is(['Visual Studio Code']) && semver.gte(this.clientInfo.version, '1.103.0');
-			//TODO this.is(['MiCroscoPe']) ||
+				return this.is(['Visual Studio Code', 'Visual Studio Code - Insiders']) && semver.gte(this.clientInfo.version, '1.103.0');
 
 			default:
 				return Boolean(this.capabilities?.[capabilityName]);
