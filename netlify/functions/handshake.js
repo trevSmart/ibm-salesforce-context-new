@@ -1,5 +1,5 @@
 exports.handler = async (event) => {
-    const expectedPassword = "caga tio"; // contrasenya simbòlica
+    const expectedPassword = process.env.PASSWORD_SECRET; // contrasenya simbòlica
 
     // Només acceptem POST
     if (event.httpMethod !== "POST") {
