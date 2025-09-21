@@ -17,7 +17,7 @@ exports.handler = async (event) => {
     }
 
     // Create issue on GitHub
-    const response = await fetch('https://api.github.com/repos/mplaaguilera/mcp_salesforce/issues', {
+    const response = await fetch('https://api.github.com/repos/trevSmart/ibm-salesforce-context/issues', {
       method: 'POST',
       headers: {
         'Authorization': `token ${process.env.GITHUB_TOKEN}`,
