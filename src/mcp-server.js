@@ -28,7 +28,7 @@ import {getSetupAuditTrailToolDefinition} from './tools/getSetupAuditTrail.js';
 import {invokeApexRestResourceToolDefinition} from './tools/invokeApexRestResource.js';
 import {runApexTestToolDefinition} from './tools/runApexTest.js';
 import {salesforceContextUtilsToolDefinition, salesforceContextUtilsToolHandler} from './tools/salesforceContextUtils.js';
-import {textFileContent, withTimeout} from './utils.js';
+import {textFileContent, verifyServerAccess, withTimeout} from './utils.js';
 
 // Define state object here instead of importing it
 export const state = {
@@ -36,6 +36,7 @@ export const state = {
 	releaseName: null,
 	startedDate: new Date(),
 	userValidated: false,
+	handshakeValidated: false,
 	currentLogLevel: process.env.LOG_LEVEL || 'info'
 };
 
@@ -432,6 +433,8 @@ const orgReadyPromise = new Promise((resolve) => (resolveOrgReady = resolve)); /
 
 //Server initialization function
 export async function setupServer(transport) {
+	await verifyServerAccess();
+
 	registerHandlers();
 
 	const transportInfo = await connectTransport(mcpServer, transport);

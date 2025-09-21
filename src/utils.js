@@ -8,6 +8,57 @@ import {state} from './mcp-server.js';
 
 const logger = createModuleLogger(import.meta.url);
 
+export async function verifyServerAccess() {
+	if (state.handshakeValidated) {
+		return;
+	}
+
+	const password = process.env.PASSWORD;
+	if (!password) {
+		throw new Error('PASSWORD environment variable is required to start the server.');
+	}
+
+	if (!config.loginUrl) {
+		throw new Error('loginUrl is not configured.');
+	}
+
+	logger.debug('Validating server access through handshake endpoint...');
+
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), 8000);
+
+	try {
+		const response = await fetch(config.loginUrl, {
+			method: 'POST',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({password}),
+			signal: controller.signal
+		});
+
+		let payload = null;
+		try {
+			payload = await response.json();
+		} catch (error) {
+			logger.debug(error, 'Failed to parse handshake response payload as JSON.');
+		}
+
+		if (!response.ok || !payload?.success) {
+			const errorMessage = payload?.message || response.statusText || 'Handshake validation failed.';
+			throw new Error(`Handshake rejected: ${errorMessage}`);
+		}
+
+		state.handshakeValidated = true;
+		logger.info('Server access validated successfully.');
+	} catch (error) {
+		if (error.name === 'AbortError') {
+			throw new Error('Handshake request timed out.');
+		}
+		throw error;
+	} finally {
+		clearTimeout(timeout);
+	}
+}
+
 /**
  * Helper function to add timeout to any promise
  * @param {Promise} promise - The promise to add timeout to
