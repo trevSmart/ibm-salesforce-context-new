@@ -13,7 +13,7 @@ describe('deployMetadata', () => {
 	})
 
 	test('validation only', async () => {
-		// Verificar que el client està definit
+		// Verify that the client is defined
 		expect(client).toBeTruthy()
 
 		// This test only validates the tool exists and can be called

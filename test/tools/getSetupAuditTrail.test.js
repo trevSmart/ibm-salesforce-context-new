@@ -29,7 +29,7 @@ describe('getSetupAuditTrail', () => {
 	test.skipIf(process.env.SKIP_OPTIONAL_TESTS === 'true')(
 		'basic',
 		async () => {
-			// Verificar que el client està definit
+			// Verify that the client is defined
 			expect(client).toBeTruthy()
 
 			const result = await client.callTool('getSetupAuditTrail', { lastDays: 7 })

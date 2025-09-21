@@ -27,7 +27,7 @@ beforeAll(async () => {
 			fs.rmSync(artifactsDir, { recursive: true, force: true })
 		}
 	} catch (err) {
-		console.error('No s’ha pogut netejar .test-artifacts:', err)
+		console.error('Could not clean .test-artifacts:', err)
 	}
 
 	await setupServer('http')
@@ -39,7 +39,7 @@ afterAll(async () => {
 	await mcpServer.close()
 })
 
-// Helper per noms de fitxer
+// Helper for file names
 function slug(s: string) {
 	return s
 		.toLowerCase()
@@ -48,7 +48,7 @@ function slug(s: string) {
 		.slice(0, 80)
 }
 
-// Escriu artifact a fitxer
+// Write artifact to file
 function writeArtifact(testName: string, label: string, data: unknown) {
 	const dir = path.join(process.cwd(), '.test-artifacts')
 	fs.mkdirSync(dir, { recursive: true })
@@ -57,14 +57,14 @@ function writeArtifact(testName: string, label: string, data: unknown) {
 	return file
 }
 
-// Matcher personalitzat: si no és true, bolca `dump` a .test-artifacts
+// Custom matcher: if not true, dump `dump` to .test-artifacts
 expect.extend({
 	toBeTruthyAndDump(received: unknown, dump: unknown) {
 		const pass = Boolean(received)
 		if (pass) {
 			return { pass: true, message: () => 'value was true' }
 		}
-		// biome-ignore lint/suspicious/noMisplacedAssertion: <és un expect.extend>
+		// biome-ignore lint/suspicious/noMisplacedAssertion: <it's an expect.extend>
 		const testName = expect.getState().currentTestName ?? 'unknown-test'
 		// Handle undefined dump gracefully
 		const dumpData = dump !== undefined ? dump : { received, error: 'dump was undefined' }

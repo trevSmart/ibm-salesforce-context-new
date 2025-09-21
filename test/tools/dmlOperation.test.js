@@ -14,7 +14,7 @@ describe('dmlOperation', () => {
 	})
 
 	test('create', async () => {
-		// Verificar que el client està definit
+		// Verify that the client is defined
 		expect(client).toBeTruthy()
 
 		const result = await client.callTool('dmlOperation', {

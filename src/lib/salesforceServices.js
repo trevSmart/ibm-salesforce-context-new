@@ -832,7 +832,10 @@ export async function generateMetadata({type, name, outputDir, triggerSObject, t
 		};
 
 		const resolvedOutputDir = outputDir || defaultDirs[type];
+		const resolvedDir = path.resolve(process.cwd(), resolvedOutputDir || '.');
 		let command;
+		let folder = null;
+		let folderAlreadyExists = false;
 
 		if (type === 'apexClass' || type === 'apexTestClass') {
 			command = `sf apex generate class --name "${name}"`;
@@ -852,6 +855,11 @@ export async function generateMetadata({type, name, outputDir, triggerSObject, t
 				command += ` --output-dir "${resolvedOutputDir}"`;
 			}
 		} else if (type === 'lwc') {
+			folder = path.join(resolvedDir, name);
+			folderAlreadyExists = await fs
+				.access(folder)
+				.then(() => true)
+				.catch(() => false);
 			command = `sf lightning generate component --type lwc --name "${name}"`;
 			if (resolvedOutputDir) {
 				command += ` --output-dir "${resolvedOutputDir}"`;
@@ -862,9 +870,7 @@ export async function generateMetadata({type, name, outputDir, triggerSObject, t
 
 		const stdout = await runCliCommand(command);
 
-		const resolvedDir = path.resolve(process.cwd(), resolvedOutputDir || '.');
 		let files = [];
-		let folder = null;
 
 		if (type === 'apexClass' || type === 'apexTestClass') {
 			const classFilePath = path.join(resolvedDir, `${name}.cls`);
@@ -924,7 +930,6 @@ public class ${name} {
 				logger.error(`File not accessible: ${metaFilePath}`);
 			}
 		} else if (type === 'lwc') {
-			folder = path.join(resolvedDir, name);
 			try {
 				const entries = await fs.readdir(folder);
 				files = entries.map((f) => path.join(folder, f));
@@ -940,6 +945,7 @@ public class ${name} {
 			triggerSObject,
 			outputDir: resolvedDir,
 			folder,
+			folderAlreadyExists,
 			files,
 			stdout
 		};

@@ -13,7 +13,7 @@ describe('executeAnonymousApex', () => {
 	})
 
 	test('simple', async () => {
-		// Verificar que el client està definit
+		// Verify that the client is defined
 		expect(client).toBeTruthy()
 
 		const result = await client.callTool('executeAnonymousApex', {
@@ -23,7 +23,7 @@ describe('executeAnonymousApex', () => {
 		})
 		expect(result).toBeTruthy()
 
-		// Comprovem que el resultat té l'estructura esperada
+		// Check that the result has the expected structure
 		if (result?.structuredContent?.success !== undefined) {
 			expect(result.structuredContent.success).toBe(true)
 		}

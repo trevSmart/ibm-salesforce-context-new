@@ -22,7 +22,7 @@ body {
 	min-height: 100vh;
 }
 
-/* Overlay per a la segona imatge */
+/* Overlay for the second image */
 body::before {
 	content: "";
 	position: fixed;

@@ -372,7 +372,7 @@ function registerHandlers() {
 
 			await updateOrgAndUserDetails();
 
-			//Lògica post-inicialització
+			// Post-initialization logic
 			const postInitialization = async () => {
 				try {
 					if (!state.org.username) {
@@ -407,7 +407,7 @@ function registerHandlers() {
 				}
 			};
 
-			// Executar post-inicialització de forma asíncrona sense bloquejar la inicialització
+			// Execute post-initialization asynchronously without blocking initialization
 			postInitialization().catch((error) => {
 				logger.warn(error, 'Post-initialization failed completely, some features may be unavailable or may not work as expected');
 			});

@@ -21,8 +21,8 @@ describe('salesforceContextUtils', () => {
 	test('getState', async () => {
 		const result = await client.callTool('salesforceContextUtils', {action: 'getState'});
 
-		// ÚS DEL MATCHER PERSONALITZAT
-		// Si no és true, escriu structuredContent a .test-artifacts/
+		// USE OF CUSTOM MATCHER
+		// If not true, write structuredContent to .test-artifacts/
 		expect(result?.structuredContent?.state?.org?.user?.id).toBeTruthyAndDump(result?.structuredContent);
 	});
 

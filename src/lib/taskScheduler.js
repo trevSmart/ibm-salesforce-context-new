@@ -68,10 +68,10 @@ class TaskScheduler {
 	initializeTasks() {
 		logger.info('Initializing task scheduler...');
 
-		// Verificar tasques pendents quan s'inicia el servidor
+		// Check pending tasks when server starts
 		this.checkPendingTasks();
 
-		// Configurar tasques programades
+		// Configure scheduled tasks
 		// this.scheduleTask('cliUpdate', this.updateSalesforceCli.bind(this));
 		// this.scheduleTask('metadataSync', this.syncMetadata.bind(this));
 
@@ -112,7 +112,7 @@ class TaskScheduler {
 		try {
 			logger.info('Starting Salesforce CLI update...');
 
-			// Executar en segon pla sense esperar
+			// Execute in background without waiting
 			exec('sf update', (error, stdout, stderr) => {
 				if (error) {
 					logger.error('Failed to update Salesforce CLI:', error);
@@ -179,7 +179,7 @@ class TaskScheduler {
 		for (const [taskName, taskConfig] of Object.entries(tasks)) {
 			if (taskConfig.nextRun && new Date(taskConfig.nextRun) <= now) {
 				logger.info(`Executing pending task: ${taskName}`);
-				// Executar la tasca immediatament
+				// Execute the task immediately
 				this.executeTask(taskName);
 			}
 		}

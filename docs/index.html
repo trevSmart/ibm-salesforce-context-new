@@ -354,7 +354,7 @@
 			}
 		});
 
-		// Smooth scrolling per als enllaços de navegació
+		// Smooth scrolling for navigation links
 		document.addEventListener('DOMContentLoaded', function () {
 			const navLinks = document.querySelectorAll('a[href^="#"]');
 
@@ -409,34 +409,34 @@
 		}
 	</script>
 
-	<!-- Script per a la transició d'imatges de fons -->
+	<!-- Script for background image transition -->
 	<script>
-		// Control de la transició d'imatges de fons segons el scroll
+		// Control background image transition based on scroll
 		window.addEventListener('scroll', function () {
 			const scrolled = window.pageYOffset;
 			const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
 			const scrollProgress = scrolled / maxScroll;
 
-			// Calcular l'opacitat proporcional al scroll
-			// Començar amb 10% i anar fins a 100%
-			// scrollProgress va de 0 (inici) a 1 (final)
-			const baseOpacity = 0.1; // 10% inicial
-			const rangeOpacity = 0.9; // 90% restant
+			// Calculate opacity proportional to scroll
+			// Start with 10% and go up to 100%
+			// scrollProgress goes from 0 (start) to 1 (end)
+			const baseOpacity = 0.1; // 10% initial
+			const rangeOpacity = 0.9; // 90% remaining
 			const opacity = baseOpacity + (scrollProgress * rangeOpacity);
 
-			// Aplicar l'opacitat directament a l'overlay
+			// Apply opacity directly to overlay
 			const overlay = document.querySelector('body::before');
 			if (overlay) {
 				overlay.style.opacity = opacity;
 			} else {
-				// Fallback: aplicar l'opacitat via CSS custom property
+				// Fallback: apply opacity via CSS custom property
 				document.documentElement.style.setProperty('--overlay-opacity', opacity);
 			}
 		});
 
-		// Aplicar la transició inicial quan es carrega la pàgina
+		// Apply initial transition when page loads
 		document.addEventListener('DOMContentLoaded', function () {
-			// Començar amb opacitat 10% (imatge B ja visible)
+			// Start with 10% opacity (image B already visible)
 			document.documentElement.style.setProperty('--overlay-opacity', '0.1');
 		});
 	</script>

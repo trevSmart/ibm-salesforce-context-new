@@ -1,4 +1,4 @@
-// biome-ignore-all lint/style/useNamingConvention: A la resposta de la API no estan en camelCase
+// biome-ignore-all lint/style/useNamingConvention: API response fields are not in camelCase
 import {z} from 'zod';
 import {createModuleLogger} from '../lib/logger.js';
 import {callSalesforceApi} from '../lib/salesforceServices.js';

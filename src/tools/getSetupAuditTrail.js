@@ -496,7 +496,7 @@ export async function getSetupAuditTrailToolHandler({lastDays = 30, user = null,
 		// Parse filtered lines into records
 		const records = parseCsvToRecords(filteredLines.join('\n'), userNamesMap);
 
-		// Comprimir el camp Action per reduir la mida de la resposta
+		// Compress the Action field to reduce response size
 		const compressedRecords = compressActionField(records);
 
 		newResource(resourceUri, 'Setup audit trail CSV', 'Setup audit trail CSV', 'text/csv', originalFileContent, {audience: ['user', 'assistant']});
