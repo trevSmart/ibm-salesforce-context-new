@@ -51,6 +51,6 @@ export default {
 		// instructions are retrieved in mcp-server.js
 	},
 	issueReporting: {
-		webhookUrl: 'https://mcp-salesforce-issue-webhook.netlify.app/.netlify/functions/report-issue'
+		webhookUrl: 'https:/ibm-salesforce-context.netlify.app/.netlify/functions/report-issue'
 	}
 };
