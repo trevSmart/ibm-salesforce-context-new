@@ -77,14 +77,16 @@ describe('MCP HTTP Connection Test', () => {
 			params: {
 				protocolVersion: '2025-06-18',
 				capabilities: {
+					logging: {},
+					resources: {},
 					roots: { listChanged: true },
-					sampling: {},
+					sampling: {}
 				},
 				clientInfo: {
 					name: 'vitest-test-client',
-					version: '1.0.0',
-				},
-			},
+					version: '1.0.0'
+				}
+			}
 		}
 
 		const response = await fetch(baseUrl, {
@@ -102,7 +104,7 @@ describe('MCP HTTP Connection Test', () => {
 		const data = await parseSseResponse(response)
 		expect(data).toBeDefined()
 		expect(data?.jsonrpc).toBe('2.0')
-		expect(data?.result).toBeDefined()
+		expect(data?.result).toBeTruthyAndDump(data?.result)
 		expect(data?.result?.protocolVersion).toBe('2025-06-18')
 		expect(data?.result?.serverInfo).toBeDefined()
 		expect(data?.result?.serverInfo?.name).toBe('IBM Salesforce Context')
@@ -120,12 +122,13 @@ describe('MCP HTTP Connection Test', () => {
 			action: 'getOrgAndUserDetails',
 		})
 
-		const structuredContent = result?.structuredContent
-		expect(structuredContent).toBeTruthy()
-		expect(structuredContent.org).toBeTruthy()
-		expect(structuredContent.org.id).toBeTruthy()
-		expect(structuredContent.user).toBeTruthy()
-		expect(structuredContent.user.id).toBeTruthy()
+		const structuredContent = result?.structuredContent as { id: string, alias: string, user: { id: string, username: string } }
+
+		expect(structuredContent).toBeTruthyAndDump(structuredContent)
+		expect(structuredContent.id).toBeTruthy()
+		expect(structuredContent.alias).toBeTypeOf('string')
+		expect(structuredContent.user).toBeTruthyAndDump(structuredContent.user)
+		expect(structuredContent.user.username).toBeTruthy()
 	}, 10000)
 
 	it('should list available tools', async () => {
@@ -137,17 +140,31 @@ describe('MCP HTTP Connection Test', () => {
 			method: 'tools/list',
 		}
 
-		const response = await fetch(baseUrl, {
-			method: 'POST',
-			headers: {
-				'content-type': 'application/json',
-				accept: 'application/json, text/event-stream',
-				'mcp-session-id': sessionId || '',
-			},
-			body: JSON.stringify(toolsRequest),
-		})
+		let response: Awaited<ReturnType<typeof fetch>> | null = null
+		try {
+			response = await fetch(baseUrl, {
+				method: 'POST',
+				headers: {
+					'content-type': 'application/json',
+					accept: 'application/json, text/event-stream',
+					'mcp-session-id': sessionId || ''
+				},
+				body: JSON.stringify(toolsRequest)
+			})
+			console.error('🔥 response', JSON.stringify(response, null, 2))
+		} catch (error) {
+			console.error('🔥 error', error)
+		}
 
-		expect(response.ok).toBe(true)
+
+		console.error('')
+		console.error('🔥')
+		console.error('🔥 response', JSON.stringify(response, null, 2))
+		console.error('🔥');
+		console.error('');
+
+		expect(response).toBeTruthyAndDump(response)
+		expect(response.ok).toBeTruthyAndDump( response.ok )
 
 		const data = await parseSseResponse(response)
 		expect(data).toBeDefined()
@@ -217,7 +234,8 @@ describe('MCP HTTP Connection Test', () => {
 			body: JSON.stringify(promptsRequest),
 		})
 
-		expect(response.ok).toBe(true)
+		expect(response).toBeTruthyAndDump(response)
+		expect(response.ok).toBeTruthyAndDump(response.ok)
 
 		const data = await parseSseResponse(response)
 		expect(data).toBeDefined()
