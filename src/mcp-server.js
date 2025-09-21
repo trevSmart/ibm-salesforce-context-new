@@ -350,15 +350,17 @@ function registerHandlers() {
 	mcpServer.server.setRequestHandler(InitializeRequestSchema, async ({params}) => {
 		try {
 			const {clientInfo, capabilities: clientCapabilities, protocolVersion: clientProtocolVersion} = params;
-			client.initialize({
-				clientInfo,
-				capabilities: clientCapabilities
-			});
+			client.initialize({clientInfo, capabilities: clientCapabilities});
 
 			logger.info(`IBM Salesforce Context (v${config.serverConstants.serverInfo.version})`);
 
-			const clientCapabilitiesString = `Client capabilities: ${JSON.stringify(client.capabilities, null, 3)}`;
-			logger.info(`Connecting with client "${client.clientInfo.name}" (v${client.clientInfo.version}).\n${clientCapabilitiesString}`);
+			const logMsg = {
+				name: client.clientInfo.name || 'unknown',
+				version: client.clientInfo.version || 'unknown',
+				protocolVersion: clientProtocolVersion || 'unknown',
+				capabilities: JSON.stringify(client.capabilities, null, 3)
+			};
+			logger.info(`Connecting with client "${logMsg.name}" (v${logMsg.version}).\nProtocol version: ${logMsg.protocolVersion}\n${logMsg.capabilities}`);
 
 			logger.info(`Current log level: ${state.currentLogLevel}`);
 
