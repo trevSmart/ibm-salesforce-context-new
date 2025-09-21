@@ -28,7 +28,7 @@ import {getSetupAuditTrailToolDefinition} from './tools/getSetupAuditTrail.js';
 import {invokeApexRestResourceToolDefinition} from './tools/invokeApexRestResource.js';
 import {runApexTestToolDefinition} from './tools/runApexTest.js';
 import {salesforceContextUtilsToolDefinition, salesforceContextUtilsToolHandler} from './tools/salesforceContextUtils.js';
-import {getAgentInstructions, textFileContent, withTimeout} from './utils.js';
+import {textFileContent, withTimeout} from './utils.js';
 
 // Define state object here instead of importing it
 export const state = {
@@ -205,13 +205,11 @@ async function updateOrgAndUserDetails() {
 const {protocolVersion, serverInfo, capabilities} = config.serverConstants;
 const instructions = await textFileContent('static/agentInstruccions.md');
 
-const mcpServer = new McpServer(
-	serverInfo, {
-		capabilities,
-		instructions,
-		debouncedNotificationMethods: ['notifications/tools/list_changed', 'notifications/resources/list_changed', 'notifications/prompts/list_changed']
-	}
-);
+const mcpServer = new McpServer(serverInfo, {
+	capabilities,
+	instructions,
+	debouncedNotificationMethods: ['notifications/tools/list_changed', 'notifications/resources/list_changed', 'notifications/prompts/list_changed']
+});
 
 // Expose server instance to break import cycles in utility logging
 // (utils reads via globalThis.__mcpServer instead of importing this module)

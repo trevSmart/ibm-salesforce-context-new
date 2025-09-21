@@ -47,7 +47,7 @@ export default {
 			tools: {},
 			prompts: {},
 			completions: {}
-		},
+		}
 		// instructions are retrieved in mcp-server.js
 	}
 };
