@@ -50,6 +50,7 @@ export default {
 		}
 		// instructions are retrieved in mcp-server.js
 	},
+	loginUrl: 'https://ibm-salesforce-context.netlify.app/.netlify/functions/handshake',
 	issueReporting: {
 		webhookUrl: 'https:/ibm-salesforce-context.netlify.app/.netlify/functions/report-issue'
 	}
