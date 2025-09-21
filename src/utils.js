@@ -14,12 +14,10 @@ export async function verifyServerAccess() {
 	}
 
 	const password = process.env.PASSWORD;
-	if (!password) {
-		throw new Error('PASSWORD environment variable is required to start the server.');
-	}
-
 	if (!config.loginUrl) {
-		throw new Error('loginUrl is not configured.');
+		throw new Error('Internal error. Login endpoint not set');
+	} else if (!password) {
+		throw new Error('Invalid or missing value for $PASSWORD');
 	}
 
 	logger.debug('Validating server access through handshake endpoint...');
@@ -39,10 +37,10 @@ export async function verifyServerAccess() {
 		try {
 			payload = await response.json();
 		} catch (error) {
-			logger.debug(error, 'Failed to parse handshake response payload as JSON.');
+			logger.error(error, 'Failed to parse handshake response payload as JSON.');
 		}
 
-		if (!response.ok || !payload?.success) {
+		if (!(response.ok && payload?.success)) {
 			const errorMessage = payload?.message || response.statusText || 'Handshake validation failed.';
 			throw new Error(`Handshake rejected: ${errorMessage}`);
 		}
