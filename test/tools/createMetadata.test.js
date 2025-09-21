@@ -81,8 +81,8 @@ describe('createMetadata', () => {
 		if (result?.structuredContent?.files) {
 			createdFiles.push(...result.structuredContent.files)
 		}
-		expect(result?.structuredContent?.success).toBe(true)
-		expect(result.structuredContent.files).toBeTruthy()
+		expect(result?.structuredContent?.success).toBeTruthyAndDump(result?.structuredContent)
+		expect(result?.structuredContent?.files).toBeTruthy()
 	})
 
 	test('Apex test class', async () => {
@@ -93,8 +93,7 @@ describe('createMetadata', () => {
 		if (result?.structuredContent?.files) {
 			createdFiles.push(...result.structuredContent.files)
 		}
-		console.error('🔥 result', result)
-		expect(result?.structuredContent?.success).toBe(true)
+		expect(result?.structuredContent?.success).toBeTruthyAndDump(result?.structuredContent)
 	})
 
 	test('Apex trigger', async () => {
@@ -107,8 +106,7 @@ describe('createMetadata', () => {
 		if (result?.structuredContent?.files) {
 			createdFiles.push(...result.structuredContent.files)
 		}
-		console.error('🔥 result', result)
-		expect(result?.structuredContent?.success).toBe(true)
+		expect(result?.structuredContent?.success).toBeTruthyAndDump(result?.structuredContent)
 	})
 
 	test('LWC', async () => {
@@ -119,7 +117,10 @@ describe('createMetadata', () => {
 		if (result?.structuredContent?.files) {
 			createdFiles.push(...result.structuredContent.files)
 		}
-		console.error('🔥 result', result)
-		expect(result?.structuredContent?.success).toBe(true)
+		expect(result?.structuredContent?.success).toBeTruthyAndDump(result?.structuredContent)
+		expect(result.structuredContent.files.some((filePath) => filePath.includes('__tests__'))).toBe(false)
+		if (typeof result.structuredContent.stdout === 'string') {
+			expect(result.structuredContent.stdout.includes('__tests__')).toBe(false)
+		}
 	})
 })

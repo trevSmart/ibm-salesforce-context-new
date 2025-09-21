@@ -49,5 +49,8 @@ export default {
 			completions: {}
 		}
 		// instructions are retrieved in mcp-server.js
+	},
+	issueReporting: {
+		webhookUrl: 'https://mcp-salesforce-issue-webhook.netlify.app/.netlify/functions/report-issue'
 	}
 };

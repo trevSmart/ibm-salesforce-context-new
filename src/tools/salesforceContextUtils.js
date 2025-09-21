@@ -417,7 +417,7 @@ IMPORTANT: Generate your response in English.`;
 			try {
 				// Send issue to Netlify webhook
 				logger.info('Sending issue');
-				const response = await fetch('https://mcp-salesforce-issue-webhook.netlify.app/.netlify/functions/report-issue', {
+				const response = await fetch(config.issueReporting.webhookUrl, {
 					method: 'POST',
 					headers: {'Content-Type': 'application/json'},
 					body: JSON.stringify(issueData)
