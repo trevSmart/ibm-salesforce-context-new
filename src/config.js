@@ -48,6 +48,6 @@ export default {
 			prompts: {},
 			completions: {}
 		},
-		instructions: null // Instructions will be loaded lazily to avoid circular dependencies
+		// instructions are retrieved in mcp-server.js
 	}
 };
