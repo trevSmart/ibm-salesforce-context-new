@@ -7,7 +7,7 @@ response=$(curl -s -X POST "https://test.salesforce.com/services/oauth2/token" \
   -d "username=$SF_ORG_CLIENT_USERNAME" \
   -d "password=$SF_ORG_CLIENT_PASSWORD")
 
-apt install jq
+apt install -y jq
 
 echo "$response" | jq -r '.access_token'
 echo "$response" | jq -r '.instance_url'

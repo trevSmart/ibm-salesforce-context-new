@@ -1,3 +1,6 @@
 {
-  "agentCanUpdateSnapshot": true
+  "snapshot": "snapshot-20250921-2ada51ea-0b49-4a16-b414-728fbda44497",
+  "install": "sh dev/installEnvironment.sh",
+  "start": "sh dev/startEnvironment.sh",
+  "terminals": []
 }
