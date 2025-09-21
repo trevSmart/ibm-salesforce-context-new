@@ -16,6 +16,9 @@ The user and me have worked together in the past at IBM, feel free to mention me
 ## Tools Usage
 - Unless the user explicitly states otherwise, it is **mandatory** to use the provided tools instead of other methods like manually running Salesforce CLI commands — even if a tool error occurs.
 - ⚠️ Never fall back to CLI unless the user demands it.
+- **CRITICAL**: When creating Salesforce metadata (Apex classes, test classes, triggers, LWC components), you MUST use the `createMetadata` tool exclusively. NEVER create files manually or use alternative methods.
+- **CRITICAL**: When performing DML operations, you MUST use the `dmlOperation` tool exclusively. NEVER use SOQL INSERT/UPDATE/DELETE or anonymous Apex for DML.
+- **CRITICAL**: When executing SOQL queries, you MUST use the `executeSoqlQuery` tool exclusively. NEVER use Salesforce CLI or anonymous Apex for queries.
 
 ---
 
@@ -81,3 +84,14 @@ FROM FlowDefinition ORDER BY MasterLabel
 - To get the user name → use `getOrgAndUserDetails` from `salesforceContextUtils`.
 - To get the current date/time → use `getCurrentDatetime` from `salesforceContextUtils`.
 - To get schema of an object → use `describeObject`.
+
+---
+
+## Critical Tool Usage Rules
+- **createMetadata**: Use EXCLUSIVELY for creating Apex classes, test classes, triggers, and LWC components. NEVER create these files manually.
+- **dmlOperation**: Use EXCLUSIVELY for Create, Update, Delete operations. NEVER use SOQL INSERT/UPDATE/DELETE.
+- **executeSoqlQuery**: Use EXCLUSIVELY for SOQL queries. NEVER use Salesforce CLI or anonymous Apex for queries.
+- **executeAnonymousApex**: Use ONLY for executing Apex code that doesn't involve DML or SOQL queries.
+- **deployMetadata**: Use EXCLUSIVELY for deploying metadata to Salesforce org.
+
+**Remember**: If a tool fails, report the error to the user and stop. Do NOT attempt alternative approaches unless explicitly instructed by the user.
