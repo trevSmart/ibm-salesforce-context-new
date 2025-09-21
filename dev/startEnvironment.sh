@@ -1,7 +1,4 @@
-source .env
-
-npm install @salesforce/cli -g && npm install
-
+#!/bin/bash
 response=$(curl -s -X POST "https://test.salesforce.com/services/oauth2/token" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "grant_type=password" \
