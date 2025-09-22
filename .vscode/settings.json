@@ -113,10 +113,7 @@
             {
                 "name": "$(package) Publish server",
                 "useVsCodeApi": true,
-                "command": "workbench.action.tasks.runTask",
-                "args": [
-                    "Publish server package"
-                ],
+                "command": "workbench.action.tasks.build",
                 "color": "#ac5858"
             }
         ],

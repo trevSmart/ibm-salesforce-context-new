@@ -57,3 +57,7 @@ biome.json
 # Intentionally NOT ignoring dist/ so it is published
 # Intentionally NOT ignoring src/ for now because the current entrypoint imports from ./src
 
+force-app/
+sfdx-project.json
+.sfdx/
+.sf/

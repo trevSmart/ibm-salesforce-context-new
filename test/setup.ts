@@ -1,6 +1,15 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { afterAll, beforeAll, expect } from 'vitest'
+import { config } from 'dotenv'
+
+// Load environment variables from .env file before running tests
+config()
+
+// Verify that PASSWORD environment variable is loaded
+if (!process.env.PASSWORD) {
+	console.warn('Warning: PASSWORD environment variable not found. Make sure .env file exists and contains PASSWORD=value')
+}
 
 // Determine which server to use based on current working directory and environment
 const isRunningFromDist = process.cwd().endsWith('/dist') || process.cwd().endsWith('\\dist')

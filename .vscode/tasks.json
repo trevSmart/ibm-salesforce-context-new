@@ -104,12 +104,59 @@
 			"type": "npm",
 			"script": "publish-package",
 			"group": {
-				"kind": "build",
-				"isDefault": true
+				"kind": "build"
 			},
 			"problemMatcher": [],
 			"label": "Publish server package",
 			"detail": "Publish server package to npm",
+			"presentation": {
+				"showReuseMessage": false,
+				"close": false,
+				"panel": "new",
+				"focus": true
+			}
+		},
+		{
+			"type": "npm",
+			"script": "publish-package-skip-tests",
+			"group": {
+				"kind": "build"
+			},
+			"problemMatcher": [],
+			"label": "Publish server package (skip tests)",
+			"detail": "Publish server package to npm (skip tests)",
+			"presentation": {
+				"showReuseMessage": false,
+				"close": false,
+				"panel": "new",
+				"focus": true
+			}
+		},
+		{
+			"type": "npm",
+			"script": "publish-package-skip-obfuscation",
+			"group": {
+				"kind": "build"
+			},
+			"problemMatcher": [],
+			"label": "Publish server package (skip obfuscation)",
+			"detail": "Publish server package to npm (skip obfuscation)",
+			"presentation": {
+				"showReuseMessage": false,
+				"close": false,
+				"panel": "new",
+				"focus": true
+			}
+		},
+		{
+			"type": "npm",
+			"script": "publish-package-skip-tests-and-obfuscation",
+			"group": {
+				"kind": "build"
+			},
+			"problemMatcher": [],
+			"label": "Publish server package (skip tests and obfuscation)",
+			"detail": "Publish server package to npm (skip tests and obfuscation)",
 			"presentation": {
 				"showReuseMessage": false,
 				"close": false,
