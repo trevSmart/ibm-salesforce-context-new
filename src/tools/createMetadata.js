@@ -34,6 +34,10 @@ export async function createMetadataToolHandler({type, name, outputDir, triggerS
 	try {
 		const result = await generateMetadata({type, name, outputDir, triggerSObject, triggerEvent});
 
+		console.error('🔥');
+		console.error('🔥 result', result);
+		console.error('🔥');
+
 		const testsDirPath = path.join(result.folder, '__tests__');
 		if (type === 'lwc' && result.folder && !result.folderAlreadyExists && result.files.includes(testsDirPath)) {
 			try {

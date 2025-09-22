@@ -1,6 +1,4 @@
-import {readFileSync} from 'node:fs';
-
-const orgOnboardingApexScript = readFileSync(new URL('../static/orgOnboarding.apex', import.meta.url), 'utf-8').trim();
+import {textFileContent} from '../utils.js';
 
 /**
  * @fileoverview Prompt for Salesforce org discovery and onboarding support
@@ -18,7 +16,13 @@ export const orgOnboardingPromptDefinition = {
  * Prompt handler for Salesforce org discovery and onboarding support
  * This prompt guides the agent to automatically discover essential org information
  */
-export function orgOnboardingPromptHandler() {
+export async function orgOnboardingPromptHandler() {
+	// Load Apex script content via generalized textFileContent helper.
+	// Works in dev (src/static/*.apex) and in packaged builds (src/static/*.apex.pam).
+	const orgOnboardingApexScript = await textFileContent('static/orgOnboarding.apex');
+	if (!orgOnboardingApexScript) {
+		throw new Error('No orgOnboarding.apex(.pam) content found under static');
+	}
 	return {
 		messages: [
 			{

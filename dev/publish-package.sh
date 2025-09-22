@@ -8,27 +8,35 @@ export SKIP_OPTIONAL_TESTS=true
 
 # Process command line options
 SKIP_TESTS=false
+SKIP_OBFUSCATION=false
 while [ $# -gt 0 ]; do
   case "$1" in
     --skip-tests)
       SKIP_TESTS=true
       shift
       ;;
+    --skip-obfuscation)
+      SKIP_OBFUSCATION=true
+      shift
+      ;;
     -h|--help)
-      echo "Usage: $0 [--skip-tests]"
+      echo "Usage: $0 [--skip-tests] [--skip-obfuscation]"
       echo ""
       echo "Options:"
-      echo "  --skip-tests    Skip running all tests (not recommended)"
-      echo "  -h, --help      Show this help"
+      echo "  --skip-tests         Skip running all tests (not recommended)"
+      echo "  --skip-obfuscation   Skip JavaScript code obfuscation (not recommended)"
+      echo "  -h, --help           Show this help"
       echo ""
       echo "Examples:"
-      echo "  $0              Run all tests (recommended)"
-      echo "  $0 --skip-tests Skip all tests (advanced use)"
+      echo "  $0                           Run all tests (recommended)"
+      echo "  $0 --skip-tests              Skip all tests (advanced use)"
+      echo "  $0 --skip-obfuscation        Skip obfuscation (advanced use)"
+      echo "  $0 --skip-tests --skip-obfuscation  Skip both tests and obfuscation"
       exit 0
       ;;
     *)
       echo "Unknown option: $1"
-      echo "Usage: $0 [--skip-tests]"
+      echo "Usage: $0 [--skip-tests] [--skip-obfuscation]"
       echo "Run '$0 --help' for complete help"
       exit 1
       ;;
@@ -46,6 +54,11 @@ if [ "$SKIP_TESTS" = "true" ]; then
   echo "\033[38;2;255;165;0m⚠️ --skip-tests mode activated: all tests will be skipped\033[0m"
   echo "\033[38;2;255;165;0m   This includes: basic tests, tests against obfuscated build, and npx validation\033[0m"
   echo "\033[38;2;255;165;0m   Use only in emergency or advanced development cases\033[0m"
+fi
+if [ "$SKIP_OBFUSCATION" = "true" ]; then
+  echo "\033[38;2;255;165;0m⚠️ --skip-obfuscation mode activated: JavaScript code will not be obfuscated\033[0m"
+  echo "\033[38;2;255;165;0m   This means source code will be published in readable form\033[0m"
+  echo "\033[38;2;255;165;0m   Use only for development or debugging purposes\033[0m"
 fi
 echo
 
@@ -216,7 +229,11 @@ echo
 node dev/updateReadme.js > /dev/null 2>&1 || true
 
 # Clone source code to dist (with .npmignore exclusions)
-echo "\033[95mGenerating pkg with obfuscated code...\033[0m"
+if [ "$SKIP_OBFUSCATION" = "true" ]; then
+  echo "\033[95mGenerating pkg with readable code (obfuscation skipped)...\033[0m"
+else
+  echo "\033[95mGenerating pkg with obfuscated code...\033[0m"
+fi
 echo
 rm -rf dist || {
   echo "\033[91m❌ Error removing dist directory:\033[0m"
@@ -278,60 +295,64 @@ else
   vecho "   No exported names detected to reserve."
 fi
 
-echo "\033[96mObfuscating JavaScript files (preserving ESM exports)...\033[0m"
-find dist -name '*.js' | while read -r file; do
-  echo "   $file..."
+if [ "$SKIP_OBFUSCATION" = "true" ]; then
+  echo "\033[96mSkipping JavaScript obfuscation (--skip-obfuscation activated)...\033[0m"
+else
+  echo "\033[96mObfuscating JavaScript files (preserving ESM exports)...\033[0m"
+  find dist -name '*.js' | while read -r file; do
+    echo "   $file..."
 
-  # Avoid obfuscating scripts with shebang (e.g., CLI), to prevent processing issues and preserve header
-  if head -n 1 "$file" | grep -q '^#!'; then
-    echo "   (skipped - script with shebang)"
-    continue
-  fi
+    # Avoid obfuscating scripts with shebang (e.g., CLI), to prevent processing issues and preserve header
+    if head -n 1 "$file" | grep -q '^#!'; then
+      echo "   (skipped - script with shebang)"
+      continue
+    fi
 
-  # Continue: also obfuscate ESM but preserve exported names and disable self-defending
+    # Continue: also obfuscate ESM but preserve exported names and disable self-defending
 
-  OBF_LOG=$(mktemp)
-  obf_tmp="${file%.js}.obf.tmp.js"   # IMPORTANT: must end in .js to avoid ghost directories
+    OBF_LOG=$(mktemp)
+    obf_tmp="${file%.js}.obf.tmp.js"   # IMPORTANT: must end in .js to avoid ghost directories
 
-  ./node_modules/.bin/javascript-obfuscator "$file" \
-    --output "$obf_tmp" \
-    --compact true \
-    --target node \
-    --debug-protection false \
-    --unicode-escape-sequence true \
-    --identifier-names-generator hexadecimal \
-    --rename-globals false \
-    --string-array true \
-    --self-defending false \
-    --string-array-threshold 0.75 \
-    ${OBF_RESERVED:+--reserved-names "$OBF_RESERVED"} \
-    >"$OBF_LOG" 2>&1 || {
-      echo "❌ Error obfuscating $file"
-      echo "—— Obfuscator output ——"
-      sed -n '1,200p' "$OBF_LOG"
+    # --identifier-names-generator hexadecimal \
+    ./node_modules/.bin/javascript-obfuscator "$file" \
+      --output "$obf_tmp" \
+      --compact true \
+      --target node \
+      --debug-protection false \
+      --unicode-escape-sequence true \
+      --rename-globals false \
+      --string-array true \
+      --self-defending false \
+      --string-array-threshold 0.75 \
+      ${OBF_RESERVED:+--reserved-names "$OBF_RESERVED"} \
+      >"$OBF_LOG" 2>&1 || {
+        echo "❌ Error obfuscating $file"
+        echo "—— Obfuscator output ——"
+        sed -n '1,200p' "$OBF_LOG"
+        rm -f "$OBF_LOG" "$obf_tmp"
+        restore_versions
+        exit 1
+      }
+
+    # Validate that obfuscated code is valid before replacing
+    if ! node --check "$obf_tmp" 2>/dev/null; then
+      echo "❌ Error: Obfuscated code for $file is not valid JavaScript"
+      echo "—— Obfuscated file content ——"
+      head -n 10 "$obf_tmp"
       rm -f "$OBF_LOG" "$obf_tmp"
       restore_versions
       exit 1
-    }
+    fi
 
-  # Validate that obfuscated code is valid before replacing
-  if ! node --check "$obf_tmp" 2>/dev/null; then
-    echo "❌ Error: Obfuscated code for $file is not valid JavaScript"
-    echo "—— Obfuscated file content ——"
-    head -n 10 "$obf_tmp"
+    # Replace original safely
+    if command -v install >/dev/null 2>&1; then
+      install -m 0644 "$obf_tmp" "$file"
+    else
+      cp -f "$obf_tmp" "$file"
+    fi
     rm -f "$OBF_LOG" "$obf_tmp"
-    restore_versions
-    exit 1
-  fi
-
-  # Replace original safely
-  if command -v install >/dev/null 2>&1; then
-    install -m 0644 "$obf_tmp" "$file"
-  else
-    cp -f "$obf_tmp" "$file"
-  fi
-  rm -f "$OBF_LOG" "$obf_tmp"
-done
+  done
+fi
 
 echo
 
@@ -373,7 +394,11 @@ cd ..
 
 # Re-run tests, now using the MCP server from the obfuscated build in dist/ (if not skipped)
 if [ "$SKIP_TESTS" = "false" ]; then
-  echo "\n\033[95mRunning tests against obfuscated server (dist/)...\033[0m"
+  if [ "$SKIP_OBFUSCATION" = "true" ]; then
+    echo "\n\033[95mRunning tests against readable server (dist/)...\033[0m"
+  else
+    echo "\n\033[95mRunning tests against obfuscated server (dist/)...\033[0m"
+  fi
   TEST_DIST_OUTPUT=$(mktemp)
 
   # Copy test files to dist/ and run tests from there so setup.ts can detect the correct paths
@@ -385,7 +410,11 @@ if [ "$SKIP_TESTS" = "false" ]; then
   cd ..
 
   if ! grep -qE 'Tests[[:space:]]+[0-9]+ passed' "$TEST_DIST_OUTPUT" || grep -qE '(failed|error|Error)' "$TEST_DIST_OUTPUT"; then
-    echo "\033[91m❌ Tests against the obfuscated build have failed.\033[0m"
+    if [ "$SKIP_OBFUSCATION" = "true" ]; then
+      echo "\033[91m❌ Tests against the readable build have failed.\033[0m"
+    else
+      echo "\033[91m❌ Tests against the obfuscated build have failed.\033[0m"
+    fi
     rm -f "$TEST_DIST_OUTPUT"
     restore_versions
     exit 1
@@ -393,83 +422,85 @@ if [ "$SKIP_TESTS" = "false" ]; then
 
   rm -f "$TEST_DIST_OUTPUT"
   echo
-  echo "\033[95m✓ Tests with the obfuscated package completed successfully.\033[0m"
+  if [ "$SKIP_OBFUSCATION" = "true" ]; then
+    echo "\033[95m✓ Tests with the readable package completed successfully.\033[0m"
+  else
+    echo "\033[95m✓ Tests with the obfuscated package completed successfully.\033[0m"
+  fi
 else
-  echo "\033[95m⚠️  Skipping tests against obfuscated server (--skip-tests activated)\033[0m"
+  if [ "$SKIP_OBFUSCATION" = "true" ]; then
+    echo "\033[95m⚠️  Skipping tests against readable server (--skip-tests activated)\033[0m"
+  else
+    echo "\033[95m⚠️  Skipping tests against obfuscated server (--skip-tests activated)\033[0m"
+  fi
 fi
 echo
 echo "\033[95mDo you want to continue with publishing the package to NPM? (Y/n)\033[0m"
 
-# Use a more robust input method that works after the complex countdown logic
-# Create temporary files for input handling
-temp_response_file=$(mktemp)
-temp_response_done=$(mktemp)
-
-# Input listener for the confirmation prompt
-(
-  : > "$temp_response_file"
-  # Save and configure TTY in non-canonical mode to capture keys immediately
-  old_tty=$(stty -g </dev/tty 2>/dev/null || true)
-  trap 'stty "$old_tty" </dev/tty 2>/dev/null || true' EXIT INT TERM
-  stty -icanon min 1 time 1 </dev/tty 2>/dev/null || true
-
-  while :; do
-    # dd blocks until it receives 1 byte or expires (time)
-    c=$(dd if=/dev/tty bs=1 count=1 2>/dev/null || true)
-    # If nothing, check again
-    [ -z "$c" ] && continue
-    # Save the character
-    printf "%s" "$c" >> "$temp_response_file"
-    # If it's a newline, mark as finished
-    last_char=$(printf "%s" "$c" | tail -c 1)
-    if [ "x$last_char" = "x\n" ]; then
-      : > "$temp_response_done"
-      break
-    fi
-  done
-) &
-response_listener_pid=$!
-
-# Wait for user input with a timeout
+# Simple and robust input method using read with timeout
+# This approach is more reliable across different environments
+response=""
 timeout_seconds=30
-timeout_reached=false
-for i in $(seq 1 $timeout_seconds); do
-  if [ -f "$temp_response_done" ]; then
+
+# Use a simple approach with background process and proper stdin handling
+temp_response_file=$(mktemp)
+temp_timeout_file=$(mktemp)
+rm -f "$temp_response_file" "$temp_timeout_file"
+
+# Start timeout process
+(
+  sleep "$timeout_seconds"
+  echo "timeout" > "$temp_timeout_file"
+) &
+timeout_pid=$!
+
+# Start input reader process
+(
+  # Read from /dev/tty when available to ensure interactive prompt works under npm
+  if [ -r /dev/tty ]; then
+    read -r response </dev/tty
+  else
+    read -r response
+  fi
+  echo "$response" > "$temp_response_file"
+) &
+read_pid=$!
+
+# Wait for either input or timeout
+timed_out=false
+while :; do
+  if [ -f "$temp_response_file" ]; then
+    # User provided input
+    response=$(cat "$temp_response_file")
+    kill "$timeout_pid" 2>/dev/null || true
     break
   fi
-  if [ $i -eq $timeout_seconds ]; then
-    timeout_reached=true
+  if [ -f "$temp_timeout_file" ]; then
+    # Timeout reached
+    kill "$read_pid" 2>/dev/null || true
+    timed_out=true
     break
   fi
-  sleep 1
+  sleep 0.1
 done
 
-# Clean up the listener process
-kill "$response_listener_pid" 2>/dev/null || true
-wait "$response_listener_pid" 2>/dev/null || true
+# Clean up processes and files
+kill "$timeout_pid" "$read_pid" 2>/dev/null || true
+wait "$timeout_pid" "$read_pid" 2>/dev/null || true
+rm -f "$temp_response_file" "$temp_timeout_file"
 
-# Read the response
-if [ -f "$temp_response_done" ]; then
-  response=$(tr -d '\r' < "$temp_response_file" | sed 's/\n$//')
-else
-  response=""
+# Handle timeout case
+if [ "$timed_out" = "true" ]; then
+  echo
+  echo "\033[95mNo response received within $timeout_seconds seconds. Publication cancelled for safety.\033[0m"
+  exit 1
 fi
-
-# Clean up temporary files
-rm -f "$temp_response_file" "$temp_response_done"
 
 # Normalize: remove CR/spaces and convert to lowercase
 response_norm=$(printf '%s' "$response" \
   | tr -d '\r' \
   | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' \
   | tr '[:upper:]' '[:lower:]')
-
-# Handle timeout case
-if [ "$timeout_reached" = "true" ]; then
-  echo
-  echo "\033[95mNo response received within $timeout_seconds seconds. Publication cancelled for safety.\033[0m"
-  exit 1
-fi
 
 # Accept typical acceptance values and Enter by default (Yes)
 case "$response_norm" in
@@ -572,12 +603,19 @@ fi
 
 echo "\033[95mFinalizing...\033[0m"
 
-# Final warning if tests were skipped
-if [ "$SKIP_TESTS" = "true" ]; then
+# Final warnings if tests or obfuscation were skipped
+if [ "$SKIP_TESTS" = "true" ] || [ "$SKIP_OBFUSCATION" = "true" ]; then
   echo
-  echo "\033[38;2;255;165;0m⚠️  WARNING: All tests were skipped with --skip-tests\033[0m"
-  echo "\033[38;2;255;165;0m   The package was published without quality validation\033[0m"
-  echo "\033[38;2;255;165;0m   It's recommended to run tests manually before using the package\033[0m"
+  if [ "$SKIP_TESTS" = "true" ]; then
+    echo "\033[38;2;255;165;0m⚠️  WARNING: All tests were skipped with --skip-tests\033[0m"
+    echo "\033[38;2;255;165;0m   The package was published without quality validation\033[0m"
+    echo "\033[38;2;255;165;0m   It's recommended to run tests manually before using the package\033[0m"
+  fi
+  if [ "$SKIP_OBFUSCATION" = "true" ]; then
+    echo "\033[38;2;255;165;0m⚠️  WARNING: Code obfuscation was skipped with --skip-obfuscation\033[0m"
+    echo "\033[38;2;255;165;0m   The package was published with readable source code\033[0m"
+    echo "\033[38;2;255;165;0m   This should only be used for development or debugging purposes\033[0m"
+  fi
 fi
 
 # Clean up backups only when EVERYTHING went well

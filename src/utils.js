@@ -13,6 +13,12 @@ export async function verifyServerAccess() {
 		return;
 	}
 
+	if (config.bypassHandshakeValidation) {
+		state.handshakeValidated = true;
+		logger.debug('Handshake validation bypass enabled. Skipping remote validation.');
+		return;
+	}
+
 	const password = process.env.PASSWORD;
 	if (!config.loginUrl) {
 		throw new Error('Internal error. Login endpoint not set');

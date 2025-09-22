@@ -74,6 +74,9 @@ class Client {
 			case 'resource_links':
 				return this.is(['Visual Studio Code', 'Visual Studio Code - Insiders']) && semver.gte(this.clientInfo.version, '1.103.0');
 
+			case 'elicitation':
+				return !this.is(['Cursor']) && Boolean(this.capabilities?.[capabilityName]);
+
 			default:
 				return Boolean(this.capabilities?.[capabilityName]);
 		}

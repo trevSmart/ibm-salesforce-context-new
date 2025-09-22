@@ -2,6 +2,13 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
 
+const DEFAULT_OUTPUT_DIRS = {
+	apexClass: 'force-app/main/default/classes',
+	apexTestClass: 'force-app/main/default/classes',
+	apexTrigger: 'force-app/main/default/triggers',
+	lwc: 'force-app/main/default/lwc',
+}
+
 function cleanupCreatedFiles(files, projectRoot) {
 	// First, delete all files and directories
 	for (const item of files) {
@@ -54,11 +61,61 @@ function cleanupCreatedFiles(files, projectRoot) {
 	}
 }
 
+function getExpectedMetadataArtifacts({ type, name, outputDir }) {
+	const baseDir = outputDir || DEFAULT_OUTPUT_DIRS[type]
+	if (!baseDir || !name) {
+		return []
+	}
+	const resolvedOutputDir = path.resolve(process.cwd(), baseDir)
+	switch (type) {
+		case 'apexClass':
+		case 'apexTestClass':
+			return [
+				path.join(resolvedOutputDir, `${name}.cls`),
+				path.join(resolvedOutputDir, `${name}.cls-meta.xml`),
+			]
+		case 'apexTrigger':
+			return [
+				path.join(resolvedOutputDir, `${name}.trigger`),
+				path.join(resolvedOutputDir, `${name}.trigger-meta.xml`),
+			]
+		case 'lwc':
+			return [path.join(resolvedOutputDir, name)]
+		default:
+			return []
+	}
+}
+
+function registerExpectedArtifacts(collection, params) {
+	const artifacts = getExpectedMetadataArtifacts(params)
+	if (artifacts.length) {
+		collection.push(...artifacts)
+	}
+}
+
+
 describe('createMetadata', () => {
 	let client
 	let createdFiles = []
 
 	beforeAll(async () => {
+		// Cleanup any residual files from previous test runs
+		const projectRoot = process.cwd()
+		const expectedFiles = [
+			// Apex class files
+			path.join(projectRoot, 'force-app/main/default/classes/TestMCPToolClass.cls'),
+			path.join(projectRoot, 'force-app/main/default/classes/TestMCPToolClass.cls-meta.xml'),
+			// Apex test class files
+			path.join(projectRoot, 'force-app/main/default/classes/TestMCPToolClassTest.cls'),
+			path.join(projectRoot, 'force-app/main/default/classes/TestMCPToolClassTest.cls-meta.xml'),
+			// Apex trigger files
+			path.join(projectRoot, 'force-app/main/default/triggers/TestMCPToolTrigger.trigger'),
+			path.join(projectRoot, 'force-app/main/default/triggers/TestMCPToolTrigger.trigger-meta.xml'),
+			// LWC component files
+			path.join(projectRoot, 'force-app/main/default/lwc/testMCPToolComponent'),
+		]
+		cleanupCreatedFiles(expectedFiles, projectRoot)
+
 		// Create and connect to the MCP server
 		client = await createMcpClient()
 	})
@@ -74,6 +131,7 @@ describe('createMetadata', () => {
 	})
 
 	test('Apex class', async () => {
+		registerExpectedArtifacts(createdFiles, { type: 'apexClass', name: 'TestMCPToolClass' })
 		const result = await client.callTool('createMetadata', {
 			type: 'apexClass',
 			name: 'TestMCPToolClass',
@@ -86,6 +144,7 @@ describe('createMetadata', () => {
 	})
 
 	test('Apex test class', async () => {
+		registerExpectedArtifacts(createdFiles, { type: 'apexTestClass', name: 'TestMCPToolClassTest' })
 		const result = await client.callTool('createMetadata', {
 			type: 'apexTestClass',
 			name: 'TestMCPToolClassTest',
@@ -97,6 +156,7 @@ describe('createMetadata', () => {
 	})
 
 	test('Apex trigger', async () => {
+		registerExpectedArtifacts(createdFiles, { type: 'apexTrigger', name: 'TestMCPToolTrigger' })
 		const result = await client.callTool('createMetadata', {
 			type: 'apexTrigger',
 			name: 'TestMCPToolTrigger',
@@ -110,6 +170,7 @@ describe('createMetadata', () => {
 	})
 
 	test('LWC', async () => {
+		registerExpectedArtifacts(createdFiles, { type: 'lwc', name: 'testMCPToolComponent' })
 		const result = await client.callTool('createMetadata', {
 			type: 'lwc',
 			name: 'testMCPToolComponent',

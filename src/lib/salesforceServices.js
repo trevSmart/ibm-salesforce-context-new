@@ -990,6 +990,7 @@ public class ${name} {
 			files,
 			stdout
 		};
+
 	} catch (error) {
 		logger.error(error, `Error generating metadata ${name} of type ${type}`);
 		throw error;

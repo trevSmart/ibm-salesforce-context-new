@@ -33,7 +33,8 @@ export default {
 		maxResources: 30
 	},
 	// Bypass user permission set validation for tools
-	bypassUserValidation: true,
+	bypassHandshakeValidation: true,
+	bypassUserPermissionsValidation: false,
 	serverConstants: {
 		protocolVersion: '2025-06-18',
 		serverInfo: {

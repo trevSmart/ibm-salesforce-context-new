@@ -157,7 +157,7 @@ async function updateOrgAndUserDetails() {
 		if (currentUsername !== newUsername) {
 			clearResources();
 			try {
-				const permissionSetFilter = config.bypassUserValidation ? '' : " AND Id IN (SELECT AssigneeId FROM PermissionSetAssignment WHERE PermissionSet.Name = 'IBM_SalesforceContextUser')";
+				const permissionSetFilter = config.bypassUserPermissionsValidation ? '' : " AND Id IN (SELECT AssigneeId FROM PermissionSetAssignment WHERE PermissionSet.Name = 'IBM_SalesforceContextUser')";
 				const result = await executeSoqlQuery(`SELECT Id, Name, Profile.Name, UserRole.Name
                                         FROM User WHERE Username = '${state.org.username}'${permissionSetFilter}`);
 
@@ -175,7 +175,7 @@ async function updateOrgAndUserDetails() {
 					newResource('mcp://org/orgAndUserDetail.json', 'Org and user details', 'Org and user details', 'application/json', JSON.stringify(state.org, null, 3));
 				} else {
 					state.userValidated = false;
-					const errorMessage = config.bypassUserValidation ? `User "${newUsername}" not found in org "${state.org.alias}"` : `User "${newUsername}" not found or with insufficient permissions in org "${state.org.alias}"`;
+					const errorMessage = config.bypassUserPermissionsValidation ? `User "${newUsername}" not found in org "${state.org.alias}"` : `User "${newUsername}" not found or with insufficient permissions in org "${state.org.alias}"`;
 					logger.error(errorMessage);
 				}
 			} catch (error) {
@@ -297,7 +297,7 @@ function registerHandlers() {
 		return async (params, args) => {
 			try {
 				if (tool !== 'salesforceContextUtils') {
-					if (!(config.bypassUserValidation || state.userValidated)) {
+					if (!(config.bypassUserPermissionsValidation || state.userValidated)) {
 						throw new Error(`🚫 Request blocked due to unsuccessful user validation for "${state.org.username}".`);
 					}
 					if (!state.org.user.id) {
