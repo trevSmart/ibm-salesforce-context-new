@@ -46,7 +46,7 @@ done
 # Get package name from package.json
 package_name=$(node -p "require('./package.json').name")
 # Get published version from NPM (if exists)
-published_version=$(npm view "$package_name" version 2>/dev/null || true)
+published_version=$(npm --strict-ssl=false view "$package_name" version 2>/dev/null || true)
 
 echo "\033[38;2;255;140;0mNPM Publishing Script for $package_name\033[0m"
 echo "\033[38;2;255;140;0mTrevor Smart, 2025\033[0m"
@@ -204,7 +204,7 @@ else
 fi
 
 # Don't fail the script if package doesn't exist on NPM yet
-npm view "$package_name" version > /dev/null 2>&1 || true
+npm --strict-ssl=false view "$package_name" version > /dev/null 2>&1 || true
 
 cp package.json package.json.bak
 cp index.js index.js.bak
@@ -221,7 +221,7 @@ restore_versions() {
 }
 # In sh there's no 'ERR'; manual restore will be done in case of error
 
-npm version $new_version --no-git-tag-version > /dev/null 2>&1
+npm --strict-ssl=false version $new_version --no-git-tag-version > /dev/null 2>&1
 
 echo
 
@@ -313,7 +313,6 @@ else
     OBF_LOG=$(mktemp)
     obf_tmp="${file%.js}.obf.tmp.js"   # IMPORTANT: must end in .js to avoid ghost directories
 
-    # --identifier-names-generator hexadecimal \
     ./node_modules/.bin/javascript-obfuscator "$file" \
       --output "$obf_tmp" \
       --compact true \
@@ -394,11 +393,7 @@ cd ..
 
 # Re-run tests, now using the MCP server from the obfuscated build in dist/ (if not skipped)
 if [ "$SKIP_TESTS" = "false" ]; then
-  if [ "$SKIP_OBFUSCATION" = "true" ]; then
-    echo "\n\033[95mRunning tests against readable server (dist/)...\033[0m"
-  else
-    echo "\n\033[95mRunning tests against obfuscated server (dist/)...\033[0m"
-  fi
+  echo "\n\033[95mRunning tests against obfuscated server (dist/)...\033[0m"
   TEST_DIST_OUTPUT=$(mktemp)
 
   # Copy test files to dist/ and run tests from there so setup.ts can detect the correct paths
@@ -410,11 +405,7 @@ if [ "$SKIP_TESTS" = "false" ]; then
   cd ..
 
   if ! grep -qE 'Tests[[:space:]]+[0-9]+ passed' "$TEST_DIST_OUTPUT" || grep -qE '(failed|error|Error)' "$TEST_DIST_OUTPUT"; then
-    if [ "$SKIP_OBFUSCATION" = "true" ]; then
-      echo "\033[91m❌ Tests against the readable build have failed.\033[0m"
-    else
-      echo "\033[91m❌ Tests against the obfuscated build have failed.\033[0m"
-    fi
+    echo "\033[91m❌ Tests against the obfuscated build have failed.\033[0m"
     rm -f "$TEST_DIST_OUTPUT"
     restore_versions
     exit 1
@@ -422,85 +413,83 @@ if [ "$SKIP_TESTS" = "false" ]; then
 
   rm -f "$TEST_DIST_OUTPUT"
   echo
-  if [ "$SKIP_OBFUSCATION" = "true" ]; then
-    echo "\033[95m✓ Tests with the readable package completed successfully.\033[0m"
-  else
-    echo "\033[95m✓ Tests with the obfuscated package completed successfully.\033[0m"
-  fi
+  echo "\033[95m✓ Tests with the obfuscated package completed successfully.\033[0m"
 else
-  if [ "$SKIP_OBFUSCATION" = "true" ]; then
-    echo "\033[95m⚠️  Skipping tests against readable server (--skip-tests activated)\033[0m"
-  else
-    echo "\033[95m⚠️  Skipping tests against obfuscated server (--skip-tests activated)\033[0m"
-  fi
+  echo "\033[95m⚠️  Skipping tests against obfuscated server (--skip-tests activated)\033[0m"
 fi
 echo
 echo "\033[95mDo you want to continue with publishing the package to NPM? (Y/n)\033[0m"
 
-# Simple and robust input method using read with timeout
-# This approach is more reliable across different environments
-response=""
-timeout_seconds=30
-
-# Use a simple approach with background process and proper stdin handling
+# Use a more robust input method that works after the complex countdown logic
+# Create temporary files for input handling
 temp_response_file=$(mktemp)
-temp_timeout_file=$(mktemp)
-rm -f "$temp_response_file" "$temp_timeout_file"
+temp_response_done=$(mktemp)
 
-# Start timeout process
+# Input listener for the confirmation prompt
 (
-  sleep "$timeout_seconds"
-  echo "timeout" > "$temp_timeout_file"
-) &
-timeout_pid=$!
+  : > "$temp_response_file"
+  # Save and configure TTY in non-canonical mode to capture keys immediately
+  old_tty=$(stty -g </dev/tty 2>/dev/null || true)
+  trap 'stty "$old_tty" </dev/tty 2>/dev/null || true' EXIT INT TERM
+  stty -icanon min 1 time 1 </dev/tty 2>/dev/null || true
 
-# Start input reader process
-(
-  # Read from /dev/tty when available to ensure interactive prompt works under npm
-  if [ -r /dev/tty ]; then
-    read -r response </dev/tty
-  else
-    read -r response
-  fi
-  echo "$response" > "$temp_response_file"
+  while :; do
+    # dd blocks until it receives 1 byte or expires (time)
+    c=$(dd if=/dev/tty bs=1 count=1 2>/dev/null || true)
+    # If nothing, check again
+    [ -z "$c" ] && continue
+    # Save the character
+    printf "%s" "$c" >> "$temp_response_file"
+    # If it's a newline, mark as finished
+    last_char=$(printf "%s" "$c" | tail -c 1)
+    if [ "x$last_char" = "x\n" ]; then
+      : > "$temp_response_done"
+      break
+    fi
+  done
 ) &
-read_pid=$!
+response_listener_pid=$!
 
-# Wait for either input or timeout
-timed_out=false
-while :; do
-  if [ -f "$temp_response_file" ]; then
-    # User provided input
-    response=$(cat "$temp_response_file")
-    kill "$timeout_pid" 2>/dev/null || true
+# Wait for user input with a timeout
+timeout_seconds=30
+timeout_reached=false
+for i in $(seq 1 $timeout_seconds); do
+  if [ -f "$temp_response_done" ]; then
     break
   fi
-  if [ -f "$temp_timeout_file" ]; then
-    # Timeout reached
-    kill "$read_pid" 2>/dev/null || true
-    timed_out=true
+  if [ $i -eq $timeout_seconds ]; then
+    timeout_reached=true
     break
   fi
-  sleep 0.1
+  sleep 1
 done
 
-# Clean up processes and files
-kill "$timeout_pid" "$read_pid" 2>/dev/null || true
-wait "$timeout_pid" "$read_pid" 2>/dev/null || true
-rm -f "$temp_response_file" "$temp_timeout_file"
+# Clean up the listener process
+kill "$response_listener_pid" 2>/dev/null || true
+wait "$response_listener_pid" 2>/dev/null || true
 
-# Handle timeout case
-if [ "$timed_out" = "true" ]; then
-  echo
-  echo "\033[95mNo response received within $timeout_seconds seconds. Publication cancelled for safety.\033[0m"
-  exit 1
+# Read the response
+if [ -f "$temp_response_done" ]; then
+  response=$(tr -d '\r' < "$temp_response_file" | sed 's/\n$//')
+else
+  response=""
 fi
+
+# Clean up temporary files
+rm -f "$temp_response_file" "$temp_response_done"
 
 # Normalize: remove CR/spaces and convert to lowercase
 response_norm=$(printf '%s' "$response" \
   | tr -d '\r' \
   | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' \
   | tr '[:upper:]' '[:lower:]')
+
+# Handle timeout case
+if [ "$timeout_reached" = "true" ]; then
+  echo
+  echo "\033[95mNo response received within $timeout_seconds seconds. Publication cancelled for safety.\033[0m"
+  exit 1
+fi
 
 # Accept typical acceptance values and Enter by default (Yes)
 case "$response_norm" in
@@ -529,7 +518,7 @@ cd dist
 # preventing us from showing the captured npm error output. Temporarily disable
 # it so we can handle the error and surface useful diagnostics.
 set +e
-npm publish --access public > "$PUBLISH_OUTPUT" 2>&1
+npm --strict-ssl=false publish --access public > "$PUBLISH_OUTPUT" 2>&1
 publish_status=$?
 set -e
 if [ $publish_status -ne 0 ]; then
@@ -603,19 +592,12 @@ fi
 
 echo "\033[95mFinalizing...\033[0m"
 
-# Final warnings if tests or obfuscation were skipped
-if [ "$SKIP_TESTS" = "true" ] || [ "$SKIP_OBFUSCATION" = "true" ]; then
+# Final warning if tests were skipped
+if [ "$SKIP_TESTS" = "true" ]; then
   echo
-  if [ "$SKIP_TESTS" = "true" ]; then
-    echo "\033[38;2;255;165;0m⚠️  WARNING: All tests were skipped with --skip-tests\033[0m"
-    echo "\033[38;2;255;165;0m   The package was published without quality validation\033[0m"
-    echo "\033[38;2;255;165;0m   It's recommended to run tests manually before using the package\033[0m"
-  fi
-  if [ "$SKIP_OBFUSCATION" = "true" ]; then
-    echo "\033[38;2;255;165;0m⚠️  WARNING: Code obfuscation was skipped with --skip-obfuscation\033[0m"
-    echo "\033[38;2;255;165;0m   The package was published with readable source code\033[0m"
-    echo "\033[38;2;255;165;0m   This should only be used for development or debugging purposes\033[0m"
-  fi
+  echo "\033[38;2;255;165;0m⚠️  WARNING: All tests were skipped with --skip-tests\033[0m"
+  echo "\033[38;2;255;165;0m   The package was published without quality validation\033[0m"
+  echo "\033[38;2;255;165;0m   It's recommended to run tests manually before using the package\033[0m"
 fi
 
 # Clean up backups only when EVERYTHING went well
