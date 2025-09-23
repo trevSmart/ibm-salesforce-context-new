@@ -8,6 +8,7 @@ import {createModuleLogger} from './lib/logger.js';
 import targetOrgWatcher from './lib/OrgWatcher.js';
 import {executeSoqlQuery, getOrgAndUserDetails} from './lib/salesforceServices.js';
 import {connectTransport} from './lib/transport.js';
+import {applyFetchSslOptions} from './lib/networkUtils.js';
 //Prompts
 //import { codeModificationPromptDefinition, codeModificationPrompt } from './prompts/codeModificationPrompt.js';
 import {apexRunScriptPrompt, apexRunScriptPromptDefinition} from './prompts/apex-run-script.js';
@@ -35,7 +36,7 @@ export const state = {
 	org: {},
 	releaseName: null,
 	startedDate: new Date(),
-	userValidated: false,
+	userPermissionsValidated: false,
 	handshakeValidated: false,
 	currentLogLevel: process.env.LOG_LEVEL || 'info'
 };
@@ -72,7 +73,7 @@ async function refreshOrgCompanyDetails() {
 			};
 			logger.debug('Organization company details refreshed');
 
-			if (state.userValidated) {
+			if (state.userPermissionsValidated) {
 				newResource('mcp://org/orgAndUserDetail.json', 'Org and user details', 'Org and user details', 'application/json', JSON.stringify(state.org, null, 3));
 			}
 		} catch (error) {
@@ -170,16 +171,16 @@ async function updateOrgAndUserDetails() {
 						profileName: user.Profile.Name,
 						userRoleName: user.UserRole.Name
 					};
-					state.userValidated = true;
+					state.userPermissionsValidated = true;
 
 					newResource('mcp://org/orgAndUserDetail.json', 'Org and user details', 'Org and user details', 'application/json', JSON.stringify(state.org, null, 3));
 				} else {
-					state.userValidated = false;
+					state.userPermissionsValidated = false;
 					const errorMessage = config.bypassUserPermissionsValidation ? `User "${newUsername}" not found in org "${state.org.alias}"` : `User "${newUsername}" not found or with insufficient permissions in org "${state.org.alias}"`;
 					logger.error(errorMessage);
 				}
 			} catch (error) {
-				state.userValidated = false;
+				state.userPermissionsValidated = false;
 				logger.error(error, 'Error validating user permissions');
 			}
 
@@ -198,7 +199,7 @@ async function updateOrgAndUserDetails() {
 		logger.error(error, 'Error updating org and user details');
 		// console.error(error);
 		state.org = {};
-		state.userValidated = false;
+		state.userPermissionsValidated = false;
 	}
 }
 
@@ -297,7 +298,7 @@ function registerHandlers() {
 		return async (params, args) => {
 			try {
 				if (tool !== 'salesforceContextUtils') {
-					if (!(config.bypassUserPermissionsValidation || state.userValidated)) {
+					if (!(config.bypassUserPermissionsValidation || state.userPermissionsValidated)) {
 						throw new Error(`🚫 Request blocked due to unsuccessful user validation for "${state.org.username}".`);
 					}
 					if (!state.org.user.id) {
@@ -391,7 +392,9 @@ function registerHandlers() {
 
 					// Recupear la release de la org
 					try {
-						const releasesResult = await fetch(`${state.org.instanceUrl}/services/data/`, {});
+						const releasesEndpoint = `${state.org.instanceUrl}/services/data/`;
+						const releasesFetchOptions = applyFetchSslOptions(releasesEndpoint, {});
+						const releasesResult = await fetch(releasesEndpoint, releasesFetchOptions);
 						if (releasesResult.ok) {
 							const releases = await releasesResult.json();
 							const releaseName = releases.find((r) => r.version === state.org.apiVersion)?.label ?? null;
