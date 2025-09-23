@@ -137,6 +137,16 @@ npm run lint:fix
 - Auto port management (3000, 3001, 3002, etc.)
 - Server-Sent Events for MCP protocol responses
 
+## Microscope Test Client
+
+**Interactive MCP Testing**:
+- **Microscope MCP Client** is an interactive command-line MCP client for testing MCP servers
+- Already available in the Copilot environment
+- Provides interactive interface to explore and test MCP server capabilities
+- Start the MCP server with HTTP transport and port 3000
+- Connect to the MCP server with the microscope client
+- Use `--help` command to see available options and usage instructions
+
 ## Troubleshooting
 
 **Server crashes with "Org details not available"**:
