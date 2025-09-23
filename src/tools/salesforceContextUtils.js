@@ -2,6 +2,7 @@ import {z} from 'zod';
 import client from '../client.js';
 import config from '../config.js';
 import {createModuleLogger} from '../lib/logger.js';
+import {applyFetchSslOptions} from '../lib/networkUtils.js';
 import {executeAnonymousApex, getOrgAndUserDetails} from '../lib/salesforceServices.js';
 import {clearResources, newResource, resources, sendProgressNotification, state} from '../mcp-server.js';
 import {formatDate, textFileContent} from '../utils.js';
@@ -417,11 +418,12 @@ IMPORTANT: Generate your response in English.`;
 			try {
 				// Send issue to Netlify webhook
 				logger.info('Sending issue');
-				const response = await fetch(config.issueReporting.webhookUrl, {
+				const webhookRequest = {
 					method: 'POST',
 					headers: {'Content-Type': 'application/json'},
 					body: JSON.stringify(issueData)
-				});
+				};
+				const response = await fetch(config.issueReporting.webhookUrl, applyFetchSslOptions(config.issueReporting.webhookUrl, webhookRequest));
 
 				if (response.ok) {
 					const result = await response.json();

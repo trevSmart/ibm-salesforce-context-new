@@ -63,7 +63,7 @@ function cleanupCreatedFiles(files, projectRoot) {
 
 function getExpectedMetadataArtifacts({ type, name, outputDir }) {
 	const baseDir = outputDir || DEFAULT_OUTPUT_DIRS[type]
-	if (!baseDir || !name) {
+	if (!(baseDir && name)) {
 		return []
 	}
 	const resolvedOutputDir = path.resolve(process.cwd(), baseDir)

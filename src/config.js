@@ -10,6 +10,8 @@ const pkg = require('../package.json');
 export default {
 	logPrefix: '👁🐝Ⓜ️',
 	defaultLogLevel: 'debug',
+	bypassHandshakeValidation: true,
+	bypassUserPermissionsValidation: true,
 	tempDir: {
 		// Subfolder under workspace to store temp artifacts
 		baseSubdir: 'tmp',
@@ -33,8 +35,7 @@ export default {
 		maxResources: 30
 	},
 	// Bypass user permission set validation for tools
-	bypassHandshakeValidation: true,
-	bypassUserPermissionsValidation: false,
+
 	serverConstants: {
 		protocolVersion: '2025-06-18',
 		serverInfo: {
@@ -54,5 +55,7 @@ export default {
 	loginUrl: 'https://ibm-salesforce-context.netlify.app/.netlify/functions/handshake',
 	issueReporting: {
 		webhookUrl: 'https:/ibm-salesforce-context.netlify.app/.netlify/functions/report-issue'
-	}
+	},
+	// SSL certificate validation for API calls
+	strictSsl: true
 };

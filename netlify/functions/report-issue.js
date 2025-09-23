@@ -20,8 +20,8 @@ exports.handler = async (event) => {
 		const response = await fetch('https://api.github.com/repos/trevSmart/ibm-salesforce-context/issues', {
 			method: 'POST',
 			headers: {
-				Authorization: `token ${process.env.GITHUB_TOKEN}`,
-				Accept: 'application/vnd.github.v3+json',
+				authorization: `token ${process.env.GITHUB_TOKEN}`,
+				accept: 'application/vnd.github.v3+json',
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({

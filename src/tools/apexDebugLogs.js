@@ -3,7 +3,7 @@ import {z} from 'zod';
 import client from '../client.js';
 import {createModuleLogger} from '../lib/logger.js';
 import {dmlOperation, executeSoqlQuery, runCliCommand} from '../lib/salesforceServices.js';
-import {mcpServer, newResource, state} from '../mcp-server.js';
+import {mcpServer, newResource, state, sendProgressNotification} from '../mcp-server.js';
 import {formatDate, textFileContent} from '../utils.js'; // ensureTmpDir, writeToTmpFile
 
 // import path from 'path';
@@ -417,12 +417,18 @@ export async function apexDebugLogsToolHandler({action, logId}) {
 				};
 			}
 		} else if (action === 'on') {
+			// Send progress notification for step 1
+			sendProgressNotification('apex-debug-logs-on', 1, 4, 'Checking for existing active TraceFlag...');
+
 			//1. Check if there's already an active TraceFlag
 			logger.debug('Checking for already active TraceFlag...');
 			const soqlActiveTraceFlagResult = await executeSoqlQuery(`SELECT Id, StartDate, ExpirationDate, DebugLevel.DeveloperName FROM TraceFlag WHERE TracedEntityId = '${user.id}' AND LogType = 'DEVELOPER_LOG' AND ExpirationDate > ${new Date().toISOString()}`, true);
 			const activeTraceFlag = soqlActiveTraceFlagResult?.records?.[0];
 
 			if (activeTraceFlag) {
+				// Send progress notification for extending existing TraceFlag
+				sendProgressNotification('apex-debug-logs-on', 2, 4, 'Found existing TraceFlag, extending expiration date...');
+
 				// Extend the expiration date by 1 hour from now
 				const now = new Date();
 				const newExpirationDate = new Date(now.getTime() + 60 * 60_000); //1 hour from now
@@ -438,6 +444,9 @@ export async function apexDebugLogsToolHandler({action, logId}) {
 					},
 					{useToolingApi: true}
 				);
+
+				// Send completion notification
+				sendProgressNotification('apex-debug-logs-on', 4, 4, 'Debug logs extended successfully!');
 
 				const startDate = new Date(activeTraceFlag.StartDate);
 
@@ -459,11 +468,17 @@ export async function apexDebugLogsToolHandler({action, logId}) {
 				};
 			}
 
+			// Send progress notification for step 2
+			sendProgressNotification('apex-debug-logs-on', 2, 4, 'Finding or creating DebugLevel...');
+
 			//2. Find or create DebugLevel with DeveloperName=ReplayDebuggerLevels
 			const soqlDebugLevelResult = await executeSoqlQuery("SELECT Id FROM DebugLevel WHERE DeveloperName = 'ReplayDebuggerLevels' LIMIT 1", true);
 			let debugLevelId = soqlDebugLevelResult?.records?.[0]?.Id;
 
 			if (!debugLevelId) {
+				// Send progress notification for creating DebugLevel
+				sendProgressNotification('apex-debug-logs-on', 2, 4, 'DebugLevel not found, creating new one...');
+
 				logger.debug('DebugLevel not found. Creating new DebugLevel...');
 				const debugLevelResult = await dmlOperation(
 					{
@@ -483,6 +498,9 @@ export async function apexDebugLogsToolHandler({action, logId}) {
 				);
 				debugLevelId = debugLevelResult.successes?.[0]?.id;
 			}
+
+			// Send progress notification for step 3
+			sendProgressNotification('apex-debug-logs-on', 3, 4, 'Creating TraceFlag...');
 
 			const now = new Date();
 			const startDate = new Date(now);
@@ -507,7 +525,13 @@ export async function apexDebugLogsToolHandler({action, logId}) {
 
 			logger.debug(traceFlagResult, 'Create TraceFlag result');
 
+			// Send progress notification for step 4
+			sendProgressNotification('apex-debug-logs-on', 4, 4, 'Confirming TraceFlag creation...');
+
 			const newTraceFlagId = traceFlagResult.successes?.[0]?.id;
+
+			// Send completion notification
+			sendProgressNotification('apex-debug-logs-on', 4, 4, 'Debug logs activated successfully!');
 
 			return {
 				content: [
@@ -525,10 +549,16 @@ export async function apexDebugLogsToolHandler({action, logId}) {
 				}
 			};
 		} else if (action === 'off') {
+			// Send progress notification for turning off debug logs
+			sendProgressNotification('apex-debug-logs-off', 1, 2, 'Checking for active TraceFlag to deactivate...');
+
 			const soqlTraceFlagResult = await executeSoqlQuery(`SELECT Id, DebugLevelId FROM TraceFlag WHERE TracedEntityId = '${user.id}' AND ExpirationDate >= ${new Date().toISOString()}`, true);
 			const traceFlag = soqlTraceFlagResult?.records?.[0];
 
 			if (!traceFlag) {
+				// Send completion notification for no action needed
+				sendProgressNotification('apex-debug-logs-off', 2, 2, 'Debug logs were already inactive, no action needed');
+
 				return {
 					content: [
 						{
@@ -539,6 +569,9 @@ export async function apexDebugLogsToolHandler({action, logId}) {
 					structuredContent: {}
 				};
 			}
+
+			// Send progress notification for deactivating TraceFlag
+			sendProgressNotification('apex-debug-logs-off', 2, 2, 'Deactivating TraceFlag by setting expiration date...');
 
 			const newExpirationDate = new Date(Date.now() + 10_000); // 10 seconds in the future
 			await dmlOperation(
@@ -553,6 +586,9 @@ export async function apexDebugLogsToolHandler({action, logId}) {
 				},
 				{useToolingApi: true}
 			);
+
+			// Send completion notification
+			sendProgressNotification('apex-debug-logs-off', 2, 2, 'Debug logs deactivated successfully!');
 
 			return {
 				content: [

@@ -38,10 +38,14 @@ export const state = {
 	startedDate: new Date(),
 	userPermissionsValidated: false,
 	handshakeValidated: false,
-	currentLogLevel: process.env.LOG_LEVEL || 'info'
+	currentLogLevel: process.env.LOG_LEVEL || 'info',
+	workspacePath: process.cwd()
 };
 
 const ORG_COMPANY_DETAILS_QUERY = 'SELECT Name, OrganizationType, PrimaryContact, Phone, Street, City, PostalCode, Country, Division, InstanceName, IsSandbox, CreatedDate FROM Organization LIMIT 1';
+
+const ROOTS_LIST_TIMEOUT_MS = 4000;
+const WORKSPACE_PATH_WAIT_TIMEOUT_MS = 5000;
 
 let companyDetailsFetchPromise = null;
 
@@ -95,12 +99,18 @@ const logger = createModuleLogger(import.meta.url, 'app', state.currentLogLevel)
 export let resources = {};
 // Flag to track if workspace path has been set
 let workspacePathSet = false;
+let workspacePathValue = null;
+let resolveWorkspacePathReady;
+
+const workspacePathReadyPromise = new Promise((resolve) => {
+	resolveWorkspacePathReady = resolve;
+});
 
 async function setWorkspacePath(workspacePath) {
 	// If workspace path is already set by env var, don't override it
 	if (workspacePathSet) {
 		logger.debug('Workspace path already set, ignoring new path');
-		return;
+		return workspacePathValue;
 	}
 
 	// Handle multiple workspace paths separated by commas
@@ -121,10 +131,12 @@ async function setWorkspacePath(workspacePath) {
 			process.platform === 'win32' && (targetPath = targetPath.replace(/^\/([a-zA-Z]):/, '$1:'));
 		}
 	}
-
-	logger.info(`Workspace path set to: "${targetPath}"`);
+	if (typeof targetPath === 'string') {
+		targetPath = targetPath.trim();
+	}
 
 	if (targetPath) {
+		logger.info(`Workspace path set to: "${targetPath}"`);
 		if (targetPath !== process.cwd()) {
 			try {
 				process.chdir(targetPath);
@@ -133,6 +145,31 @@ async function setWorkspacePath(workspacePath) {
 			}
 		}
 		workspacePathSet = true;
+		workspacePathValue = targetPath;
+		state.workspacePath = targetPath;
+		if (typeof resolveWorkspacePathReady === 'function') {
+			resolveWorkspacePathReady(targetPath);
+			resolveWorkspacePathReady = null;
+		}
+	}
+
+	return workspacePathValue;
+}
+
+async function waitForWorkspacePath(timeoutMs = WORKSPACE_PATH_WAIT_TIMEOUT_MS) {
+	if (workspacePathSet) {
+		return workspacePathValue;
+	}
+
+	if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
+		return workspacePathReadyPromise;
+	}
+
+	try {
+		return await withTimeout(workspacePathReadyPromise, timeoutMs, 'Workspace path wait timeout');
+	} catch (error) {
+		logger.warn(error, 'Workspace path not received before timeout; continuing with current working directory');
+		return null;
 	}
 }
 
@@ -258,12 +295,15 @@ function registerHandlers() {
 	mcpServer.server.setNotificationHandler(RootsListChangedNotificationSchema, async (listRootsResult) => {
 		try {
 			try {
-				listRootsResult = await withTimeout(mcpServer.server.listRoots(), 4000, 'Roots list timeout');
+				listRootsResult = await withTimeout(mcpServer.server.listRoots(), ROOTS_LIST_TIMEOUT_MS, 'Roots list timeout');
 			} catch (error) {
 				logger.debug(`Requested roots list but client returned error: ${JSON.stringify(error, null, 3)}`);
 			}
-			if (!workspacePathSet && listRootsResult.roots?.[0]?.uri.startsWith('file://')) {
-				await setWorkspacePath(listRootsResult.roots[0].uri);
+			if (!workspacePathSet && listRootsResult?.roots?.length) {
+				const rootEntry = listRootsResult.roots.find((root) => typeof root?.uri === 'string' && root.uri.startsWith('file://'));
+				if (rootEntry) {
+					await setWorkspacePath(rootEntry.uri);
+				}
 			}
 		} catch (error) {
 			logger.error(error, 'Failed to request roots from client');
@@ -369,8 +409,20 @@ function registerHandlers() {
 			if (process.env.WORKSPACE_FOLDER_PATHS) {
 				await setWorkspacePath(process.env.WORKSPACE_FOLDER_PATHS);
 			} else if (client.supportsCapability('roots')) {
-				mcpServer.server.listRoots();
+				try {
+					const listRootsResult = await withTimeout(mcpServer.server.listRoots(), ROOTS_LIST_TIMEOUT_MS, 'Roots list timeout');
+					if (!workspacePathSet && listRootsResult?.roots?.length) {
+						const rootEntry = listRootsResult.roots.find((root) => typeof root?.uri === 'string' && root.uri.startsWith('file://'));
+						if (rootEntry) {
+							await setWorkspacePath(rootEntry.uri);
+						}
+					}
+				} catch (error) {
+					logger.debug(error, 'Requested roots list during initialization but client returned error');
+				}
 			}
+
+			await waitForWorkspacePath();
 
 			await updateOrgAndUserDetails();
 

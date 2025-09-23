@@ -3,6 +3,7 @@ import {fileURLToPath} from 'node:url';
 import fs from 'fs-extra';
 import config from './config.js';
 import {createModuleLogger} from './lib/logger.js';
+import {applyFetchSslOptions} from './lib/networkUtils.js';
 import {cleanupObsoleteTempFiles, ensureBaseTmpDir} from './lib/tempManager.js';
 import {state} from './mcp-server.js';
 
@@ -32,12 +33,13 @@ export async function verifyServerAccess() {
 	const timeout = setTimeout(() => controller.abort(), 8000);
 
 	try {
-		const response = await fetch(config.loginUrl, {
+		const requestOptions = {
 			method: 'POST',
 			headers: {'Content-Type': 'application/json'},
 			body: JSON.stringify({password}),
 			signal: controller.signal
-		});
+		};
+		const response = await fetch(config.loginUrl, applyFetchSslOptions(config.loginUrl, requestOptions));
 
 		let payload = null;
 		try {

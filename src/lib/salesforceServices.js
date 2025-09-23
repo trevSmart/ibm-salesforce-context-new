@@ -5,6 +5,7 @@ import {promisify} from 'node:util';
 import config from '../config.js';
 import {state} from '../mcp-server.js';
 import {createModuleLogger} from './logger.js';
+import {applyFetchSslOptions} from './networkUtils.js';
 import {cleanupObsoleteTempFiles, ensureBaseTmpDir} from './tempManager.js';
 
 const exec = promisify(execCb);
@@ -990,7 +991,6 @@ public class ${name} {
 			files,
 			stdout
 		};
-
 	} catch (error) {
 		logger.error(error, `Error generating metadata ${name} of type ${type}`);
 		throw error;
@@ -1078,41 +1078,76 @@ export async function callSalesforceApi(operation, apiType, service, body = null
 
 		// Helper function that performs a curl request but returns a fetch-like response
 		const curlAsFetch = async (endpointUrl, requestOptions) => {
-			// Build curl argument array
-			const curlArgs = ['-s', '-w', 'HTTPSTATUS:%{http_code}', '-X', `${requestOptions.method}`, `${endpointUrl}`];
+			try {
+				// Build curl argument array
+				const curlArgs = ['-s', '-w', 'HTTPSTATUS:%{http_code}', '-X', `${requestOptions.method}`, `${endpointUrl}`];
 
-			// Add headers
-			if (requestOptions.headers) {
-				for (const [key, value] of Object.entries(requestOptions.headers)) {
-					curlArgs.push('-H');
-					curlArgs.push(`${key}: ${value}`);
+				// Add -k flag for insecure SSL if strictSsl is false
+				!config?.strictSsl && curlArgs.push('-insecure');
+
+				// Add headers
+				if (requestOptions.headers) {
+					for (const [key, value] of Object.entries(requestOptions.headers)) {
+						curlArgs.push('-H');
+						curlArgs.push(`${key}: ${value}`);
+					}
 				}
-			}
 
-			// Add body - already JSON stringified
-			if (requestOptions.body) {
-				curlArgs.push('-d');
-				curlArgs.push(`${requestOptions.body}`);
-			}
-
-			logger.debug(`Executing curl: curl ${curlArgs.map((a) => JSON.stringify(a)).join(' ')}`);
-
-			const {stdout} = await execFileAsync('curl', curlArgs);
-			const httpStatusMatch = stdout.match(/HTTPSTATUS:(\d+)/);
-			const status = httpStatusMatch ? Number.parseInt(httpStatusMatch[1], 10) : 200;
-			const bodyText = stdout.replace(/HTTPSTATUS:\d+/, '').trim();
-
-			return {
-				ok: status >= 200 && status < 300,
-				status,
-				statusText: status >= 200 && status < 300 ? 'OK' : 'Error',
-				async text() {
-					return bodyText;
-				},
-				async json() {
-					return JSON.parse(bodyText);
+				// Add body - already JSON stringified
+				if (requestOptions.body) {
+					curlArgs.push('-d');
+					curlArgs.push(`${requestOptions.body}`);
 				}
-			};
+
+				logger.debug(`Executing curl: curl ${curlArgs.map((a) => JSON.stringify(a)).join(' ')}`);
+
+				const {stdout} = await execFileAsync('curl', curlArgs);
+				const httpStatusMatch = stdout.match(/HTTPSTATUS:(\d+)/);
+				const status = httpStatusMatch ? Number.parseInt(httpStatusMatch[1], 10) : 200;
+				const bodyText = stdout.replace(/HTTPSTATUS:\d+/, '').trim();
+
+				return {
+					ok: status >= 200 && status < 300,
+					status,
+					statusText: status >= 200 && status < 300 ? 'OK' : 'Error',
+					async text() {
+						return bodyText;
+					},
+					async json() {
+						return JSON.parse(bodyText);
+					}
+				};
+			} catch (curlError) {
+				// Enhanced error handling for curl failures
+				let errorMessage = 'Curl request failed';
+				let errorDetails = '';
+
+				errorDetails += `Endpoint: ${endpointUrl}\n`;
+				errorDetails += `Method: ${requestOptions.method}\n`;
+
+				if (curlError.code === 'ENOENT') {
+					errorMessage = 'Curl command not found';
+				} else if (curlError.code === 'ETIMEDOUT') {
+					errorMessage = 'Curl request timed out';
+				} else if (curlError.code === 'ECONNREFUSED') {
+					errorMessage = 'Connection refused by server';
+				} else if (curlError.code === 'ENOTFOUND' || curlError.code === 'EAI_AGAIN') {
+					errorMessage = 'DNS resolution failed';
+					errorDetails += `Error: Unable to resolve hostname "${new URL(endpointUrl).hostname}"\n`;
+				} else {
+					errorMessage = `Curl request failed: ${curlError.code || 'Unknown'}`;
+					errorDetails += `Error: ${curlError.message}\n`;
+					if (curlError.stderr) {
+						errorDetails += `Curl stderr: ${curlError.stderr}\n`;
+					}
+				}
+
+				const enhancedError = new Error(`${errorMessage}\n${errorDetails}`);
+				enhancedError.originalError = curlError;
+				enhancedError.endpoint = endpointUrl;
+				enhancedError.operation = requestOptions.method;
+				throw enhancedError;
+			}
 		};
 
 		// Function to make the actual API call
@@ -1156,7 +1191,58 @@ export async function callSalesforceApi(operation, apiType, service, body = null
 				return cachedResponse;
 			}
 
-			const response = useCurl ? await curlAsFetch(endpoint, requestOptions) : await fetch(endpoint, requestOptions);
+			let response;
+			try {
+				if (useCurl) {
+					response = await curlAsFetch(endpoint, requestOptions);
+				} else {
+					// Adjust fetch options when strict SSL verification is disabled
+					const fetchOptions = applyFetchSslOptions(endpoint, {...requestOptions});
+					response = await fetch(endpoint, fetchOptions);
+				}
+			} catch (fetchError) {
+				// Enhanced error handling for fetch failures
+				let errorMessage = 'Network request failed';
+				let errorDetails = '';
+
+				// Check for specific error types
+				if (fetchError.name === 'TypeError' && fetchError.message === 'fetch failed') {
+					// This is a generic fetch failed error, try to get more details
+					errorMessage = 'Failed to connect to Salesforce API';
+					errorDetails = `Endpoint: ${endpoint}\n`;
+
+					// Check if it's a DNS resolution issue
+					if (fetchError.cause?.code === 'ENOTFOUND' || fetchError.cause?.code === 'EAI_AGAIN') {
+						errorDetails += `DNS Error: Unable to resolve hostname "${new URL(endpoint).hostname}"\n`;
+					} else if (fetchError.cause?.code === 'ECONNREFUSED') {
+						errorDetails += `Connection Refused: The server at ${new URL(endpoint).hostname} is not accepting connections\n`;
+					} else if (fetchError.cause?.code === 'ETIMEDOUT') {
+						errorDetails += `Timeout: Request timed out after ${requestOptions.timeout || 'default timeout'}\n`;
+					} else if (fetchError.cause?.code === 'ECONNRESET') {
+						errorDetails += `Connection Reset: The connection was reset by the server\n`;
+					} else if (fetchError.cause?.code === 'CERT_HAS_EXPIRED' || fetchError.cause?.code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE') {
+						errorDetails += `SSL/TLS Error: Certificate verification failed\n`;
+					} else if (fetchError.cause) {
+						errorDetails += `System Error: ${fetchError.cause.code || 'Unknown'} - ${fetchError.cause.message || 'No additional details'}\n`;
+					} else {
+						errorDetails += `Generic fetch error: ${fetchError.message}\n`;
+					}
+				} else {
+					// Other types of errors
+					errorMessage = `Network request failed: ${fetchError.name}`;
+					errorDetails = `Error: ${fetchError.message}\n`;
+					errorDetails += `Endpoint: ${endpoint}\n`;
+					if (fetchError.cause) {
+						errorDetails += `Cause: ${fetchError.cause.code || 'Unknown'} - ${fetchError.cause.message || 'No additional details'}\n`;
+					}
+				}
+
+				const enhancedError = new Error(`${errorMessage}\n${errorDetails}`);
+				enhancedError.originalError = fetchError;
+				enhancedError.endpoint = endpoint;
+				enhancedError.operation = operation;
+				throw enhancedError;
+			}
 
 			let logMessage = `${operation} request to ${apiType} API service ${service} ended ${response.statusText} (${response.status})`;
 
