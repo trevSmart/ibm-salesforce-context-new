@@ -1,6 +1,6 @@
 # Deploy Metadata Tool
 
-Allows you to deploy a local metadata file to the Salesforce org.
+Allows you to deploy a local metadata file to the Salesforce org or validate it without deploying.
 
 ---
 ## Agent Instructions
@@ -17,6 +17,7 @@ Allows you to deploy a local metadata file to the Salesforce org.
 
 ### Parameters
 - **`sourceDir`** (required): The path to the local metadata file to deploy.
+- **`validationOnly`** (optional): If true, only validates the metadata without deploying it to the org. Defaults to false.
 
 ---
 ## Usage Examples
@@ -42,8 +43,17 @@ Allows you to deploy a local metadata file to the Salesforce org.
 }
 ```
 
+### Example 4: Validate metadata without deploying
+```json
+{
+  "sourceDir": "force-app/main/default/classes/MyClass.cls",
+  "validationOnly": true
+}
+```
+
 ---
 ## Notes
 - The tool will prompt for user confirmation before deployment if the client supports elicitation.
+- When `validationOnly` is true, the tool performs a dry-run validation without making changes to the org.
 - Deployment results include success/failure status and detailed error messages if any.
 - The tool supports all standard Salesforce metadata types.

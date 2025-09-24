@@ -795,9 +795,9 @@ export async function executeAnonymousApex(apexCode) {
 	}
 }
 
-export async function deployMetadata(sourceDir) {
+export async function deployMetadata(sourceDir, validationOnly = false) {
 	try {
-		const command = `sf project deploy start --source-dir "${sourceDir}" --ignore-conflicts --target-org "${state.org.alias}" --json`;
+		const command = `sf project deploy ${validationOnly ? 'validate' : 'start'} --source-dir "${sourceDir}" --ignore-conflicts --target-org "${state.org.alias}" --json`;
 
 		const responseString = await runCliCommand(command);
 		logger.debug(`responseString: ${responseString}`);
