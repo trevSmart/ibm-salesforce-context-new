@@ -10,7 +10,8 @@ export const deployMetadataToolDefinition = {
 	title: 'Deploy Metadata',
 	description: await textFileContent('tools/deployMetadata.md'),
 	inputSchema: {
-		sourceDir: z.string().describe('The path to the local metadata file to deploy.')
+		sourceDir: z.string().describe('The path to the local metadata file to deploy.'),
+		validationOnly: z.boolean().optional().describe('If true, only validates the metadata without deploying it to the org.')
 	},
 	annotations: {
 		readOnlyHint: false,
@@ -21,10 +22,11 @@ export const deployMetadataToolDefinition = {
 	}
 };
 
-export async function deployMetadataToolHandler({sourceDir}) {
+export async function deployMetadataToolHandler({sourceDir, validationOnly = false}) {
 	const logger = createModuleLogger(import.meta.url);
 	try {
-		if (client.supportsCapability('elicitation')) {
+		// Only show elicitation for actual deployments, not for validations
+		if (client.supportsCapability('elicitation') && !validationOnly) {
 			const metadataName = getFileNameFromPath(sourceDir);
 			const elicitResult = await mcpServer.server.elicitInput({
 				message: `Please confirm the deployment of ${metadataName} to the org ${state.org.alias}.`,
@@ -57,7 +59,7 @@ export async function deployMetadataToolHandler({sourceDir}) {
 			}
 		}
 
-		const result = await deployMetadata(sourceDir);
+		const result = await deployMetadata(sourceDir, validationOnly);
 
 		return {
 			isError: !result.success,

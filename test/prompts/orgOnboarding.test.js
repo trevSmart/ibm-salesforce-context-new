@@ -23,14 +23,14 @@ describe('orgOnboarding prompt', () => {
 	});
 
 	describe('orgOnboardingPromptHandler', () => {
-		const getUserMessage = () => {
-			const result = orgOnboardingPromptHandler();
+		const getUserMessage = async () => {
+			const result = await orgOnboardingPromptHandler();
 			const [userMessage] = result.messages;
 			return {result, userMessage};
 		};
 
-		it('should return a single user message with the onboarding instructions', () => {
-			const {result, userMessage} = getUserMessage();
+		it('should return a single user message with the onboarding instructions', async () => {
+			const {result, userMessage} = await getUserMessage();
 			expect(result).toBeDefined();
 			expect(Array.isArray(result.messages)).toBe(true);
 			expect(result.messages).toHaveLength(1);
@@ -39,8 +39,8 @@ describe('orgOnboarding prompt', () => {
 			expect(userMessage.content.text).toContain('comprehensive support and guidance');
 		});
 
-		it('should outline the mandatory discovery steps', () => {
-			const {userMessage} = getUserMessage();
+		it('should outline the mandatory discovery steps', async () => {
+			const {userMessage} = await getUserMessage();
 			const {text} = userMessage.content;
 			expect(text).toContain('STRICTLY FOLLOW THE FOLLOWING INSTRUCTIONS');
 			expect(text).toContain('Call the salesforceContextUtils tool');
@@ -50,8 +50,8 @@ describe('orgOnboarding prompt', () => {
 			expect(text).toContain('LightningComponentBundle WHERE NamespacePrefix = NULL');
 		});
 
-		it('should describe the required analysis output format', () => {
-			const {userMessage} = getUserMessage();
+		it('should describe the required analysis output format', async () => {
+			const {userMessage} = await getUserMessage();
 			const {text} = userMessage.content;
 			expect(text).toContain('# Analysis');
 			expect(text).toContain('## Company name sandbox/production org overview');
@@ -62,9 +62,10 @@ describe('orgOnboarding prompt', () => {
 			expect(text).toContain('User hierarchy and security analysis');
 		});
 
-		it('should not require any parameters', () => {
-			expect(() => orgOnboardingPromptHandler()).not.toThrow();
-			const {result} = getUserMessage();
+		it('should not require any parameters', async () => {
+			// Test that the async function can be called without parameters
+			await expect(orgOnboardingPromptHandler()).resolves.toBeDefined();
+			const {result} = await getUserMessage();
 			expect(result.messages).toBeDefined();
 		});
 	});

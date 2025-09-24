@@ -54,7 +54,7 @@ export default {
 	},
 	loginUrl: 'https://ibm-salesforce-context.netlify.app/.netlify/functions/handshake',
 	issueReporting: {
-		webhookUrl: 'https:/ibm-salesforce-context.netlify.app/.netlify/functions/report-issue'
+		webhookUrl: 'https://ibm-salesforce-context.netlify.app/.netlify/functions/report-issue'
 	},
 	// SSL certificate validation for API calls
 	strictSsl: true

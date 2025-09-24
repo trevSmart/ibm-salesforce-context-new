@@ -20,6 +20,7 @@ describe('deployMetadata', () => {
 		// Actual deployment is not tested to avoid destructive operations
 		const result = await client.callTool('deployMetadata', {
 			sourceDir: 'force-app/main/default/classes/TestClass.cls',
+			validationOnly: true
 		})
 
 		expect(result).toBeTruthy()

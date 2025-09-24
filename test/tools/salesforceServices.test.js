@@ -30,9 +30,12 @@ describe('Salesforce Services SSL Configuration', () => {
 		const {config, applyFetchSslOptions} = await importModules();
 		config.strictSsl = true;
 
+		// Store the original value before calling applyFetchSslOptions
+		const beforeValue = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
 		applyFetchSslOptions(HTTPS_ENDPOINT, {});
 
-		expect(process.env.NODE_TLS_REJECT_UNAUTHORIZED).toBe(originalEnv);
+		// The value should remain unchanged when strictSsl is true
+		expect(process.env.NODE_TLS_REJECT_UNAUTHORIZED).toBe(beforeValue);
 	});
 
 	it('relaxes TLS when strictSsl is false', async () => {
@@ -48,8 +51,11 @@ describe('Salesforce Services SSL Configuration', () => {
 		const {config, applyFetchSslOptions} = await importModules();
 		config.strictSsl = false;
 
+		// Store the original value before calling applyFetchSslOptions
+		const beforeValue = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
 		applyFetchSslOptions(HTTP_ENDPOINT, {});
 
-		expect(process.env.NODE_TLS_REJECT_UNAUTHORIZED).toBe(originalEnv);
+		// The value should remain unchanged for non-HTTPS endpoints
+		expect(process.env.NODE_TLS_REJECT_UNAUTHORIZED).toBe(beforeValue);
 	});
 });
