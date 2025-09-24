@@ -195,7 +195,7 @@ The `dev/updateReadme.js` script handles:
 
 - #### (STILL NOT AVAILABLE!!) Using the MiCroscoPe MCP Client command line interface
 
-  The MiCroscoPe client is available as a dev dependency (microscope-mcp-client). It can connect to the MCP server through stdio transport and provides an interface command line interface to operate the MCP server.
+  The MiCroscoPe client can be installed as an NPM package (microscope-mcp-client). It can connect to the MCP server through stdio transport and provides an interface command line interface to operate the MCP server.
 
   You can run it with:
   ```
