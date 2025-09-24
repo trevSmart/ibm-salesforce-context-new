@@ -10,7 +10,7 @@ const pkg = require('../package.json');
 export default {
 	logPrefix: '👁🐝Ⓜ️',
 	defaultLogLevel: 'debug',
-	bypassHandshakeValidation: false,
+	bypassHandshakeValidation: true,
 	bypassUserPermissionsValidation: false,
 	tempDir: {
 		// Subfolder under workspace to store temp artifacts
