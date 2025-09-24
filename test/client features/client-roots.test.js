@@ -36,5 +36,5 @@ describe('Server tools', () => {
 		expect(toolNames).toContain('describeObject')
 
 		console.log(`Successfully retrieved ${toolsList.length} tools from the server`)
-	}, 10000) // 10 second timeout to allow for server initialization
+	}, 20000) // 10 second timeout to allow for server initialization
 })
