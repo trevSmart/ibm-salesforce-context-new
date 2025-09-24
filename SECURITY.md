@@ -141,6 +141,54 @@ We maintain security through:
 - Temporary files are cleaned up automatically
 - Ensure proper file system permissions
 
+### Known Dependency Vulnerabilities
+
+We actively monitor and address security vulnerabilities in our dependencies. However, some vulnerabilities may persist due to technical constraints:
+
+#### Current Status (as of January 2025)
+
+**Nested Dependency Vulnerabilities in @salesforce/cli (Dev Dependency)**:
+
+1. **brace-expansion** (CVE-2023-1105441, CVE-2023-1105443, CVE-2023-1105444)
+   - **Severity**: Low (CVSS 3.1)
+   - **Issue**: Regular Expression Denial of Service vulnerability
+   - **Location**: Multiple nested locations within @salesforce/cli dependencies
+   - **Status**: Cannot be resolved via npm overrides due to deep nesting
+   - **Mitigation**: 
+     - Only affects development/testing environments (dev dependency)
+     - No impact on production runtime
+     - Salesforce CLI is essential for core functionality and cannot be removed
+     - Vulnerability requires specific input patterns to exploit
+
+2. **path-to-regexp** (CVE-2023-1101846, CVE-2023-1101849)
+   - **Severity**: High (CVSS 7.5)
+   - **Issue**: Backtracking regular expressions causing potential DoS
+   - **Location**: @salesforce/cli nested dependencies
+   - **Status**: Cannot be resolved via npm overrides due to deep nesting
+   - **Mitigation**:
+     - Only affects development/testing environments (dev dependency)
+     - No impact on production runtime
+     - Regular monitoring for @salesforce/cli updates that may resolve this
+     - Vulnerability requires crafted input to exploit
+
+#### Mitigation Strategy
+
+- **Development Environment Only**: These vulnerabilities only affect the development dependency @salesforce/cli
+- **Runtime Isolation**: Production MCP server runtime does not include these vulnerable packages
+- **Regular Updates**: We regularly update @salesforce/cli when new versions are available
+- **Monitoring**: Continuous monitoring of security advisories for upstream fixes
+- **Alternative Tools**: Evaluating alternative Salesforce development tools as they become available
+- **Override Attempts**: We maintain npm overrides where technically feasible
+
+#### For Developers
+
+If you're concerned about these dev dependency vulnerabilities:
+
+1. **Skip Dev Dependencies**: Install only production dependencies with `npm ci --production`
+2. **Isolated Testing**: Run tests in isolated environments if needed
+3. **Alternative CLI**: Use globally installed Salesforce CLI instead of dev dependency
+4. **Monitor Updates**: Watch for @salesforce/cli updates that may resolve these issues
+
 ## Security Updates
 
 Security updates are released as:
