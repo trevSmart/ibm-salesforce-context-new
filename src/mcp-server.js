@@ -291,15 +291,15 @@ export function clearResources() {
 }
 
 // Register all MCP handlers before connecting to any transport
-let handlersRegistered = false;
+
 
 function registerHandlers() {
-	if (handlersRegistered) {
+	if (mcpServer.server.__handlersRegistered) {
 		logger.debug('Handlers already registered, skipping...');
 		return;
 	}
 	
-	handlersRegistered = true;
+	mcpServer.server.__handlersRegistered = true;
 	mcpServer.server.setNotificationHandler(RootsListChangedNotificationSchema, async (listRootsResult) => {
 		try {
 			try {
