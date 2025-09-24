@@ -364,12 +364,14 @@ async function exportMermaidToPng(mermaidText, fileBaseName) {
 }
 */
 
-export async function apexDebugLogsToolHandler({action, logId}) {
+export async function apexDebugLogsToolHandler({action, logId}, args) {
 	// analyzeOptions
 	try {
 		if (!['status', 'on', 'off', 'list', 'get'].includes(action)) {
 			throw new Error(`Invalid action: ${action}`);
 		}
+
+		const progressToken = args?._meta?.progressToken;
 
 		const user = state?.org?.user;
 		logger.debug(`User data: ${JSON.stringify(user)}`);
@@ -418,7 +420,9 @@ export async function apexDebugLogsToolHandler({action, logId}) {
 			}
 		} else if (action === 'on') {
 			// Send progress notification for step 1
-			sendProgressNotification('apex-debug-logs-on', 1, 4, 'Checking for existing active TraceFlag...');
+			if (progressToken) {
+				sendProgressNotification(progressToken, 1, 4, 'Checking for existing active TraceFlag...');
+			}
 
 			//1. Check if there's already an active TraceFlag
 			logger.debug('Checking for already active TraceFlag...');
@@ -427,7 +431,9 @@ export async function apexDebugLogsToolHandler({action, logId}) {
 
 			if (activeTraceFlag) {
 				// Send progress notification for extending existing TraceFlag
-				sendProgressNotification('apex-debug-logs-on', 2, 4, 'Found existing TraceFlag, extending expiration date...');
+				if (progressToken) {
+					sendProgressNotification(progressToken, 2, 4, 'Found existing TraceFlag, extending expiration date...');
+				}
 
 				// Extend the expiration date by 1 hour from now
 				const now = new Date();
@@ -446,7 +452,9 @@ export async function apexDebugLogsToolHandler({action, logId}) {
 				);
 
 				// Send completion notification
-				sendProgressNotification('apex-debug-logs-on', 4, 4, 'Debug logs extended successfully!');
+				if (progressToken) {
+					sendProgressNotification(progressToken, 4, 4, 'Debug logs extended successfully!');
+				}
 
 				const startDate = new Date(activeTraceFlag.StartDate);
 
@@ -469,7 +477,9 @@ export async function apexDebugLogsToolHandler({action, logId}) {
 			}
 
 			// Send progress notification for step 2
-			sendProgressNotification('apex-debug-logs-on', 2, 4, 'Finding or creating DebugLevel...');
+			if (progressToken) {
+				sendProgressNotification(progressToken, 2, 4, 'Finding or creating DebugLevel...');
+			}
 
 			//2. Find or create DebugLevel with DeveloperName=ReplayDebuggerLevels
 			const soqlDebugLevelResult = await executeSoqlQuery("SELECT Id FROM DebugLevel WHERE DeveloperName = 'ReplayDebuggerLevels' LIMIT 1", true);
@@ -477,7 +487,9 @@ export async function apexDebugLogsToolHandler({action, logId}) {
 
 			if (!debugLevelId) {
 				// Send progress notification for creating DebugLevel
-				sendProgressNotification('apex-debug-logs-on', 2, 4, 'DebugLevel not found, creating new one...');
+				if (progressToken) {
+					sendProgressNotification(progressToken, 2, 4, 'DebugLevel not found, creating new one...');
+				}
 
 				logger.debug('DebugLevel not found. Creating new DebugLevel...');
 				const debugLevelResult = await dmlOperation(
@@ -500,7 +512,9 @@ export async function apexDebugLogsToolHandler({action, logId}) {
 			}
 
 			// Send progress notification for step 3
-			sendProgressNotification('apex-debug-logs-on', 3, 4, 'Creating TraceFlag...');
+			if (progressToken) {
+				sendProgressNotification(progressToken, 3, 4, 'Creating TraceFlag...');
+			}
 
 			const now = new Date();
 			const startDate = new Date(now);
@@ -526,12 +540,16 @@ export async function apexDebugLogsToolHandler({action, logId}) {
 			logger.debug(traceFlagResult, 'Create TraceFlag result');
 
 			// Send progress notification for step 4
-			sendProgressNotification('apex-debug-logs-on', 4, 4, 'Confirming TraceFlag creation...');
+			if (progressToken) {
+				sendProgressNotification(progressToken, 4, 4, 'Confirming TraceFlag creation...');
+			}
 
 			const newTraceFlagId = traceFlagResult.successes?.[0]?.id;
 
 			// Send completion notification
-			sendProgressNotification('apex-debug-logs-on', 4, 4, 'Debug logs activated successfully!');
+			if (progressToken) {
+				sendProgressNotification(progressToken, 4, 4, 'Debug logs activated successfully!');
+			}
 
 			return {
 				content: [
@@ -550,14 +568,18 @@ export async function apexDebugLogsToolHandler({action, logId}) {
 			};
 		} else if (action === 'off') {
 			// Send progress notification for turning off debug logs
-			sendProgressNotification('apex-debug-logs-off', 1, 2, 'Checking for active TraceFlag to deactivate...');
+			if (progressToken) {
+				sendProgressNotification(progressToken, 1, 2, 'Checking for active TraceFlag to deactivate...');
+			}
 
 			const soqlTraceFlagResult = await executeSoqlQuery(`SELECT Id, DebugLevelId FROM TraceFlag WHERE TracedEntityId = '${user.id}' AND ExpirationDate >= ${new Date().toISOString()}`, true);
 			const traceFlag = soqlTraceFlagResult?.records?.[0];
 
 			if (!traceFlag) {
 				// Send completion notification for no action needed
-				sendProgressNotification('apex-debug-logs-off', 2, 2, 'Debug logs were already inactive, no action needed');
+				if (progressToken) {
+					sendProgressNotification(progressToken, 2, 2, 'Debug logs were already inactive, no action needed');
+				}
 
 				return {
 					content: [
@@ -571,7 +593,9 @@ export async function apexDebugLogsToolHandler({action, logId}) {
 			}
 
 			// Send progress notification for deactivating TraceFlag
-			sendProgressNotification('apex-debug-logs-off', 2, 2, 'Deactivating TraceFlag by setting expiration date...');
+			if (progressToken) {
+				sendProgressNotification(progressToken, 2, 2, 'Deactivating TraceFlag by setting expiration date...');
+			}
 
 			const newExpirationDate = new Date(Date.now() + 10_000); // 10 seconds in the future
 			await dmlOperation(
@@ -588,7 +612,9 @@ export async function apexDebugLogsToolHandler({action, logId}) {
 			);
 
 			// Send completion notification
-			sendProgressNotification('apex-debug-logs-off', 2, 2, 'Debug logs deactivated successfully!');
+			if (progressToken) {
+				sendProgressNotification(progressToken, 2, 2, 'Debug logs deactivated successfully!');
+			}
 
 			return {
 				content: [
