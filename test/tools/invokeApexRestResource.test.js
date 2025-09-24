@@ -1,5 +1,5 @@
 import { TestData } from '../test-data.js'
-import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { createMcpClient } from '../testMcpClient.js'
 
 describe('invokeApexRestResource', () => {
 	let client

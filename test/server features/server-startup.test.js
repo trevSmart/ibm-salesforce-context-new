@@ -1,16 +1,14 @@
-import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { createMcpClient } from '../testMcpClient.js'
 
 describe('Server Startup', () => {
 	let client
 
-	afterEach(async () => {
-		await disconnectMcpClient(client)
+	beforeAll(async () => {
+		// Get shared MCP client instance once for all tests
+		client = await createMcpClient()
 	})
 
 	test('should start the MCP server successfully', async () => {
-		// Create and connect to the MCP server
-		client = await createMcpClient()
-
 		// Verify the client is defined
 		expect(client).toBeTruthy()
 
@@ -22,5 +20,5 @@ describe('Server Startup', () => {
 		expect(result.structuredContent).toBeTruthy()
 
 		console.log('Server started successfully and tools are accessible')
-	}, 10000) // 10 second timeout to allow for server initialization
+	})
 })

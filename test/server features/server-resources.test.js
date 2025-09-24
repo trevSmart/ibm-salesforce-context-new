@@ -1,16 +1,14 @@
-import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { createMcpClient } from '../testMcpClient.js'
 
 describe('Server Resources', () => {
 	let client
 
-	afterEach(async () => {
-		await disconnectMcpClient(client)
+	beforeAll(async () => {
+		// Get shared MCP client instance once for all tests
+		client = await createMcpClient()
 	})
 
 	test('should list server resources', async () => {
-		// Create and connect to the MCP server
-		client = await createMcpClient()
-
 		// Verify the client is defined
 		expect(client).toBeTruthy()
 
@@ -31,12 +29,9 @@ describe('Server Resources', () => {
 		}
 
 		console.log(`Successfully retrieved ${resourcesList.length} resources from the server`)
-	}, 10000) // 10 second timeout to allow for server initialization
+	})
 
 	test('should read server resource', async () => {
-		// Create and connect to the MCP server
-		client = await createMcpClient()
-
 		// Verify the client is defined
 		expect(client).toBeTruthy()
 
@@ -65,12 +60,9 @@ describe('Server Resources', () => {
 		} else {
 			console.log('No resources available to read')
 		}
-	}, 10000) // 10 second timeout to allow for server initialization
+	})
 
 	test('should detect resource list changes', async () => {
-		// Create and connect to the MCP server
-		client = await createMcpClient()
-
 		// Verify the client is defined
 		expect(client).toBeTruthy()
 
@@ -107,12 +99,9 @@ describe('Server Resources', () => {
 
 		console.log(`Resource list changed: ${initialCount} -> ${updatedCount} resources`)
 		console.log('Successfully detected resource list changes')
-	}, 15000) // 15 second timeout to allow for resource creation and notifications
+	})
 
 	test('should handle reading non-existent resource', async () => {
-		// Create and connect to the MCP server
-		client = await createMcpClient()
-
 		// Verify the client is defined
 		expect(client).toBeTruthy()
 
@@ -125,5 +114,5 @@ describe('Server Resources', () => {
 		}).rejects.toThrow()
 
 		console.log('Successfully handled non-existent resource request')
-	}, 10000) // 10 second timeout to allow for server initialization
+	})
 })

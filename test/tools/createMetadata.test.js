@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { createMcpClient } from '../testMcpClient.js'
 
 const DEFAULT_OUTPUT_DIRS = {
 	apexClass: 'force-app/main/default/classes',
@@ -116,7 +116,7 @@ describe('createMetadata', () => {
 		]
 		cleanupCreatedFiles(expectedFiles, projectRoot)
 
-		// Create and connect to the MCP server
+		// Get shared MCP client instance
 		client = await createMcpClient()
 	})
 

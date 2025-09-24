@@ -1,19 +1,13 @@
-import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { createMcpClient } from '../testMcpClient.js'
 
 describe('apexDebugLogs', () => {
 	let client
 	let logsList // Shared variable for test dependencies
 
 	beforeAll(async () => {
-		// Create and connect to the MCP server
+		// Get shared MCP client instance
 		client = await createMcpClient()
-	})
-
-	afterAll(async () => {
-		await disconnectMcpClient(client)
-	})
-
-	// status doesn't depend on anything → can run in parallel
+	})// status doesn't depend on anything → can run in parallel
 	describe.concurrent('read-only', () => {
 		test('status', async () => {
 			const result = await client.callTool('apexDebugLogs', { action: 'status' })
@@ -34,7 +28,7 @@ describe('apexDebugLogs', () => {
 
 		// Save the result for other tests
 		logsList = result.structuredContent.logs
-	}, 10000)
+	})
 
 	test('get', async () => {
 		// If logsList is not defined or empty, skip the test
@@ -60,7 +54,7 @@ describe('apexDebugLogs', () => {
 		} else {
 			console.log('Log content is not available yet (log might be empty or still processing)')
 		}
-	}, 10000)
+	})
 
 	test('off', async () => {
 		const result = await client.callTool('apexDebugLogs', { action: 'off' })

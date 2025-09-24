@@ -1,18 +1,12 @@
-import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { createMcpClient } from '../testMcpClient.js'
 
 describe('executeSoqlQuery', () => {
 	let client
 
 	beforeAll(async () => {
-		// Create and connect to the MCP server
+		// Get shared MCP client instance
 		client = await createMcpClient()
-	})
-
-	afterAll(async () => {
-		await disconnectMcpClient(client)
-	})
-
-	test('basic query', async () => {
+	})test('basic query', async () => {
 		const result = await client.callTool('executeSoqlQuery', {
 			query: 'SELECT Id, Name FROM Account LIMIT 3',
 		})

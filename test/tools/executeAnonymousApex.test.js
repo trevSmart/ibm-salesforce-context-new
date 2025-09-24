@@ -1,15 +1,11 @@
-import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { createMcpClient } from '../testMcpClient.js'
 
 describe('executeAnonymousApex', () => {
 	let client
 
 	beforeAll(async () => {
-		// Create and connect to the MCP server
+		// Get shared MCP client instance
 		client = await createMcpClient()
-	})
-
-	afterAll(async () => {
-		await disconnectMcpClient(client)
 	})
 
 	test('simple', async () => {
@@ -31,7 +27,7 @@ describe('executeAnonymousApex', () => {
 		if (result?.structuredContent?.logs) {
 			expect(result.structuredContent.logs).toContain('Hello from MCP tool test')
 		}
-	}, 10000)
+	})
 
 	test('with modification', async () => {
 		const result = await client.callTool('executeAnonymousApex', {
@@ -41,5 +37,5 @@ describe('executeAnonymousApex', () => {
 		})
 
 		expect(result?.structuredContent?.success).toBeTruthy(result?.structuredContent)
-	}, 10000)
+	})
 })

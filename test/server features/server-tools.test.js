@@ -1,18 +1,14 @@
-import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { createMcpClient } from '../testMcpClient.js'
 
 describe('Server tools', () => {
 	let client
 
-	afterEach(async () => {
-		await disconnectMcpClient(client)
-		// Additional cleanup time
-		await new Promise(resolve => setTimeout(resolve, 2000))
+	beforeAll(async () => {
+		// Get shared MCP client instance once for all tests
+		client = await createMcpClient()
 	})
 
 	test('should retrieve the list of available tools from the server', async () => {
-		// Create and connect to the MCP server
-		client = await createMcpClient()
-
 		// Verify the client is defined
 		expect(client).toBeTruthy()
 
@@ -38,5 +34,5 @@ describe('Server tools', () => {
 		expect(toolNames).toContain('describeObject')
 
 		console.log(`Successfully retrieved ${toolsList.length} tools from the server`)
-	}, 30000) // 30 second timeout to allow for server initialization
+	})
 })

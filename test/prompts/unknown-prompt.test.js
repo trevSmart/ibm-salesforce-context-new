@@ -1,15 +1,11 @@
-import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { createMcpClient } from '../testMcpClient.js'
 
 describe('unknown-prompt', () => {
 	let client
 
 	beforeAll(async () => {
-		// Create and connect to the MCP server
+		// Get shared MCP client instance
 		client = await createMcpClient()
-	})
-
-	afterAll(async () => {
-		await disconnectMcpClient(client)
 	})
 
 	test('prompt does not exist', async () => {

@@ -1,18 +1,12 @@
-import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { createMcpClient } from '../testMcpClient.js'
 
 describe('runApexTest', () => {
 	let client
 
 	beforeAll(async () => {
-		// Create and connect to the MCP server
+		// Get shared MCP client instance
 		client = await createMcpClient()
-	})
-
-	afterAll(async () => {
-		await disconnectMcpClient(client)
-	})
-
-	test('by class', async () => {
+	})test('by class', async () => {
 		// First, let's find available test classes
 		const queryResult = await client.callTool('executeSoqlQuery', {
 			query: "SELECT Id, Name FROM ApexClass WHERE Name LIKE '%Test%' LIMIT 5",
@@ -50,7 +44,7 @@ describe('runApexTest', () => {
 				expect(testResult.status).toBeTruthy()
 			}
 		}
-	}, 15000)
+	})
 
 	test('by method', async () => {
 		// For now, just test that the tool responds (even if with error)
@@ -62,5 +56,5 @@ describe('runApexTest', () => {
 		// The tool should respond (even if with an error)
 		expect(result).toBeTruthy()
 		expect(result.isError).toBe(true)
-	}, 15000)
+	})
 })

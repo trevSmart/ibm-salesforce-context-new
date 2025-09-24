@@ -1,6 +1,6 @@
 import fetch from 'node-fetch'
 import { afterAll, describe, expect, it } from 'vitest'
-import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { createMcpClient } from '../testMcpClient.js'
 
 interface McpResponse {
 	jsonrpc: string
@@ -69,6 +69,36 @@ describe('MCP HTTP Connection Test', () => {
 		}
 	})
 
+	// Helper function to make authenticated requests
+	async function makeAuthenticatedRequest(method: string, params: any) {
+		if (!sessionId) {
+			throw new Error('No session ID available')
+		}
+
+		const request = {
+			jsonrpc: '2.0',
+			id: Math.floor(Math.random() * 1000),
+			method,
+			params,
+		}
+
+		const response = await fetch(baseUrl, {
+			method: 'POST',
+			headers: {
+				'content-type': 'application/json',
+				accept: 'application/json, text/event-stream',
+				'mcp-session-id': sessionId,
+			},
+			body: JSON.stringify(request),
+		})
+
+		if (!response.ok) {
+			throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+		}
+
+		return response
+	}
+
 	it('should initialize MCP session successfully', async () => {
 		const initRequest = {
 			jsonrpc: '2.0',
@@ -129,44 +159,14 @@ describe('MCP HTTP Connection Test', () => {
 		expect(structuredContent.alias).toBeTypeOf('string')
 		expect(structuredContent.user).toBeTruthyAndDump(structuredContent.user)
 		expect(structuredContent.user.username).toBeTruthy()
-	}, 10000)
+	}, 30000)
 
 	it('should list available tools', async () => {
 		expect(sessionId).toBeDefined()
 
-		const toolsRequest = {
-			jsonrpc: '2.0',
-			id: 2,
-			method: 'tools/list',
-		}
-
-		let response: Awaited<ReturnType<typeof fetch>> | null = null
-		try {
-			response = await fetch(baseUrl, {
-				method: 'POST',
-				headers: {
-					'content-type': 'application/json',
-					accept: 'application/json, text/event-stream',
-					'mcp-session-id': sessionId || ''
-				},
-				body: JSON.stringify(toolsRequest)
-			})
-			console.error('🔥 response', JSON.stringify(response, null, 2))
-		} catch (error) {
-			console.error('🔥 error', error)
-		}
-
-
-		console.error('')
-		console.error('🔥')
-		console.error('🔥 response', JSON.stringify(response, null, 2))
-		console.error('🔥');
-		console.error('');
-
-		expect(response).toBeTruthyAndDump(response)
-		expect(response.ok).toBeTruthyAndDump( response.ok )
-
+		const response = await makeAuthenticatedRequest('tools/list', {})
 		const data = await parseSseResponse(response)
+
 		expect(data).toBeDefined()
 		expect(data?.jsonrpc).toBe('2.0')
 		expect(data?.result).toBeDefined()
@@ -182,30 +182,14 @@ describe('MCP HTTP Connection Test', () => {
 
 		console.log(`✅ Found ${data?.result?.tools?.length || 0} available tools`)
 		console.log('Available tools:', toolNames)
-	})
+	}, 30000)
 
 	it('should list available resources', async () => {
 		expect(sessionId).toBeDefined()
 
-		const resourcesRequest = {
-			jsonrpc: '2.0',
-			id: 3,
-			method: 'resources/list',
-		}
-
-		const response = await fetch(baseUrl, {
-			method: 'POST',
-			headers: {
-				'content-type': 'application/json',
-				accept: 'application/json, text/event-stream',
-				'mcp-session-id': sessionId || '',
-			},
-			body: JSON.stringify(resourcesRequest),
-		})
-
-		expect(response.ok).toBe(true)
-
+		const response = await makeAuthenticatedRequest('resources/list', {})
 		const data = await parseSseResponse(response)
+
 		expect(data).toBeDefined()
 		expect(data?.jsonrpc).toBe('2.0')
 		expect(data?.result).toBeDefined()
@@ -213,31 +197,14 @@ describe('MCP HTTP Connection Test', () => {
 		expect(Array.isArray(data?.result?.resources)).toBe(true)
 
 		console.log(`✅ Found ${data?.result?.resources?.length || 0} available resources`)
-	})
+	}, 30000)
 
 	it('should list available prompts', async () => {
 		expect(sessionId).toBeDefined()
 
-		const promptsRequest = {
-			jsonrpc: '2.0',
-			id: 4,
-			method: 'prompts/list',
-		}
-
-		const response = await fetch(baseUrl, {
-			method: 'POST',
-			headers: {
-				'content-type': 'application/json',
-				accept: 'application/json, text/event-stream',
-				'mcp-session-id': sessionId || '',
-			},
-			body: JSON.stringify(promptsRequest),
-		})
-
-		expect(response).toBeTruthyAndDump(response)
-		expect(response.ok).toBeTruthyAndDump(response.ok)
-
+		const response = await makeAuthenticatedRequest('prompts/list', {})
 		const data = await parseSseResponse(response)
+
 		expect(data).toBeDefined()
 		expect(data?.jsonrpc).toBe('2.0')
 		expect(data?.result).toBeDefined()
@@ -251,7 +218,7 @@ describe('MCP HTTP Connection Test', () => {
 
 		console.log(`✅ Found ${data?.result?.prompts?.length || 0} available prompts`)
 		console.log('Available prompts:', promptNames)
-	})
+	}, 30000)
 
 	it('should handle invalid session ID gracefully', async () => {
 		const toolsRequest = {

@@ -4,7 +4,7 @@ set -e
 # Script compatible with sh (POSIX). Removes bash dependency.
 
 # Skip optional tests during package publishing
-export SKIP_OPTIONAL_TESTS=true
+export SKIP_OPTIONAL_TESTS=false
 
 # Process command line options
 SKIP_TESTS=false
