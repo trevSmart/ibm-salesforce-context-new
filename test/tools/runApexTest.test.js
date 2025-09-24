@@ -6,7 +6,9 @@ describe('runApexTest', () => {
 	beforeAll(async () => {
 		// Get shared MCP client instance
 		client = await createMcpClient()
-	})test('by class', async () => {
+	})
+
+	test('by class', async () => {
 		// First, let's find available test classes
 		const queryResult = await client.callTool('executeSoqlQuery', {
 			query: "SELECT Id, Name FROM ApexClass WHERE Name LIKE '%Test%' LIMIT 5",

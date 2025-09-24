@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { TestData } from '../test-data.js'
-import { createMcpClient } from '../testMcpClient.js'
+import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
 
 describe('getSetupAuditTrail', () => {
 	let client

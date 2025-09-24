@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { createMcpClient } from '../testMcpClient.js'
+import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
 
 const DEFAULT_OUTPUT_DIRS = {
 	apexClass: 'force-app/main/default/classes',

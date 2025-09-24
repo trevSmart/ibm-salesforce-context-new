@@ -5,12 +5,14 @@ describe('executeSoqlQuery', () => {
 
 	beforeAll(async () => {
 		// Get shared MCP client instance
-		client = await createMcpClient()
-	})test('basic query', async () => {
+		client = await createMcpClient();
+	});
+
+	test('basic query', async () => {
 		const result = await client.callTool('executeSoqlQuery', {
 			query: 'SELECT Id, Name FROM Account LIMIT 3',
-		})
-		const sc = result?.structuredContent
+		});
+		const sc = result?.structuredContent;
 		expect(sc).toBeTruthy()
 		expect(Array.isArray(sc.records)).toBe(true)
 		expect(sc.records.length).toBeGreaterThan(0)

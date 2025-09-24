@@ -1,6 +1,6 @@
 import fetch from 'node-fetch'
 import { afterAll, describe, expect, it } from 'vitest'
-import { createMcpClient } from '../testMcpClient.js'
+import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
 
 interface McpResponse {
 	jsonrpc: string
@@ -70,7 +70,7 @@ describe('MCP HTTP Connection Test', () => {
 	})
 
 	// Helper function to make authenticated requests
-	async function makeAuthenticatedRequest(method: string, params: any) {
+	async function makeAuthenticatedRequest(method: string, params: unknown) {
 		if (!sessionId) {
 			throw new Error('No session ID available')
 		}
