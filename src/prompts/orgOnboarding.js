@@ -44,7 +44,7 @@ export async function orgOnboardingPromptHandler() {
    │
    ├── 🎯 CoE
    │   │
-   │   └── 🔧 Oficina Técnica
+   │   └── 🔧 Technical Office
    │
    ├── 🚨 COPS
    │
@@ -56,7 +56,7 @@ export async function orgOnboardingPromptHandler() {
        │   │
        │   └── 🏢 EMP
        │       │
-       │       └── 📈 Sistemática Comercial
+       │       └── 📈 Commercial System
        │
        ├── 🎉 Eventos
        │   │
@@ -67,7 +67,7 @@ export async function orgOnboardingPromptHandler() {
        │   │
        │   └── 🏛️ Promotor Interno
        │
-       └── 📈 Sistemática Comercial
+       └── 📈 Commercial System
  \`\`\`
 
 - Use bullet points when mentioning lists of items (only when it makes sense to do so, and when there are 3 objects or more). This is very important, don't use bullet points for lists of 2 or less items. This bullet points must be presented with each point in its own line.

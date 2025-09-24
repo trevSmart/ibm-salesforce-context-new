@@ -291,10 +291,10 @@ function formatDateToLocal(dateString) {
 			const hours = Number.parseInt(dateMatch[4], 10);
 			const minutes = Number.parseInt(dateMatch[5], 10);
 
-			// Crear data local
+			// Create local date
 			const date = new Date(year, month - 1, day, hours, minutes);
 
-			// Formatar a D/M/YY HH:MI
+			// Format as D/M/YY HH:MM
 			const formattedDay = date.getDate();
 			const formattedMonth = date.getMonth() + 1;
 			const formattedYear = date.getFullYear().toString().slice(-2);

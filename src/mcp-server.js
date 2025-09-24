@@ -242,7 +242,7 @@ async function updateOrgAndUserDetails() {
 
 //Create the MCP server instance
 const {protocolVersion, serverInfo, capabilities} = config.serverConstants;
-const instructions = await textFileContent('static/agentInstruccions.md');
+const instructions = await textFileContent('static/agentInstructions.md');
 
 const mcpServer = new McpServer(serverInfo, {
 	capabilities,
