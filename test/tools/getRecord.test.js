@@ -13,13 +13,15 @@ describe('getRecord', () => {
 		await disconnectMcpClient(client)
 	})
 
+	console.error('🔥 TestData.salesforce.testAccountId', TestData.salesforce.testAccountId)
+
 	describe.concurrent('read-only', () => {
 		test('Account', async () => {
 			const result = await client.callTool('getRecord', {
 				sObjectName: 'Account',
 				recordId: TestData.salesforce.testAccountId,
 			})
-			expect(result?.structuredContent).toBeTruthy()
+			expect(result?.structuredContent).toBeTruthyAndDump(result)
 			expect(result.structuredContent.sObject).toBe('Account')
 			expect(result.structuredContent.fields).toBeTruthy()
 		})
