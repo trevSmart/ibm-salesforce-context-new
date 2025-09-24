@@ -63,7 +63,8 @@ describe('orgOnboarding prompt', () => {
 		});
 
 		it('should not require any parameters', async () => {
-			expect(() => orgOnboardingPromptHandler()).not.toThrow();
+			// Test that the async function can be called without parameters
+			await expect(orgOnboardingPromptHandler()).resolves.toBeDefined();
 			const {result} = await getUserMessage();
 			expect(result.messages).toBeDefined();
 		});
