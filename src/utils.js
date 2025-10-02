@@ -418,3 +418,47 @@ export function formatDate(date) {
 	}
 	return formattedDate;
 }
+
+// mcp-link.js
+
+/**
+ * Genera un deeplink para VS Code o Cursor instal·lar un servidor MCP.
+ * @param {Object} mcpConfig L'objecte de configuració MCP que l'editor espera.
+ * @param {boolean} useInsiders Si vols generar l'enllaç per a VS Code Insiders.
+ * @param {string} editorType Tipus d'editor: 'vscode' o 'cursor'.
+ * @returns {string} L'URL deeplink (ex: vscode:mcp/install?… o cursor://anysphere.cursor-deeplink/mcp/install?...)
+ */
+export function makeMcpDeepLink(mcpConfig, useInsiders = false, editorType = 'vscode') {
+	if (editorType === 'cursor') {
+		// Cursor utilitza base64 encoding
+		const json = JSON.stringify(mcpConfig);
+		const base64 = Buffer.from(json).toString('base64');
+		return `cursor://anysphere.cursor-deeplink/mcp/install?name=${mcpConfig.name}&config=${base64}`;
+	} else {
+		// VS Code utilitza URL encoding
+		const scheme = useInsiders ? 'vscode-insiders:mcp/install?' : 'vscode:mcp/install?';
+		const json = JSON.stringify(mcpConfig);
+		const encoded = encodeURIComponent(json);
+		return scheme + encoded;
+	}
+}
+
+/**
+ * Genera l'HTML del botó per instal·lar el servidor MCP a VS Code o Cursor.
+ * @param {Object} mcpConfig L'objecte de configuració MCP que l'editor espera.
+ * @param {boolean} useInsiders Si vols generar l'enllaç per a VS Code Insiders.
+ * @param {string} editorType Tipus d'editor: 'vscode' o 'cursor'.
+ * @returns {string} L'HTML del botó amb l'estil corresponent.
+ */
+export function makeMcpInstallButton(mcpConfig, useInsiders = false, editorType = 'vscode') {
+	const deepLink = makeMcpDeepLink(mcpConfig, useInsiders, editorType);
+
+	if (editorType === 'cursor') {
+		// Cursor utilitza el seu propi estil de botó
+		return `<a href="${deepLink}"><img src="https://cursor.com/deeplink/mcp-install-dark.svg" alt="Add MCP server to Cursor" height="32" /></a>`;
+	} else {
+		// VS Code utilitza el badge de shields.io
+		const scheme = useInsiders ? 'VS_Code_Insiders' : 'VS_Code';
+		return `<a href="${deepLink}"><img src="https://img.shields.io/badge/${scheme}-Install_IBM_Salesforce_Context-0098FF?style=flat&logo=visualstudiocode&logoColor=ffffff" alt="Install in ${scheme}"></a>`;
+	}
+}
