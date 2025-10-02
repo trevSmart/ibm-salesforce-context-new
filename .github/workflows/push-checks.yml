@@ -67,11 +67,11 @@ jobs:
         audit_output=$(npm audit --audit-level=high 2>&1)
         audit_exit_code=$?
         set -e  # Re-enable exit on error
-        
+
         # If audit fails, check if it's due to known external vulnerabilities
         if [ $audit_exit_code -ne 0 ]; then
           echo "Security audit found vulnerabilities. Checking if they are external dependencies..."
-          
+
           # Check if vulnerabilities are only in @salesforce/cli transitive dependencies
           cli_vulns=$(echo "$audit_output" | grep "node_modules/@salesforce/cli" | wc -l | tr -d ' ')
           if [ "$cli_vulns" -gt 0 ]; then
