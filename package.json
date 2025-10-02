@@ -53,6 +53,7 @@
 		"javascript-obfuscator": "^4.1.0",
 		"node-fetch": "^3.3.2",
 		"vitest": "^3.2.4",
-		"path-to-regexp": "^6.3.0"
+		"path-to-regexp": "^6.3.0",
+		"tar-fs": ">=2.1.4"
 	}
 }
