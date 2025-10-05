@@ -146,6 +146,7 @@ const instructions = await textFileContent('static/agentInstructions.md');
 const mcpServer = new McpServer(serverInfo, {
 	capabilities,
 	instructions,
+	icons: [{src: "src/static/ibm-logo.png", mimeType: "image/png", sizes: ["48x48"]}],
 	debouncedNotificationMethods: ['notifications/tools/list_changed', 'notifications/resources/list_changed', 'notifications/prompts/list_changed']
 });
 
