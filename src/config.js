@@ -11,7 +11,7 @@ export default {
 	logPrefix: '👁🐝Ⓜ️',
 	defaultLogLevel: 'debug',
 	bypassHandshakeValidation: true,
-	bypassUserPermissionsValidation: false,
+	bypassUserPermissionsValidation: true,
 	tempDir: {
 		// Subfolder under workspace to store temp artifacts
 		baseSubdir: 'tmp',
