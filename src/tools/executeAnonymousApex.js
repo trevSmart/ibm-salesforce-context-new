@@ -2,7 +2,7 @@ import {z} from 'zod';
 import client from '../client.js';
 import {createModuleLogger} from '../lib/logger.js';
 import {executeAnonymousApex} from '../lib/salesforceServices.js';
-import {mcpServer, newResource, state} from '../mcp-server.js';
+import {mcpServer, newResource, sendProgressNotification, state} from '../mcp-server.js';
 import {getTimestamp, textFileContent} from '../utils.js';
 
 const logger = createModuleLogger(import.meta.url);
@@ -40,8 +40,12 @@ function formatApexCode(code) {
 	}
 }
 
-export async function executeAnonymousApexToolHandler({apexCode, mayModify}) {
+export async function executeAnonymousApexToolHandler({apexCode, mayModify}, args) {
+	const progressToken = args?._meta?.progressToken;
+
 	try {
+		sendProgressNotification(progressToken, 1, 3, 'Starting execution request');
+
 		if (mayModify && client.supportsCapability('elicitation')) {
 			const elicitResult = await mcpServer.server.elicitInput({
 				message: `This script may modify data. Please confirm the execution of the Anonymous Apex script in ${state.org.alias}.`,
@@ -69,8 +73,10 @@ export async function executeAnonymousApexToolHandler({apexCode, mayModify}) {
 			}
 		}
 
+		sendProgressNotification(progressToken, 2, 3, 'Waiting for execution result...');
 		const formattedCode = formatApexCode(apexCode);
 		const result = await executeAnonymousApex(formattedCode);
+		sendProgressNotification(progressToken, 3, 3, 'Processing execution result');
 
 		const content = [
 			{

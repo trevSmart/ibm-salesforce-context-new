@@ -2,7 +2,7 @@
 import {z} from 'zod';
 import {createModuleLogger} from '../lib/logger.js';
 import {callSalesforceApi} from '../lib/salesforceServices.js';
-import {newResource, resources} from '../mcp-server.js';
+import {newResource, resources, sendProgressNotification} from '../mcp-server.js';
 import {textFileContent} from '../utils.js';
 
 const logger = createModuleLogger(import.meta.url);
@@ -25,7 +25,9 @@ export const describeObjectToolDefinition = {
 	}
 };
 
-export async function describeObjectToolHandler({sObjectName, includeFields = true, includePicklistValues = false, useToolingApi = false}) {
+export async function describeObjectToolHandler({sObjectName, includeFields = true, includePicklistValues = false, useToolingApi = false}, args) {
+	const progressToken = args?._meta?.progressToken;
+
 	try {
 		const resourceName = `mcp://mcp/sobject-ui-schema-${sObjectName.toLowerCase()}.json`;
 
@@ -48,7 +50,11 @@ export async function describeObjectToolHandler({sObjectName, includeFields = tr
 			};
 		}
 
+		sendProgressNotification(progressToken, 1, 3, 'Starting SObject schema retrieval');
+
 		let transformedData;
+
+		sendProgressNotification(progressToken, 2, 3, 'Waiting for API response...');
 
 		if (useToolingApi) {
 			// Use Tooling API for Tooling objects
@@ -73,6 +79,8 @@ export async function describeObjectToolHandler({sObjectName, includeFields = tr
 			// Transform UI API response to match our expected format
 			transformedData = transformUiApiResponse(response, 'all', includePicklistValues);
 		}
+
+		sendProgressNotification(progressToken, 3, 3, 'Processing API response');
 
 		// Apply filtering
 		const filteredData = applyFiltering(transformedData, includeFields, includePicklistValues);

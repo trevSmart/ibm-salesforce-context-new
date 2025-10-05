@@ -2,7 +2,7 @@ import {z} from 'zod';
 import client from '../client.js';
 import {createModuleLogger} from '../lib/logger.js';
 import {executeSoqlQuery, getApexClassCodeCoverage, runApexTest} from '../lib/salesforceServices.js';
-import {mcpServer, newResource, resources} from '../mcp-server.js';
+import {mcpServer, newResource, resources, sendProgressNotification} from '../mcp-server.js';
 import {textFileContent} from '../utils.js';
 
 export const runApexTestToolDefinition = {
@@ -64,8 +64,10 @@ async function classNameElicitation() {
 	});
 }
 
-export async function runApexTestToolHandler({classNames = [], methodNames = [], suiteNames = [], options = {}}) {
+export async function runApexTestToolHandler({classNames = [], methodNames = [], suiteNames = [], options = {}}, args) {
 	const logger = createModuleLogger(import.meta.url);
+	const progressToken = args?._meta?.progressToken;
+
 	try {
 		// Validate that only one input array has items
 		const hasClassNames = classNames && classNames.length > 0;
@@ -94,6 +96,10 @@ export async function runApexTestToolHandler({classNames = [], methodNames = [],
 			suiteNames = suiteNames.filter((suiteName) => typeof suiteName === 'string');
 		}
 
+		if (progressToken) {
+			sendProgressNotification(progressToken, 1, 2, 'Starting test');
+		}
+
 		let testRunId;
 		if (methodNames?.length) {
 			// Case B: only specific methods, ignore classNames
@@ -112,7 +118,10 @@ export async function runApexTestToolHandler({classNames = [], methodNames = [],
 			throw new Error('No test run Id returned by Salesforce CLI');
 		}
 
-		//const progressToken = classNames?.length > 1 ? _meta?.progressToken : null;
+		if (progressToken) {
+			sendProgressNotification(progressToken, 2, 2, 'Waiting for test results...');
+		}
+
 		// Polling to wait for test completion
 		let testRunResult;
 		while (true) {
@@ -120,11 +129,8 @@ export async function runApexTestToolHandler({classNames = [], methodNames = [],
 			testRunResult = testRunResults.records[0];
 
 			if (!testRunResult || (testRunResult.Status !== 'Processing' && testRunResult.Status !== 'Queued')) {
-				//notifyProgressChange(progressToken, testRunResult.MethodsEnqueued, testRunResult.MethodsEnqueued, 'Test finished');
 				break;
 			}
-			//const progress = testRunResult.MethodsCompleted + testRunResult.MethodsFailed;
-			//notifyProgressChange(progressToken, testRunResult.MethodsEnqueued, progress, 'Running the test...');
 
 			await new Promise((resolve) => setTimeout(resolve, 8000)); //Polling every 8 seconds
 		}

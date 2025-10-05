@@ -91,12 +91,12 @@ async function retrieveFile() {
 		// Attempt clicking candidates while waiting for a download event
 		const download = await Promise.race([
 			(async () => {
-				const dl = await page.waitForEvent('download', {timeout: 5_000});
+				const dl = await page.waitForEvent('download', {timeout: 30_000});
 				return dl;
 			})(),
 			(async () => {
 				const start = Date.now();
-				const maxWaitMs = 5_000;
+				const maxWaitMs = 30_000;
 				while (Date.now() - start < maxWaitMs) {
 					const clicked = await clickDownloadCandidate(page);
 					if (clicked) {

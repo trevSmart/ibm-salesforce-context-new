@@ -5,7 +5,7 @@ import client from '../client.js';
 import {retrieveSetupAuditTrailFile} from '../lib/auditTrailDownloader.js';
 import {createModuleLogger} from '../lib/logger.js';
 import {executeSoqlQuery} from '../lib/salesforceServices.js';
-import {newResource, state} from '../mcp-server.js';
+import {newResource, state, sendProgressNotification} from '../mcp-server.js';
 import {textFileContent} from '../utils.js';
 
 const logger = createModuleLogger(import.meta.url);
@@ -417,8 +417,12 @@ function getFreshAuditTrailFilePath() {
 	return null;
 }
 
-export async function getSetupAuditTrailToolHandler({lastDays = 30, user = null, metadataName = null}) {
+export async function getSetupAuditTrailToolHandler({lastDays = 30, user = null, metadataName = null}, args) {
+	const progressToken = args?._meta?.progressToken;
+
 	try {
+		sendProgressNotification(progressToken, 1, 2, 'Retrieving Setup Audit Trail data...');
+
 		// Resolve optional user filter: accepts username or Name
 		const resolveUser = async (u) => {
 			if (!u) {
@@ -461,6 +465,8 @@ export async function getSetupAuditTrailToolHandler({lastDays = 30, user = null,
 		const resourceUri = `mcp://setupAuditTrail/${fileName}`;
 
 		let filePath = getFreshAuditTrailFilePath();
+		sendProgressNotification(progressToken, 2, 2, 'Processing Setup Audit Trail data...');
+
 		if (!filePath) {
 			try {
 				filePath = await retrieveSetupAuditTrailFile();

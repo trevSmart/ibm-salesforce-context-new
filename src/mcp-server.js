@@ -255,6 +255,10 @@ export async function setupServer(transport) {
 }
 
 export function sendProgressNotification(progressToken, progress, total, message) {
+	if (!progressToken) {
+		return;
+	}
+
 	mcpServer.server.notification({
 		method: 'notifications/progress',
 		params: {progressToken, progress, total, message}

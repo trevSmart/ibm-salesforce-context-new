@@ -414,7 +414,7 @@ export function formatDate(date) {
 
 	let formattedDate = safeFormat(date, 'toLocaleTimeString', timeOptions);
 	if (date.toDateString() !== new Date().toDateString()) {
-		formattedDate = `${safeFormat(date, 'toLocaleDateString', dateOptions)} ${ formattedDate}`;
+		formattedDate = `${safeFormat(date, 'toLocaleDateString', dateOptions)} ${formattedDate}`;
 	}
 	return formattedDate;
 }

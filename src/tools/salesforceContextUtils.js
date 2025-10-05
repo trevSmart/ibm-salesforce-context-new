@@ -227,7 +227,7 @@ IMPORTANT: Generate your response in English.`;
 
 						const toolDetectionResponse = await mcpServer.server.createMessage({
 							messages: [{role: 'user', content: {type: 'text', text: toolDetectionPrompt}}],
-							systemPrompt: "You are a customer support expert. Analyze problem description to tell whether it has enough information to open an issue. In case there is, identify which tool the problem is related to.",
+							systemPrompt: 'You are a customer support expert. Analyze problem description to tell whether it has enough information to open an issue. In case there is, identify which tool the problem is related to.',
 							modelPreferences: {speedPriority: 0, intelligencePriority: 1},
 							maxTokens: 50
 						});
