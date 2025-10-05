@@ -6,7 +6,7 @@ import {retrieveSetupAuditTrailFile} from '../lib/auditTrailDownloader.js';
 import {createModuleLogger} from '../lib/logger.js';
 import {executeSoqlQuery} from '../lib/salesforceServices.js';
 import {newResource, state, sendProgressNotification} from '../mcp-server.js';
-import {textFileContent} from '../utils.js';
+import {textFileContent, addResourceToContent} from '../utils.js';
 
 const logger = createModuleLogger(import.meta.url);
 
@@ -505,8 +505,6 @@ export async function getSetupAuditTrailToolHandler({lastDays = 30, user = null,
 		// Compress the Action field to reduce response size
 		const compressedRecords = compressActionField(records);
 
-		newResource(resourceUri, 'Setup audit trail CSV', 'Setup audit trail CSV', 'text/csv', originalFileContent, {audience: ['user', 'assistant']});
-
 		const content = [
 			{
 				type: 'text',
@@ -514,15 +512,14 @@ export async function getSetupAuditTrailToolHandler({lastDays = 30, user = null,
 			}
 		];
 
-		if (client.supportsCapability('resource_links')) {
-			content.push({
-				type: 'resource_link',
-				uri: resourceUri,
-				name: 'Setup audit trail CSV',
-				mimeType: 'text/csv',
-				description: 'Setup audit trail CSV'
-			});
-		}
+		addResourceToContent(content, newResource(
+			resourceUri,
+			'Setup audit trail CSV',
+			'Setup audit trail CSV',
+			'text/csv',
+			originalFileContent,
+			{audience: ['user', 'assistant']}
+		));
 
 		return {
 			content,

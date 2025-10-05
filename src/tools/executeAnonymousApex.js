@@ -3,7 +3,7 @@ import client from '../client.js';
 import {createModuleLogger} from '../lib/logger.js';
 import {executeAnonymousApex} from '../lib/salesforceServices.js';
 import {mcpServer, newResource, sendProgressNotification, state} from '../mcp-server.js';
-import {getTimestamp, textFileContent} from '../utils.js';
+import {getTimestamp, textFileContent, addResourceToContent} from '../utils.js';
 
 const logger = createModuleLogger(import.meta.url);
 
@@ -95,21 +95,20 @@ export async function executeAnonymousApexToolHandler({apexCode, mayModify}, arg
 			const logFileName = `apex_run_${getTimestamp(true)}.log`;
 			const uri = `mcp://apex/${logFileName}`;
 			const description = `${getTimestamp(true)} - ${username} - ${logSize}KB`;
-			newResource(uri, logFileName, description, 'text/plain', result.logs, {
-				audience: ['user', 'assistant']
-			});
-			if (client.supportsCapability('resource_links')) {
-				content.push({
-					type: 'resource_link',
-					uri,
-					name: logFileName,
-					mimeType: 'text/plain',
-					description
-				});
-			}
+			addResourceToContent(content, newResource(
+				uri,
+				logFileName,
+				description,
+				'text/plain',
+				result.logs,
+				{
+					audience: ['user', 'assistant']
+				}
+			));
 		}
 
 		return {content, structuredContent: result};
+
 	} catch (error) {
 		logger.error(error);
 		return {

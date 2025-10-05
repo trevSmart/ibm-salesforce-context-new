@@ -5,7 +5,7 @@ import {createModuleLogger} from '../lib/logger.js';
 import {applyFetchSslOptions} from '../lib/networkUtils.js';
 import {executeAnonymousApex, getOrgAndUserDetails} from '../lib/salesforceServices.js';
 import {clearResources, newResource, resources, sendProgressNotification, state} from '../mcp-server.js';
-import {formatDate, textFileContent} from '../utils.js';
+import {formatDate, textFileContent, addResourceToContent} from '../utils.js';
 
 const logger = createModuleLogger(import.meta.url);
 
@@ -112,7 +112,14 @@ export async function salesforceContextUtilsToolHandler({action, issueDescriptio
 						.filter((line) => line.trim()); // Remove any empty lines after processing
 
 					// Create new resource
-					newResource(resourceUri, 'SObject record prefixes list', 'This resource contains a list of SObject record prefixes.', 'application/json', JSON.stringify(data, null, '\t'), {audience: ['user', 'assistant']});
+					newResource(
+						resourceUri,
+						'SObject record prefixes list',
+						'This resource contains a list of SObject record prefixes.',
+						'application/json',
+						JSON.stringify(data, null, '\t'),
+						{audience: ['user', 'assistant']}
+					);
 
 					content.push({
 						type: 'text',
@@ -140,21 +147,19 @@ export async function salesforceContextUtilsToolHandler({action, issueDescriptio
 				}
 			}
 
-			if (client.supportsCapability('resource_links')) {
-				// Include required fields for ResourceLink per MCP schema
-				const res = resources[resourceUri];
-				content.push({
-					type: 'resource_link',
-					uri: resourceUri,
-					name: res?.name || 'recordPrefixes.json',
-					mimeType: res?.mimeType || 'application/json',
-					description: res?.description || 'SObject record prefixes list'
-				});
+			// Include required fields for ResourceLink per MCP schema
+			let res = resources[resourceUri] || null;
+			if (!res) {
+				res = newResource(
+					resourceUri,
+					'recordPrefixes.json',
+					'application/json',
+					'SObject record prefixes list',
+					{audience: ['user', 'assistant']}
+				);
 			}
 
-			//This should only be necessary if client does not support resource_links
-			//However testing shows that some clients cant read the resource_links properly even if they support it
-			//For now we will always return the data as structured content
+			addResourceToContent(content, res);
 			structuredContent = transformedData;
 
 			return {

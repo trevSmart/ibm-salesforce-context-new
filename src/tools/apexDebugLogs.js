@@ -4,7 +4,7 @@ import client from '../client.js';
 import {createModuleLogger} from '../lib/logger.js';
 import {dmlOperation, executeSoqlQuery, runCliCommand} from '../lib/salesforceServices.js';
 import {mcpServer, newResource, state, sendProgressNotification} from '../mcp-server.js';
-import {formatDate, textFileContent} from '../utils.js'; // ensureTmpDir, writeToTmpFile
+import {formatDate, textFileContent, addResourceToContent} from '../utils.js'; // ensureTmpDir, writeToTmpFile
 
 // import path from 'path';
 // import {execSync} from 'child_process';
@@ -729,18 +729,16 @@ export async function apexDebugLogsToolHandler({action, logId}, args) {
 			const uri = `mcp://apexLogs/${logId}.log`;
 			const name = `${logId}.log`;
 			const description = `Apex debug log ${logId}`;
-			newResource(uri, name, description, 'text/plain', apexLog, {
-				audience: ['user']
-			});
-			if (client.supportsCapability('resource_links')) {
-				content.push({
-					type: 'resource_link',
-					uri,
-					name,
-					mimeType: 'text/plain',
-					description
-				});
-			}
+			addResourceToContent(content, newResource(
+				uri,
+				name,
+				description,
+				'text/plain',
+				apexLog,
+				{
+					audience: ['user']
+				}
+			));
 
 			return {
 				content,

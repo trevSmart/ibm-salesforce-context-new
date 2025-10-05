@@ -6,6 +6,7 @@ import {createModuleLogger} from './lib/logger.js';
 import {applyFetchSslOptions} from './lib/networkUtils.js';
 import {cleanupObsoleteTempFiles, ensureBaseTmpDir} from './lib/tempManager.js';
 import {state} from './mcp-server.js';
+import client from './client.js';
 
 const logger = createModuleLogger(import.meta.url);
 
@@ -460,5 +461,40 @@ export function makeMcpInstallButton(mcpConfig, useInsiders = false, editorType 
 		// VS Code utilitza el badge de shields.io
 		const scheme = useInsiders ? 'VS_Code_Insiders' : 'VS_Code';
 		return `<a href="${deepLink}"><img src="https://img.shields.io/badge/${scheme}-Install_IBM_Salesforce_Context-0098FF?style=flat&logo=visualstudiocode&logoColor=ffffff" alt="Install in ${scheme}"></a>`;
+	}
+}
+
+/**
+ * Adds resource attachment to tool response content based on client capabilities
+ * @param {Array} content - The content array to add the resource to
+ * @param {string} uri - Resource URI
+ * @param {string} name - Resource name
+ * @param {string} mimeType - Resource MIME type
+ * @param {string} description - Resource description
+ * @param {Object} clientInstance - Client instance with capability detection (optional, defaults to global client)
+ * @returns {void}
+ */
+export function addResourceToContent(content, resource) {
+	const {uri, name, mimeType, description} = resource;
+
+	if (client.supportsCapability('resource_links')) {
+		content.push({
+			type: 'resource_link',
+			uri,
+			name,
+			mimeType,
+			description
+		});
+		logger.debug(`Added resource link for ${name} (client supports resource_links)`);
+
+	} else if (client.supportsCapability('resources')) {
+		content.push({
+			type: 'resource',
+			resource
+		});
+		logger.debug(`Added text description for resource ${name} (client does not support resource_links but supports resources)`);
+
+	} else {
+		logger.debug(`Skipped resource link attachment for ${name} (client doesn't support resources or resource_links). Resource still available via the salesforceContextUtils tools`);
 	}
 }

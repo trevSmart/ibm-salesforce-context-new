@@ -66,7 +66,7 @@ class Client {
 				return Boolean(this.capabilities?.logging) || this.is(['Visual Studio Code', 'Visual Studio Code - Insiders']);
 
 			case 'resources':
-				return Boolean(this.capabilities?.[capabilityName]) || this.is(['Visual Studio Code', 'Visual Studio Code - Insiders']);
+				return Boolean(this.capabilities?.[capabilityName]) || this.is(['Visual Studio Code', 'Visual Studio Code - Insiders', 'Cursor']);
 
 			case 'embeddedResources':
 				return this.is(['Visual Studio Code', 'Visual Studio Code - Insiders']);

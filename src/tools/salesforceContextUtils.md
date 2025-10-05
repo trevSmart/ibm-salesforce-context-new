@@ -18,7 +18,7 @@ Allows you to execute utility actions like:
   - **"getOrgAndUserDetails"**:
     - Obtains the details of the current target Salesforce organization (alias, instance URL, etc.) and the current user (Name, User Id, username, etc...).
   - **"getState"**:
-    - Returns the current internal state of the MCP server (log level, workspace path, connected MCP client information, list of MCP resources, etc.).
+    - Returns the current internal state of the MCP server (log level, workspace path, connected MCP client information, etc.).
   - **"clearCache"**:
     - Clears the internal cache of the MCP server.
     - **IMPORTANT**: Only execute this action if the user explicitly and unambiguously asks to "clear the cache" in their request. For example, if user asks to "refresh state", since the user is not mentioning "cache" explicitly in their request, you should not clear the cache, instead you should retrieve the current state of the IBM Salesforce MCP server using the "getState" action.

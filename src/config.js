@@ -19,22 +19,15 @@ export default {
 		retentionDays: 7
 	},
 	apiCache: {
-		// Enable/disable in-memory API response cache globally
 		enabled: true,
-		// Only cache idempotent reads
 		cacheGet: true,
-		// Default TTL for cached entries (ms)
 		defaultTtlMs: 10_000,
-		// Max entries before pruning oldest
 		maxEntries: 200,
-		// Clear cache after successful non-GET requests
 		invalidateOnWrite: true
 	},
 	resources: {
-		// Maximum number of MCP resources to keep in memory
 		maxResources: 30
 	},
-	// Bypass user permission set validation for tools
 
 	serverConstants: {
 		protocolVersion: '2025-06-18',
