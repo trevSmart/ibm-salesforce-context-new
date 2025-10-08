@@ -17,6 +17,7 @@ import {orgOnboardingPromptDefinition, orgOnboardingPromptHandler} from '../prom
 
 // Import tool definitions
 import {apexDebugLogsToolDefinition} from '../tools/apexDebugLogs.js';
+import {chatWithAgentforceToolDefinition} from '../tools/chatWithAgentforce.js';
 import {createMetadataToolDefinition} from '../tools/createMetadata.js';
 import {deployMetadataToolDefinition, deployMetadataToolHandler} from '../tools/deployMetadata.js';
 import {describeObjectToolDefinition, describeObjectToolHandler} from '../tools/describeObject.js';
@@ -113,6 +114,7 @@ export class HandlerRegistry {
 		// Tool definitions to register
 		const toolDefinitions = [
 			{name: 'salesforceContextUtils', definition: salesforceContextUtilsToolDefinition},
+			{name: 'chatWithAgentforce', definition: chatWithAgentforceToolDefinition},
 			{name: 'dmlOperation', definition: dmlOperationToolDefinition},
 			{name: 'deployMetadata', definition: deployMetadataToolDefinition},
 			{name: 'describeObject', definition: describeObjectToolDefinition},
@@ -140,8 +142,8 @@ export class HandlerRegistry {
 	createSecureToolHandler(toolName, staticToolHandlers) {
 		return async (params, args) => {
 			try {
-				// Security validation (except for utility tool)
-				if (toolName !== 'salesforceContextUtils') {
+				// Security validation (except for utility tool and chatWithAgentforce)
+				if (toolName !== 'salesforceContextUtils' && toolName !== 'chatWithAgentforce') {
 					if (!(config.bypassUserPermissionsValidation || this.state.userPermissionsValidated)) {
 						throw new Error(`🚫 Request blocked due to unsuccessful user validation for "${this.state.org.username}".`);
 					}

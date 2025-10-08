@@ -1,0 +1,23 @@
+{
+  "manifest_version": "0.2",
+  "name": "test_research4",
+  "display_name": "IBM Salesforce Context",
+  "version": "0.3.37",
+  "description": "Test Research 4",
+  "author": {
+    "name": "Trevor Smart"
+  },
+  "icon": "src/static/ibm-logo.png",
+  "server": {
+    "type": "node",
+    "entry_point": "index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/index.js"
+      ],
+      "env": {}
+    }
+  },
+  "license": "**Use of this code in any context is not permitted, including within internal company systems, client environments, testing, or production systems.**"
+}
