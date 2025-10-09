@@ -36,10 +36,6 @@ export const apexDebugLogsToolDefinition = {
 		// 		.describe('Which artifacts to return in the tool output.')
 		// }).optional().describe('Options for analyze action (only used when action is "analyze")')
 	},
-	outputSchema: {
-		type: 'object',
-		description: 'Response object containing the result of the debug log operation'
-	},
 	annotations: {
 		readOnlyHint: false,
 		idempotentHint: false,

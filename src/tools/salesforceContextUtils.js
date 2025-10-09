@@ -18,10 +18,6 @@ export const salesforceContextUtilsToolDefinition = {
 		issueDescription: z.string().optional().describe('Detailed description of the issue and context from recent conversation messages (required for reportIssue action)'),
 		issueToolName: z.string().optional().describe('Name of the tool that failed or needs improvement (optional)')
 	},
-	outputSchema: {
-		type: 'object',
-		description: 'Response object containing utility operation result'
-	},
 	annotations: {
 		readOnlyHint: false,
 		idempotentHint: false,

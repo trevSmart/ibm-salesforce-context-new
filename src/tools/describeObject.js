@@ -17,10 +17,6 @@ export const describeObjectToolDefinition = {
 		includePicklistValues: z.boolean().describe('If true, includes picklist values for picklist and multipicklist fields. If false, only field metadata is returned.').default(false),
 		useToolingApi: z.boolean().optional().default(false).describe('Whether to use the Tooling API for retrieving the SObject schema (default: false)')
 	},
-	outputSchema: {
-		type: 'object',
-		description: 'Response object containing SObject schema information'
-	},
 	annotations: {
 		readOnlyHint: true,
 		idempotentHint: true,

@@ -7,10 +7,6 @@ export const getRecentlyViewedRecordsToolDefinition = {
 	title: 'Get Recently Viewed Records',
 	description: await textFileContent('tools/getRecentlyViewedRecords.md'),
 	inputSchema: {},
-	outputSchema: {
-		type: 'object',
-		description: 'Response object containing recently viewed records'
-	},
 	annotations: {
 		readOnlyHint: true,
 		idempotentHint: false,

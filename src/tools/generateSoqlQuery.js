@@ -56,10 +56,6 @@ export const generateSoqlQueryToolDefinition = {
 		*/
 		involvedFields: z.array(z.string()).describe('The fields involved in the query (e.g. ["Case.AccountId", "Case.Account.Birthdate", "Contact.CreatedBy.Name"])')
 	},
-	outputSchema: {
-		type: 'object',
-		description: 'Response object containing generated SOQL query'
-	},
 	annotations: {
 		readOnlyHint: true,
 		idempotentHint: true,

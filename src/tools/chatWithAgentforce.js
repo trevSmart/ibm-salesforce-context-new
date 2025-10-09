@@ -15,10 +15,6 @@ export const chatWithAgentforceToolDefinition = {
 	inputSchema: {
 		message: z.string().describe('The message to send to Agentforce.')
 	},
-	outputSchema: {
-		type: 'object',
-		description: 'Response object containing the Agentforce conversation result'
-	},
 	annotations: {
 		readOnlyHint: false,
 		idempotentHint: false,

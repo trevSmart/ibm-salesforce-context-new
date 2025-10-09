@@ -46,10 +46,6 @@ export const executeSoqlQueryToolDefinition = {
 		query: z.string().describe('The SOQL query to execute'),
 		useToolingApi: z.boolean().optional().default(false).describe('Whether to use the Tooling API for the query (default: false)')
 	},
-	outputSchema: {
-		type: 'object',
-		description: 'Response object containing SOQL query results'
-	},
 	annotations: {
 		readOnlyHint: true,
 		idempotentHint: true,

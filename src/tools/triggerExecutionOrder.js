@@ -10,10 +10,6 @@ export const triggerExecutionOrderDefinition = {
 	inputSchema: {
 		sObjectName: z.string().describe('The name of the SObject to retrieve the trigger execution order for.')
 	},
-	outputSchema: {
-		type: 'object',
-		description: 'Response object containing trigger execution order information'
-	},
 	annotations: {
 		readOnlyHint: true,
 		idempotentHint: false,
