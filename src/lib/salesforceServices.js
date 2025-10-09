@@ -1028,7 +1028,7 @@ export async function callSalesforceApi(operation, apiType, service, body = null
 		}
 
 		// Validate API type
-		const validApiTypes = ['REST', 'TOOLING', 'UI', 'APEX'];
+		const validApiTypes = ['REST', 'TOOLING', 'UI', 'APEX', 'AGENT'];
 		if (!validApiTypes.includes(apiType.toUpperCase())) {
 			throw new Error(`Invalid API type: ${apiType}. Must be one of: ${validApiTypes.join(', ')}`);
 		}
@@ -1056,7 +1056,8 @@ export async function callSalesforceApi(operation, apiType, service, body = null
 				rest: `${baseUrl}/services/data/v${apiVersion}${normalizedService}`,
 				tooling: `${baseUrl}/services/data/v${apiVersion}/tooling${normalizedService}`,
 				ui: `${baseUrl}/services/data/v${apiVersion}/ui-api${normalizedService}`,
-				apex: `${baseUrl}/services/apexrest${normalizedService}`
+				apex: `${baseUrl}/services/apexrest${normalizedService}`,
+				agent: `${baseUrl}/services/data/v${apiVersion}/agentforce${normalizedService}`
 			};
 			endpoint = apiEndpoints?.[apiType.toLowerCase()];
 			if (!endpoint) {

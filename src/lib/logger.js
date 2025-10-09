@@ -94,13 +94,13 @@ function emitLog(data, logLevel = config.defaultLogLevel, context = null, curren
 
 // Simple logger wrapper to standardize severities across the codebase.
 // Usage: const logger = createLogger('mcp-server'); logger.info('message', 'event');
-export function createLogger(component = 'app', currentLogLevel = 'info') {
+export function createLogger(component = 'app') {
 	const map = {error: 'error', warn: 'warning', info: 'info', debug: 'debug'};
 	const wrap =
 		(level) =>
 		(data, event = null) => {
 			const context = event ? `${component} · ${event}` : `(${component})`;
-			emitLog(data, map[level], context, currentLogLevel);
+			emitLog(data, map[level], context);
 		};
 	return {
 		error: wrap('error'),
@@ -110,19 +110,19 @@ export function createLogger(component = 'app', currentLogLevel = 'info') {
 		log(level = 'info', data, event = null) {
 			const mapped = map[level] || 'info';
 			const context = event ? `${component} · ${event}` : component;
-			emitLog(data, mapped, context, currentLogLevel);
+			emitLog(data, mapped, context);
 		}
 	};
 }
 
 // Helper to create a logger using the current module's file name as component
 // Example: const logger = createModuleLogger(import.meta.url)
-export function createModuleLogger(moduleUrl, fallback = 'app', currentLogLevel = 'info') {
+export function createModuleLogger(moduleUrl, fallback = 'app') {
 	try {
 		const filePath = fileURLToPath(moduleUrl);
 		const base = path.basename(filePath).replace(/\.[^.]+$/, '');
-		return createLogger(base || fallback, currentLogLevel);
+		return createLogger(base || fallback);
 	} catch {
-		return createLogger(fallback, currentLogLevel);
+		return createLogger(fallback);
 	}
 }

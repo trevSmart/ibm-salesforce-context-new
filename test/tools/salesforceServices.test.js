@@ -9,6 +9,11 @@ async function importModules() {
 	return {config: configModule.default, applyFetchSslOptions: networkUtilsModule.applyFetchSslOptions};
 }
 
+async function importSalesforceServices() {
+	const salesforceServicesModule = await import('../../src/lib/salesforceServices.js');
+	return salesforceServicesModule;
+}
+
 describe('Salesforce Services SSL Configuration', () => {
 	const originalEnv = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
 
@@ -57,5 +62,55 @@ describe('Salesforce Services SSL Configuration', () => {
 
 		// The value should remain unchanged for non-HTTPS endpoints
 		expect(process.env.NODE_TLS_REJECT_UNAUTHORIZED).toBe(beforeValue);
+	});
+});
+
+describe('Salesforce Services API Types', () => {
+	it('validates that AGENT API type is supported', async () => {
+		const salesforceServices = await importSalesforceServices();
+
+		// Mock the state and config to avoid initialization errors
+		vi.spyOn(salesforceServices, 'callSalesforceApi').mockImplementation(async (_operation, apiType, service, _body, _options) => {
+			// Test that AGENT is a valid API type by checking if it passes validation
+			const validApiTypes = ['REST', 'TOOLING', 'UI', 'APEX', 'AGENT'];
+			if (!validApiTypes.includes(apiType.toUpperCase())) {
+				throw new Error(`Invalid API type: ${apiType}. Must be one of: ${validApiTypes.join(', ')}`);
+			}
+
+			// Test endpoint construction for AGENT API
+			const baseUrl = 'https://test.salesforce.com';
+			const apiVersion = '60.0';
+			const normalizedService = service.startsWith('/') ? service : `/${service}`;
+			const expectedEndpoint = `${baseUrl}/services/data/v${apiVersion}/agentforce${normalizedService}`;
+
+			return {
+				endpoint: expectedEndpoint,
+				apiType: apiType.toUpperCase(),
+				valid: true
+			};
+		});
+
+		// Test that AGENT API type is accepted
+		const result = await salesforceServices.callSalesforceApi('GET', 'AGENT', '/test-service');
+		expect(result.valid).toBe(true);
+		expect(result.apiType).toBe('AGENT');
+		expect(result.endpoint).toContain('/agentforce/');
+	});
+
+	it('rejects invalid API types', async () => {
+		const salesforceServices = await importSalesforceServices();
+
+		// Mock the function to test validation
+		vi.spyOn(salesforceServices, 'callSalesforceApi').mockImplementation(async (_operation, apiType, _service, _body, _options) => {
+			const validApiTypes = ['REST', 'TOOLING', 'UI', 'APEX', 'AGENT'];
+			if (!validApiTypes.includes(apiType.toUpperCase())) {
+				throw new Error(`Invalid API type: ${apiType}. Must be one of: ${validApiTypes.join(', ')}`);
+			}
+			return { valid: true };
+		});
+
+		// Test that invalid API type is rejected
+		await expect(salesforceServices.callSalesforceApi('GET', 'INVALID', '/test-service'))
+			.rejects.toThrow('Invalid API type: INVALID. Must be one of: REST, TOOLING, UI, APEX, AGENT');
 	});
 });

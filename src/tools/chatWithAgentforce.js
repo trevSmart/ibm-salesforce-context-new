@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import {z} from 'zod';
 import {createModuleLogger} from '../lib/logger.js';
-import {callSalesforceApi, getOrgAndUserDetails} from '../lib/salesforceServices.js';
+import {callSalesforceApi} from '../lib/salesforceServices.js';
 import {state} from '../mcp-server.js';
 import {textFileContent} from '../utils.js';
 
@@ -27,7 +27,7 @@ async function startSession() {
 	try {
 		logger.info('Starting Agentforce session...');
 
-		await getOrgAndUserDetails();
+		//await getOrgAndUserDetails();
 
 		const body = {
 			externalSessionKey: crypto.randomUUID(),

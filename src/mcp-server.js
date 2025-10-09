@@ -105,7 +105,7 @@ async function updateOrgAndUserDetails() {
 						username: user.Username,
 						name: user.Name,
 						profileName: user.Profile.Name,
-						userRoleName: user.UserRole.Name
+						userRoleName: user.UserRole?.Name || null
 					};
 					state.userPermissionsValidated = true;
 

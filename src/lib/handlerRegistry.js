@@ -142,8 +142,8 @@ export class HandlerRegistry {
 	createSecureToolHandler(toolName, staticToolHandlers) {
 		return async (params, args) => {
 			try {
-				// Security validation (except for utility tool and chatWithAgentforce)
-				if (toolName !== 'salesforceContextUtils' && toolName !== 'chatWithAgentforce') {
+				// Security validation (except for utility tool)
+				if (toolName !== 'salesforceContextUtils') {
 					if (!(config.bypassUserPermissionsValidation || this.state.userPermissionsValidated)) {
 						throw new Error(`🚫 Request blocked due to unsuccessful user validation for "${this.state.org.username}".`);
 					}
