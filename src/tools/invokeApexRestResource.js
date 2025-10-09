@@ -20,6 +20,10 @@ export const invokeApexRestResourceToolDefinition = {
 		urlParams: z.record(z.any()).optional().describe('URL parameters to append to the endpoint (object)'),
 		headers: z.record(z.string()).optional().describe('Additional headers to include in the request (object)')
 	},
+	outputSchema: {
+		type: 'object',
+		description: 'Response object containing Apex REST resource invocation result'
+	},
 	annotations: {
 		readOnlyHint: false,
 		idempotentHint: false,

@@ -19,6 +19,10 @@ export const getSetupAuditTrailToolDefinition = {
 		user: z.string().optional().describe('Accepts a username or a name. Only the changes performed by this username will be returned. If not set the changes from all users will be returned'),
 		metadataName: z.string().optional().describe('Name of the metadata component to get the changes of (e.g. "FOO_AlertMessages_Controller", "FOO_AlertMessage__c", "FOO_AlertNessageList_LWC", etc.)')
 	},
+	outputSchema: {
+		type: 'object',
+		description: 'Response object containing Setup Audit Trail changes'
+	},
 	annotations: {
 		readOnlyHint: true,
 		idempotentHint: false,

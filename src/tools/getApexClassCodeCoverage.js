@@ -10,6 +10,10 @@ export const getApexClassCodeCoverageToolDefinition = {
 	inputSchema: {
 		classNames: z.array(z.string()).describe('Case sensitive. Array of names of the Apex classes to get code coverage for. If you pass a single string, it will be treated as an array with a single element.')
 	},
+	outputSchema: {
+		type: 'object',
+		description: 'Response object containing Apex class code coverage information'
+	},
 	annotations: {
 		readOnlyHint: true,
 		idempotentHint: true,

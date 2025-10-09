@@ -19,6 +19,10 @@ export const createMetadataToolDefinition = {
 			.optional()
 			.describe('Required for apexTrigger. Trigger events. Example: ["before insert", "after update"].')
 	},
+	outputSchema: {
+		type: 'object',
+		description: 'Response object containing metadata creation result'
+	},
 	annotations: {
 		readOnlyHint: false,
 		destructiveHint: false,

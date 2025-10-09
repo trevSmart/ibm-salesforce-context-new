@@ -50,6 +50,10 @@ export const dmlOperationToolDefinition = {
 			.optional()
 			.describe('Additional options for the request')
 	},
+	outputSchema: {
+		type: 'object',
+		description: 'Response object containing DML operation results'
+	},
 	annotations: {
 		destructiveHint: true,
 		idempotentHint: false,

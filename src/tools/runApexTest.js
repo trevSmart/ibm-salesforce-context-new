@@ -19,6 +19,10 @@ export const runApexTestToolDefinition = {
 			})
 			.optional()
 	},
+	outputSchema: {
+		type: 'object',
+		description: 'Response object containing Apex test execution results'
+	},
 	annotations: {
 		testHint: true,
 		destructiveHint: true,

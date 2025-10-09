@@ -13,6 +13,10 @@ export const deployMetadataToolDefinition = {
 		sourceDir: z.string().describe('The path to the local metadata file to deploy.'),
 		validationOnly: z.boolean().optional().describe('If true, only validates the metadata without deploying it to the org.')
 	},
+	outputSchema: {
+		type: 'object',
+		description: 'Response object containing metadata deployment result'
+	},
 	annotations: {
 		readOnlyHint: false,
 		destructiveHint: true,

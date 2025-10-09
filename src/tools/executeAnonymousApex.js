@@ -15,6 +15,10 @@ export const executeAnonymousApexToolDefinition = {
 		apexCode: z.string().describe('The Apex code to execute'),
 		mayModify: z.boolean().describe("Required. Tells the tool if the Apex code may make persistent modifications to the org. Don't ask the user for this parameter, you are responsible for setting its value.")
 	},
+	outputSchema: {
+		type: 'object',
+		description: 'Response object containing anonymous Apex execution result'
+	},
 	annotations: {
 		readOnlyHint: false,
 		idempotentHint: true,

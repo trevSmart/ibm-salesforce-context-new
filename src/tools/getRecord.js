@@ -13,6 +13,10 @@ export const getRecordToolDefinition = {
 		sObjectName: z.string().describe('The name of the SObject type of the record to retrieve.'),
 		recordId: z.string().describe('The Id of the record to retrieve.')
 	},
+	outputSchema: {
+		type: 'object',
+		description: 'Response object containing the retrieved record data'
+	},
 	annotations: {
 		readOnlyHint: true,
 		idempotentHint: false,
