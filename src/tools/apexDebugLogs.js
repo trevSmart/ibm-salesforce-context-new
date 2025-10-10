@@ -729,16 +729,12 @@ export async function apexDebugLogsToolHandler({action, logId}, args) {
 			const uri = `mcp://apexLogs/${logId}.log`;
 			const name = `${logId}.log`;
 			const description = `Apex debug log ${logId}`;
-			addResourceToContent(content, newResource(
-				uri,
-				name,
-				description,
-				'text/plain',
-				apexLog,
-				{
+			addResourceToContent(
+				content,
+				newResource(uri, name, description, 'text/plain', apexLog, {
 					audience: ['user']
-				}
-			));
+				})
+			);
 
 			return {
 				content,

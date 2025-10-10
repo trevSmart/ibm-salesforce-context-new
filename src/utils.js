@@ -486,14 +486,12 @@ export function addResourceToContent(content, resource) {
 			description
 		});
 		logger.debug(`Added resource link for ${name} (client supports resource_links)`);
-
 	} else if (client.supportsCapability('resources')) {
 		content.push({
 			type: 'resource',
 			resource
 		});
 		logger.debug(`Added text description for resource ${name} (client does not support resource_links but supports resources)`);
-
 	} else {
 		logger.debug(`Skipped resource link attachment for ${name} (client doesn't support resources or resource_links). Resource still available via the salesforceContextUtils tools`);
 	}

@@ -95,20 +95,15 @@ export async function executeAnonymousApexToolHandler({apexCode, mayModify}, arg
 			const logFileName = `apex_run_${getTimestamp(true)}.log`;
 			const uri = `mcp://apex/${logFileName}`;
 			const description = `${getTimestamp(true)} - ${username} - ${logSize}KB`;
-			addResourceToContent(content, newResource(
-				uri,
-				logFileName,
-				description,
-				'text/plain',
-				result.logs,
-				{
+			addResourceToContent(
+				content,
+				newResource(uri, logFileName, description, 'text/plain', result.logs, {
 					audience: ['user', 'assistant']
-				}
-			));
+				})
+			);
 		}
 
 		return {content, structuredContent: result};
-
 	} catch (error) {
 		logger.error(error);
 		return {

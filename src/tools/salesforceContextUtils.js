@@ -112,14 +112,7 @@ export async function salesforceContextUtilsToolHandler({action, issueDescriptio
 						.filter((line) => line.trim()); // Remove any empty lines after processing
 
 					// Create new resource
-					newResource(
-						resourceUri,
-						'SObject record prefixes list',
-						'This resource contains a list of SObject record prefixes.',
-						'application/json',
-						JSON.stringify(data, null, '\t'),
-						{audience: ['user', 'assistant']}
-					);
+					newResource(resourceUri, 'SObject record prefixes list', 'This resource contains a list of SObject record prefixes.', 'application/json', JSON.stringify(data, null, '\t'), {audience: ['user', 'assistant']});
 
 					content.push({
 						type: 'text',
@@ -150,13 +143,7 @@ export async function salesforceContextUtilsToolHandler({action, issueDescriptio
 			// Include required fields for ResourceLink per MCP schema
 			let res = resources[resourceUri] || null;
 			if (!res) {
-				res = newResource(
-					resourceUri,
-					'recordPrefixes.json',
-					'application/json',
-					'SObject record prefixes list',
-					{audience: ['user', 'assistant']}
-				);
+				res = newResource(resourceUri, 'recordPrefixes.json', 'application/json', 'SObject record prefixes list', {audience: ['user', 'assistant']});
 			}
 
 			addResourceToContent(content, res);
@@ -180,7 +167,6 @@ export async function salesforceContextUtilsToolHandler({action, issueDescriptio
 			};
 			logger.info(result);
 			return result;
-
 		} else if (action === 'reportIssue') {
 			if (progressToken) {
 				sendProgressNotification(progressToken, 1, 3, 'Starting reportIssue');

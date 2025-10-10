@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {z} from 'zod';
-import client from '../client.js';
 import {retrieveSetupAuditTrailFile} from '../lib/auditTrailDownloader.js';
 import {createModuleLogger} from '../lib/logger.js';
 import {executeSoqlQuery} from '../lib/salesforceServices.js';
@@ -512,14 +511,7 @@ export async function getSetupAuditTrailToolHandler({lastDays = 30, user = null,
 			}
 		];
 
-		addResourceToContent(content, newResource(
-			resourceUri,
-			'Setup audit trail CSV',
-			'Setup audit trail CSV',
-			'text/csv',
-			originalFileContent,
-			{audience: ['user', 'assistant']}
-		));
+		addResourceToContent(content, newResource(resourceUri, 'Setup audit trail CSV', 'Setup audit trail CSV', 'text/csv', originalFileContent, {audience: ['user', 'assistant']}));
 
 		return {
 			content,
