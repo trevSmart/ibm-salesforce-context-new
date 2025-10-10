@@ -159,7 +159,7 @@ describe('MCP HTTP Connection Test', () => {
 		expect(structuredContent.alias).toBeTypeOf('string')
 		expect(structuredContent.user).toBeTruthyAndDump(structuredContent.user)
 		expect(structuredContent.user.username).toBeTruthy()
-	}, 30000)
+	}, 20000)
 
 	it('should list available tools', async () => {
 		expect(sessionId).toBeDefined()
@@ -182,7 +182,7 @@ describe('MCP HTTP Connection Test', () => {
 
 		console.log(`✅ Found ${data?.result?.tools?.length || 0} available tools`)
 		console.log('Available tools:', toolNames)
-	}, 30000)
+	}, 20000)
 
 	it('should list available resources', async () => {
 		expect(sessionId).toBeDefined()
@@ -197,7 +197,7 @@ describe('MCP HTTP Connection Test', () => {
 		expect(Array.isArray(data?.result?.resources)).toBe(true)
 
 		console.log(`✅ Found ${data?.result?.resources?.length || 0} available resources`)
-	}, 30000)
+	}, 20000)
 
 	it('should list available prompts', async () => {
 		expect(sessionId).toBeDefined()
@@ -218,7 +218,7 @@ describe('MCP HTTP Connection Test', () => {
 
 		console.log(`✅ Found ${data?.result?.prompts?.length || 0} available prompts`)
 		console.log('Available prompts:', promptNames)
-	}, 30000)
+	}, 20000)
 
 	it('should handle invalid session ID gracefully', async () => {
 		const toolsRequest = {
