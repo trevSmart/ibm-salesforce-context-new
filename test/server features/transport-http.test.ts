@@ -1,4 +1,6 @@
 import fetch from 'node-fetch'
+import type { Response } from 'node-fetch'
+import type { Readable } from 'node:stream'
 import { afterAll, describe, expect, it } from 'vitest'
 import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
 
@@ -20,30 +22,181 @@ interface McpResponse {
 	}
 }
 
+function tryParseJson(payload: string): McpResponse | null {
+        if (!payload.trim()) {
+                return null
+        }
+
+        try {
+                return JSON.parse(payload) as McpResponse
+        } catch {
+                return null
+        }
+}
+
+function parseSseEvent(event: string): McpResponse | null {
+        const dataLines: string[] = []
+
+        for (const line of event.split(/\r?\n/)) {
+                if (line.startsWith('data:')) {
+                        dataLines.push(line.slice('data:'.length).trimStart())
+                }
+        }
+
+        if (dataLines.length === 0) {
+                return null
+        }
+
+        const payload = dataLines.join('\n')
+        return tryParseJson(payload)
+}
+
+function extractSseMessageFromBuffer(buffer: string): {
+        parsed: McpResponse | null
+        remaining: string
+} {
+        const events = buffer.split(/\r?\n\r?\n/)
+        const remaining = events.pop() ?? ''
+
+        for (const event of events) {
+                const parsed = parseSseEvent(event)
+                if (parsed) {
+                        return {
+                                parsed,
+                                remaining,
+                        }
+                }
+        }
+
+        return { parsed: null, remaining }
+}
+
+async function readSseFromWebStream(stream: ReadableStream<Uint8Array>): Promise<McpResponse | null> {
+        const reader = stream.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ''
+        let parsed: McpResponse | null = null
+
+        try {
+                while (!parsed) {
+                        const { value, done } = await reader.read()
+                        if (done) {
+                                break
+                        }
+
+                        buffer += decoder.decode(value, { stream: true })
+                        const result = extractSseMessageFromBuffer(buffer)
+                        buffer = result.remaining
+                        parsed = result.parsed
+                }
+
+                if (!parsed) {
+                        buffer += decoder.decode()
+                        const result = extractSseMessageFromBuffer(buffer)
+                        buffer = result.remaining
+                        parsed = result.parsed
+                }
+
+                if (!parsed && buffer) {
+                        parsed = parseSseEvent(buffer) ?? tryParseJson(buffer)
+                }
+        } finally {
+                try {
+                        await reader.cancel()
+                } catch {
+                        // Ignore cancellation failures
+                }
+                if (typeof reader.releaseLock === 'function') {
+                        reader.releaseLock()
+                }
+        }
+
+        return parsed
+}
+
+async function readSseFromNodeStream(stream: Readable & AsyncIterable<Uint8Array>): Promise<McpResponse | null> {
+        const decoder = new TextDecoder()
+        let buffer = ''
+        let parsed: McpResponse | null = null
+
+        try {
+                for await (const chunk of stream) {
+                        buffer += decoder.decode(chunk, { stream: true })
+                        const result = extractSseMessageFromBuffer(buffer)
+                        buffer = result.remaining
+                        parsed = result.parsed
+
+                        if (parsed) {
+                                break
+                        }
+                }
+
+                if (!parsed) {
+                        buffer += decoder.decode()
+                        const result = extractSseMessageFromBuffer(buffer)
+                        buffer = result.remaining
+                        parsed = result.parsed
+                }
+
+                if (!parsed && buffer) {
+                        parsed = parseSseEvent(buffer) ?? tryParseJson(buffer)
+                }
+        } finally {
+                if (typeof stream.destroy === 'function' && !stream.destroyed) {
+                        stream.destroy()
+                }
+        }
+
+        return parsed
+}
+
+async function parseTextResponse(response: Response): Promise<McpResponse | null> {
+        const responseText = await response.text()
+
+        const directJson = tryParseJson(responseText)
+        if (directJson) {
+                return directJson
+        }
+
+        const lines = responseText.split(/\r?\n/)
+
+        for (const line of lines) {
+                if (line.startsWith('data:')) {
+                        const payload = line.slice('data:'.length).trimStart()
+                        const parsed = tryParseJson(payload)
+                        if (parsed) {
+                                return parsed
+                        }
+                }
+        }
+
+        return null
+}
+
 // Helper function to parse SSE responses
-async function parseSseResponse(response: {
-	text(): Promise<string>
-}): Promise<McpResponse | null> {
-	const responseText = await response.text()
+async function parseSseResponse(response: Response): Promise<McpResponse | null> {
+        const contentType = response.headers.get('content-type')?.toLowerCase() ?? ''
 
-	// First try to parse as regular JSON
-	try {
-		return JSON.parse(responseText) as McpResponse
-	} catch {
-		// If that fails, try SSE parsing
-		const lines = responseText.split('\n')
+        if (contentType.includes('text/event-stream') && response.body) {
+                const fallbackResponse = response.clone()
+                const body = response.body as ReadableStream<Uint8Array> | (Readable & AsyncIterable<Uint8Array>)
 
-		for (const line of lines) {
-			if (line.startsWith('data: ')) {
-				try {
-					return JSON.parse(line.slice(6)) as McpResponse
-				} catch {
-					// Skip invalid JSON lines
-				}
-			}
-		}
-	}
-	return null
+                if (typeof (body as ReadableStream<Uint8Array>).getReader === 'function') {
+                        const parsed = await readSseFromWebStream(body as ReadableStream<Uint8Array>)
+                        if (parsed) {
+                                return parsed
+                        }
+                } else if (Symbol.asyncIterator in (body as object)) {
+                        const parsed = await readSseFromNodeStream(body as Readable & AsyncIterable<Uint8Array>)
+                        if (parsed) {
+                                return parsed
+                        }
+                }
+
+                return parseTextResponse(fallbackResponse)
+        }
+
+        return parseTextResponse(response)
 }
 
 describe('MCP HTTP Connection Test', () => {
