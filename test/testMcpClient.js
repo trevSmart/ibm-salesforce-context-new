@@ -1,9 +1,9 @@
-import { TestMcpClient } from 'microscope-mcp-client'
+import { TestMcpClient as MicroscopeClient } from 'microscope-mcp-client'
 
 const BASE_URL = `http://localhost:${process.env.MCP_HTTP_PORT || '3000'}/mcp`
 
 export async function createMcpClient() {
-	const client = new TestMcpClient()
+	const client = new MicroscopeClient()
 
 	const serverTarget = {
 		kind: 'http',
@@ -48,7 +48,7 @@ export async function createMcpClient() {
 		getPrompt: async (name, args) => {
 			// microscope-mcp-client doesn't expose prompts API yet
 			// Access the underlying MCP SDK client directly
-			// TestMcpClient stores the SDK client in the 'client' property
+			// MicroscopeClient stores the SDK client in the 'client' property
 			const mcpClient = client.client || client._raw?.client
 			if (mcpClient && typeof mcpClient.getPrompt === 'function') {
 				return await mcpClient.getPrompt({ name, arguments: args })
