@@ -36,7 +36,7 @@ else
   export SF_INSTANCE_URL=$(echo "$response" | grep -o '"instance_url":"[^"]*"' | cut -d'"' -f4)
 fi
 
-echo "Access Token obtained: ${SF_ACCESS_TOKEN:0:20}..."
+echo "Access Token obtained successfully."
 echo "Instance URL: $SF_INSTANCE_URL"
 
 # Set default alias if not provided
