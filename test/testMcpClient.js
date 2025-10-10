@@ -1,26 +1,61 @@
-import { Client } from '@modelcontextprotocol/sdk/client/index.js'
-import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
+import { TestMcpClient } from 'microscope-mcp-client'
 
 const BASE_URL = `http://localhost:${process.env.MCP_HTTP_PORT || '3000'}/mcp`
 
 export async function createMcpClient() {
-	const transport = new StreamableHTTPClientTransport(BASE_URL)
-	const coreClient = new Client(
-		{ name: 'vitest-test-client', version: '1.0.0' },
-		{ capabilities: { logging: {} }, prompts: {} },
-	)
-	await coreClient.connect(transport)
+	const client = new TestMcpClient()
 
-	// Sleep for 2 seconds before proceeding to ensure the server is ready
-	await new Promise(resolve => setTimeout(resolve, 5000))
+	const serverTarget = {
+		kind: 'http',
+		url: BASE_URL,
+	}
 
+	await client.connect(serverTarget, { quiet: true })
+
+	// Wrap the client to provide compatibility with existing tests
 	return {
-		listResources: async () => (await coreClient.listResources()).resources,
-		readResource: async uri => await coreClient.readResource({ uri }),
-		callTool: async (name, args) => coreClient.callTool({ name, arguments: args }),
-		getPrompt: async (name, args) => coreClient.getPrompt({ name, arguments: args }),
-		listTools: async () => (await coreClient.listTools()).tools,
-		disconnect: async () => coreClient.close(),
+		listResources: async () => client.getResources(),
+		readResource: async uri => {
+			const resource = client.getResource(uri)
+			return resource
+		},
+		callTool: async (name, args) => {
+			const result = await client.callTool(name, args)
+			// Parse the response to match the old API
+			if (result?.content && Array.isArray(result.content) && result.content.length > 0) {
+				const firstContent = result.content[0]
+				if (firstContent?.text) {
+					try {
+						const structuredContent = JSON.parse(firstContent.text)
+						return {
+							...result,
+							structuredContent,
+						}
+					} catch (_e) {
+						// If parsing fails, return the raw result with text as-is
+						return result
+					}
+				}
+			}
+			// If no content or empty content, return result as-is
+			return result
+		},
+		getPrompt: async (name, args) => {
+			// microscope-mcp-client doesn't expose prompts API yet
+			// Access the underlying MCP SDK client directly
+			// TestMcpClient stores the SDK client in the 'client' property
+			const mcpClient = client.client || client._raw?.client
+			if (mcpClient && typeof mcpClient.getPrompt === 'function') {
+				return await mcpClient.getPrompt({ name, arguments: args })
+			}
+			// Fallback if we can't access the underlying client
+			throw new Error(`Prompts not supported: underlying client not accessible`)
+		},
+		listTools: async () => client.getTools(),
+		disconnect: async () => client.disconnect(),
+		// Expose the raw client for tests that need it
+		// biome-ignore lint/style/useNamingConvention: internal property
+		_raw: client,
 	}
 }
 

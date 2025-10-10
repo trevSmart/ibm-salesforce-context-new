@@ -1,4 +1,4 @@
-import { createMcpClient } from '../testMcpClient.js'
+import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
 
 describe('executeSoqlQuery', () => {
 	let client
@@ -6,6 +6,10 @@ describe('executeSoqlQuery', () => {
 	beforeAll(async () => {
 		// Get shared MCP client instance
 		client = await createMcpClient();
+	});
+
+	afterAll(async () => {
+		await disconnectMcpClient(client);
 	});
 
 	test('basic query', async () => {
