@@ -1,9 +1,21 @@
-import { afterAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { TestMcpClient } from 'microscope-mcp-client'
 
 describe('MCP HTTP Connection Test', () => {
 	let client: TestMcpClient | null = null
 	const baseUrl = `http://localhost:${process.env.MCP_HTTP_PORT || '3000'}/mcp`
+
+	beforeAll(async () => {
+		// Initialize and connect the client once for all tests
+		client = new TestMcpClient()
+
+		const serverTarget = {
+			kind: 'http' as const,
+			url: baseUrl,
+		}
+
+		await client.connect(serverTarget, { quiet: true })
+	})
 
 	afterAll(async () => {
 		if (client) {
@@ -11,20 +23,11 @@ describe('MCP HTTP Connection Test', () => {
 		}
 	})
 
-	it('should connect to HTTP server and initialize MCP session successfully', async () => {
-		// Create a new TestMcpClient instance
-		client = new TestMcpClient()
-
-		// Connect to the HTTP server
-		const serverTarget = {
-			kind: 'http' as const,
-			url: baseUrl,
-		}
-
-		await client.connect(serverTarget, { quiet: true })
+	it('should connect to HTTP server and verify org details', async () => {
+		expect(client).toBeDefined()
 
 		// Verify connection by calling a tool
-		const result = await client.callTool('salesforceContextUtils', {
+		const result = await client?.callTool('salesforceContextUtils', {
 			action: 'getOrgAndUserDetails',
 		})
 
@@ -46,7 +49,7 @@ describe('MCP HTTP Connection Test', () => {
 		expect(structuredContent?.user).toBeTruthyAndDump(structuredContent?.user)
 		expect(structuredContent?.user?.username).toBeTruthy()
 
-		console.log('✅ MCP client initialized successfully')
+		console.log('✅ Org details verified successfully')
 	}, 20000)
 
 	it('should list available tools', async () => {
@@ -83,7 +86,7 @@ describe('MCP HTTP Connection Test', () => {
 	it('should describe a specific tool', async () => {
 		expect(client).toBeDefined()
 
-		const toolInfo = client.describeTool('salesforceContextUtils')
+		const toolInfo = client?.describeTool('salesforceContextUtils')
 
 		expect(toolInfo).toBeDefined()
 		expect(toolInfo.name).toBe('salesforceContextUtils')
@@ -96,7 +99,7 @@ describe('MCP HTTP Connection Test', () => {
 		expect(client).toBeDefined()
 
 		// Call a simple tool to verify it works
-		const result = await client.callTool('salesforceContextUtils', {
+		const result = await client?.callTool('salesforceContextUtils', {
 			action: 'getState',
 		})
 
