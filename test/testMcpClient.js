@@ -16,8 +16,13 @@ export async function createMcpClient() {
 	return {
 		listResources: async () => client.getResources(),
 		readResource: async uri => {
-			const resource = client.getResource(uri)
-			return resource
+			// Use the underlying MCP SDK client to read the resource
+			const mcpClient = client.client
+			if (mcpClient && typeof mcpClient.readResource === 'function') {
+				return await mcpClient.readResource({ uri })
+			}
+			// Fallback to getResource for cached resources
+			return client.getResource(uri)
 		},
 		callTool: async (name, args) => {
 			const result = await client.callTool(name, args)
