@@ -1,19 +1,23 @@
+import { afterEach, beforeAll, beforeEach, describe, expect, it, test, vi } from 'vitest'
+
+import clientModule from '../../src/client.js'
+import { addResourceToContent } from '../../src/utils.js'
 import { createMcpClient } from '../testMcpClient.js'
 
 describe('Server Resources', () => {
-	let client
+        let mcpClient
 
-	beforeAll(async () => {
-		// Get shared MCP client instance once for all tests
-		client = await createMcpClient()
-	})
+        beforeAll(async () => {
+                // Get shared MCP client instance once for all tests
+                mcpClient = await createMcpClient()
+        })
 
-	test('should list server resources', async () => {
-		// Verify the client is defined
-		expect(client).toBeTruthy()
+        test('should list server resources', async () => {
+                // Verify the client is defined
+                expect(mcpClient).toBeTruthy()
 
-		// Get the list of available resources from the server
-		const resourcesList = await client.listResources()
+                // Get the list of available resources from the server
+                const resourcesList = await mcpClient.listResources()
 
 		// Verify we received a resources list
 		expect(resourcesList).toBeTruthy()
@@ -31,19 +35,19 @@ describe('Server Resources', () => {
 		console.log(`Successfully retrieved ${resourcesList.length} resources from the server`)
 	})
 
-	test('should read server resource', async () => {
-		// Verify the client is defined
-		expect(client).toBeTruthy()
+        test('should read server resource', async () => {
+                // Verify the client is defined
+                expect(mcpClient).toBeTruthy()
 
 		// First, get the list of available resources
-		const resourcesList = await client.listResources()
+                const resourcesList = await mcpClient.listResources()
 
 		// If there are resources available, try to read one
 		if (resourcesList.length) {
 			const resourceToRead = resourcesList[0]
 
 			// Read the resource content
-			const resourceContent = await client.readResource(resourceToRead.uri)
+                        const resourceContent = await mcpClient.readResource(resourceToRead.uri)
 
 			// Verify we received resource content
 			expect(resourceContent).toBeTruthy()
@@ -62,17 +66,17 @@ describe('Server Resources', () => {
 		}
 	})
 
-	test('should detect resource list changes', async () => {
-		// Verify the client is defined
-		expect(client).toBeTruthy()
+        test('should detect resource list changes', async () => {
+                // Verify the client is defined
+                expect(mcpClient).toBeTruthy()
 
 		// Get initial resources list
-		const initialResources = await client.listResources()
+                const initialResources = await mcpClient.listResources()
 		const initialCount = initialResources.length
 
 		// Trigger a resource creation by calling loadRecordPrefixesResource
 		// This should create a new resource and trigger a list change
-		const result = await client.callTool('salesforceContextUtils', {
+                const result = await mcpClient.callTool('salesforceContextUtils', {
 			action: 'loadRecordPrefixesResource',
 		})
 
@@ -83,7 +87,7 @@ describe('Server Resources', () => {
 		await new Promise(resolve => setTimeout(resolve, 1000))
 
 		// Get updated resources list
-		const updatedResources = await client.listResources()
+                const updatedResources = await mcpClient.listResources()
 		const updatedCount = updatedResources.length
 
 		// Verify that the resource list has changed
@@ -101,16 +105,16 @@ describe('Server Resources', () => {
 		console.log('Successfully detected resource list changes')
 	})
 
-	test('should handle reading non-existent resource', async () => {
-		// Verify the client is defined
-		expect(client).toBeTruthy()
+        test('should handle reading non-existent resource', async () => {
+                // Verify the client is defined
+                expect(mcpClient).toBeTruthy()
 
 		// Try to read a resource with a non-existent URI
 		const nonExistentUri = 'mcp://ibm-salesforce-context/non-existent-resource'
 
 		// This should throw an error or return an error response
 		await expect(async () => {
-			await client.readResource(nonExistentUri)
+                        await mcpClient.readResource(nonExistentUri)
 		}).rejects.toThrow()
 
 		console.log('Successfully handled non-existent resource request')
@@ -119,94 +123,110 @@ describe('Server Resources', () => {
 
 
 describe('addResourceToContent', () => {
-	let mockContent;
-	let mockClient;
+        let mockContent
+        let originalSupportsCapability
 
-	beforeEach(() => {
-		mockContent = [];
-		mockClient = {
-			supportsCapability: vi.fn()
-		};
-	});
+        beforeEach(() => {
+                mockContent = []
+                originalSupportsCapability = clientModule.supportsCapability
+        })
 
-	it('should add resource_link when client supports resource_links', () => {
-		mockClient.supportsCapability.mockImplementation((capability) => {
-			if (capability === 'resource_links') { return true; }
-			if (capability === 'resources') { return false; }
-			return false;
-		});
+        afterEach(() => {
+                clientModule.supportsCapability = originalSupportsCapability
+        })
 
-		const uri = 'mcp://test/resource';
-		const name = 'test-resource';
-		const mimeType = 'text/plain';
-		const description = 'Test resource';
+        it('should add resource_link when client supports resource_links', () => {
+                clientModule.supportsCapability = vi.fn((capability) => {
+                        if (capability === 'resource_links') {
+                                return true
+                        }
+                        if (capability === 'resources') {
+                                return false
+                        }
+                        return false
+                })
 
-		addResourceToContent(mockContent, uri, name, mimeType, description, mockClient);
+                const resource = {
+                        uri: 'mcp://test/resource',
+                        name: 'test-resource',
+                        mimeType: 'text/plain',
+                        description: 'Test resource'
+                }
 
-		expect(mockContent).toHaveLength(1);
-		expect(mockContent[0]).toEqual({
-			type: 'resource_link',
-			uri,
-			name,
-			mimeType,
-			description
-		});
-	});
+                addResourceToContent(mockContent, resource)
 
-	it('should add text description when client supports resources but not resource_links', () => {
-		mockClient.supportsCapability.mockImplementation((capability) => {
-			if (capability === 'resource_links') { return false; }
-			if (capability === 'resources') { return true; }
-			return false;
-		});
+                expect(mockContent).toHaveLength(1)
+                expect(mockContent[0]).toEqual({
+                        type: 'resource_link',
+                        uri: resource.uri,
+                        name: resource.name,
+                        mimeType: resource.mimeType,
+                        description: resource.description
+                })
+        })
 
-		const uri = 'mcp://test/resource';
-		const name = 'test-resource';
-		const mimeType = 'text/plain';
-		const description = 'Test resource';
+        it('should add resource attachment when client supports resources but not resource_links', () => {
+                clientModule.supportsCapability = vi.fn((capability) => {
+                        if (capability === 'resource_links') {
+                                return false
+                        }
+                        if (capability === 'resources') {
+                                return true
+                        }
+                        return false
+                })
 
-		addResourceToContent(mockContent, uri, name, mimeType, description, mockClient);
+                const resource = {
+                        uri: 'mcp://test/resource',
+                        name: 'test-resource',
+                        mimeType: 'text/plain',
+                        description: 'Test resource'
+                }
 
-		expect(mockContent).toHaveLength(1);
-		expect(mockContent[0]).toEqual({
-			type: 'text',
-			text: `Resource: ${name} (${description})\nURI: ${uri}\nMIME Type: ${mimeType}`
-		});
-	});
+                addResourceToContent(mockContent, resource)
 
-	it('should not add anything when client supports neither resources nor resource_links', () => {
-		mockClient.supportsCapability.mockImplementation((capability) => {
-			if (capability === 'resource_links') { return false; }
-			if (capability === 'resources') { return false; }
-			return false;
-		});
+                expect(mockContent).toHaveLength(1)
+                expect(mockContent[0]).toEqual({
+                        type: 'resource',
+                        resource
+                })
+        })
 
-		const uri = 'mcp://test/resource';
-		const name = 'test-resource';
-		const mimeType = 'text/plain';
-		const description = 'Test resource';
+        it('should not add anything when client supports neither resources nor resource_links', () => {
+                clientModule.supportsCapability = vi.fn(() => false)
 
-		addResourceToContent(mockContent, uri, name, mimeType, description, mockClient);
+                const resource = {
+                        uri: 'mcp://test/resource',
+                        name: 'test-resource',
+                        mimeType: 'text/plain',
+                        description: 'Test resource'
+                }
 
-		expect(mockContent).toHaveLength(0);
-	});
+                addResourceToContent(mockContent, resource)
 
-	it('should use global client when no client instance is provided', () => {
-		// Mock the global client
-		const originalSupportsCapability = client.supportsCapability;
-		client.supportsCapability = vi.fn().mockReturnValue(true);
+                expect(mockContent).toHaveLength(0)
+        })
 
-		const uri = 'mcp://test/resource';
-		const name = 'test-resource';
-		const mimeType = 'text/plain';
-		const description = 'Test resource';
+        it('should rely on global client capabilities when no override is provided', () => {
+                clientModule.supportsCapability = vi.fn((capability) => capability === 'resource_links')
 
-		addResourceToContent(mockContent, uri, name, mimeType, description);
+                const resource = {
+                        uri: 'mcp://test/resource',
+                        name: 'test-resource',
+                        mimeType: 'text/plain',
+                        description: 'Test resource'
+                }
 
-		expect(mockContent).toHaveLength(1);
-		expect(mockContent[0].type).toBe('resource_link');
+                addResourceToContent(mockContent, resource)
 
-		// Restore original method
-		client.supportsCapability = originalSupportsCapability;
-	});
-});
+                expect(clientModule.supportsCapability).toHaveBeenCalledWith('resource_links')
+                expect(mockContent).toHaveLength(1)
+                expect(mockContent[0]).toEqual({
+                        type: 'resource_link',
+                        uri: resource.uri,
+                        name: resource.name,
+                        mimeType: resource.mimeType,
+                        description: resource.description
+                })
+        })
+})
