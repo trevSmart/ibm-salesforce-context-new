@@ -52,6 +52,7 @@
 		"dotenv": "^17.2.2",
 		"globals": "^16.3.0",
 		"javascript-obfuscator": "^4.1.0",
+		"microscope-mcp-client": "^0.1.32",
 		"node-fetch": "^3.3.2",
 		"vitest": "^3.2.4"
 	}
