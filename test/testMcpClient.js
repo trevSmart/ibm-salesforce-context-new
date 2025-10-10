@@ -54,7 +54,7 @@ export async function createMcpClient() {
 				return await mcpClient.getPrompt({ name, arguments: args })
 			}
 			// Fallback if we can't access the underlying client
-			throw new Error(`Prompts not supported: underlying client not accessible`)
+			throw new Error('Prompts not supported: underlying client not accessible')
 		},
 		listTools: async () => client.getTools(),
 		disconnect: async () => client.disconnect(),
