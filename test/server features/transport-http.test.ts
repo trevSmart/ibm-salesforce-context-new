@@ -92,7 +92,7 @@ describe('MCP HTTP Connection Test', () => {
 	it('should describe a specific tool', async () => {
 		expect(client).toBeDefined()
 
-		const toolInfo = client?.describeTool('salesforceContextUtils')
+		const toolInfo = client.describeTool('salesforceContextUtils')
 
 		expect(toolInfo).toBeDefined()
 		expect(toolInfo.name).toBe('salesforceContextUtils')
