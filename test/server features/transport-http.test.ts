@@ -33,21 +33,12 @@ describe('MCP HTTP Connection Test', () => {
 		expect(Array.isArray(result.content)).toBe(true)
 		expect(result.content.length).toBeGreaterThan(0)
 
-		// Parse the response - it could be text or JSON
+		// Parse the response - must be valid JSON
 		const responseText = result.content[0]?.text
 		expect(responseText).toBeDefined()
 
-		let structuredContent
-		try {
-			// Try to parse as JSON first
-			structuredContent = JSON.parse(responseText)
-		} catch {
-			// If not JSON, the response might be an error or plain text
-			console.log('Response is not JSON:', responseText)
-			// For non-JSON responses, just verify we got a response
-			expect(responseText).toBeTruthy()
-			return
-		}
+		// Parse as JSON - if this fails, the test should fail
+		const structuredContent = JSON.parse(responseText)
 
 		expect(structuredContent).toBeTruthyAndDump(structuredContent)
 		expect(structuredContent?.id).toBeTruthy()
@@ -114,10 +105,14 @@ describe('MCP HTTP Connection Test', () => {
 		expect(Array.isArray(result.content)).toBe(true)
 		expect(result.content.length).toBeGreaterThan(0)
 
-		// Just verify we got a response (could be error or success)
+		// Verify we got a valid response (not an error message)
 		const responseText = result.content[0]?.text
 		expect(responseText).toBeDefined()
 		expect(responseText).toBeTruthy()
+		
+		// Ensure it's not an error message
+		expect(responseText).not.toMatch(/^❌/)
+		expect(responseText).not.toMatch(/^Error:/)
 
 		console.log('✅ Tool call successful')
 	}, 20000)
