@@ -33,7 +33,7 @@ fi
 
 # Test 2: Check if SF_ACCESS_TOKEN is set
 if [ -n "$SF_ACCESS_TOKEN" ]; then
-  echo "✅ Test 2 PASSED: SF_ACCESS_TOKEN is set (${SF_ACCESS_TOKEN:0:20}...)"
+  echo "✅ Test 2 PASSED: SF_ACCESS_TOKEN is set (length: ${#SF_ACCESS_TOKEN}, value: REDACTED)"
 else
   echo "❌ Test 2 FAILED: SF_ACCESS_TOKEN is not set"
   exit 1
