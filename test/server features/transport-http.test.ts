@@ -105,7 +105,7 @@ describe('MCP HTTP Connection Test', () => {
 		expect(client).toBeDefined()
 
 		// Call a simple tool to verify it works
-		const result = await client?.callTool('salesforceContextUtils', {
+		const result = await client.callTool('salesforceContextUtils', {
 			action: 'getState',
 		})
 
