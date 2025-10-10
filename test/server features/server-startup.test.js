@@ -1,4 +1,4 @@
-import { createMcpClient } from '../testMcpClient.js'
+import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
 
 describe('Server Startup', () => {
 	let client
@@ -6,6 +6,10 @@ describe('Server Startup', () => {
 	beforeAll(async () => {
 		// Get shared MCP client instance once for all tests
 		client = await createMcpClient()
+	})
+
+	afterAll(async () => {
+		await disconnectMcpClient(client)
 	})
 
 	test('should start the MCP server successfully', async () => {
@@ -22,5 +26,4 @@ describe('Server Startup', () => {
 		console.log('Server started successfully and tools are accessible')
 	})
 })
-
 

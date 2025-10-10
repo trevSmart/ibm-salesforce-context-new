@@ -1,13 +1,13 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { TestMcpClient } from 'microscope-mcp-client'
+import { TestMcpClient as MicroscopeClient } from 'microscope-mcp-client'
 
 describe('MCP HTTP Connection Test', () => {
-	let client: TestMcpClient | null = null
+	let client: MicroscopeClient | null = null
 	const baseUrl = `http://localhost:${process.env.MCP_HTTP_PORT || '3000'}/mcp`
 
 	beforeAll(async () => {
 		// Initialize and connect the client once for all tests
-		client = new TestMcpClient()
+		client = new MicroscopeClient()
 
 		const serverTarget = {
 			kind: 'http' as const,
