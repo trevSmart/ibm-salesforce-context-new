@@ -1,4 +1,4 @@
-import { createMcpClient } from '../testMcpClient.js'
+import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
 
 describe('apexDebugLogs', () => {
 	let client
@@ -7,7 +7,13 @@ describe('apexDebugLogs', () => {
 	beforeAll(async () => {
 		// Get shared MCP client instance
 		client = await createMcpClient()
-	})// status doesn't depend on anything → can run in parallel
+	})
+
+	afterAll(async () => {
+		await disconnectMcpClient(client)
+	})
+
+	// status doesn't depend on anything → can run in parallel
 	describe.concurrent('read-only', () => {
 		test('status', async () => {
 			const result = await client.callTool('apexDebugLogs', { action: 'status' })

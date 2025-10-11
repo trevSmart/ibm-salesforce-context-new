@@ -67,6 +67,8 @@ The `dev/updateReadme.js` script handles:
 
 ## Testing
 
+### All test should perform real actions on the Salesforce org, without any mocking or stubbing.
+
 ### Testing prerequisites
 
 - Salesforce CLI needs to be available in the working directory.
@@ -193,7 +195,7 @@ The `dev/updateReadme.js` script handles:
     -H "mcp-session-id: <SESSION_ID>"
     ```
 
-- #### (STILL NOT AVAILABLE!!) Using the MiCroscoPe MCP Client command line interface
+- #### Using the MiCroscoPe MCP Client command line interface
 
   The MiCroscoPe client can be installed as an NPM package (microscope-mcp-client). It can connect to the MCP server through stdio transport and provides an interface command line interface to operate the MCP server.
 

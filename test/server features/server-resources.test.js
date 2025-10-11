@@ -1,8 +1,8 @@
-import { afterEach, beforeAll, beforeEach, describe, expect, it, test, vi } from 'vitest'
+import { afterEach, beforeAll, afterAll, beforeEach, describe, expect, it, test, vi } from 'vitest'
 
 import clientModule from '../../src/client.js'
 import { addResourceToContent } from '../../src/utils.js'
-import { createMcpClient } from '../testMcpClient.js'
+import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
 
 describe('Server Resources', () => {
         let mcpClient
@@ -10,6 +10,10 @@ describe('Server Resources', () => {
         beforeAll(async () => {
                 // Get shared MCP client instance once for all tests
                 mcpClient = await createMcpClient()
+        })
+
+        afterAll(async () => {
+                await disconnectMcpClient(mcpClient)
         })
 
         test('should list server resources', async () => {
