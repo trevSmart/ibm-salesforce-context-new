@@ -68,75 +68,75 @@ describe('Salesforce Services SSL Configuration', () => {
 });
 
 describe('Salesforce Services API Types', () => {
-        it('validates that AGENT API type is supported', async () => {
-                const salesforceServices = await importSalesforceServices();
-                const {state} = await import('../../src/mcp-server.js');
+	it('validates that AGENT API type is supported', async () => {
+		const salesforceServices = await importSalesforceServices();
+		const {state} = await import('../../src/mcp-server.js');
 
-                const serverRequests = [];
-                const server = createServer((request, response) => {
-                        serverRequests.push({
-                                method: request.method,
-                                url: request.url,
-                                headers: request.headers
-                        });
+		const serverRequests = [];
+		const server = createServer((request, response) => {
+			serverRequests.push({
+				method: request.method,
+				url: request.url,
+				headers: request.headers
+			});
 
-                        response.setHeader('Content-Type', 'application/json');
-                        response.end(
-                                JSON.stringify({
-                                        receivedUrl: request.url,
-                                        receivedMethod: request.method
-                                })
-                        );
-                });
+			response.setHeader('Content-Type', 'application/json');
+			response.end(
+				JSON.stringify({
+					receivedUrl: request.url,
+					receivedMethod: request.method
+				})
+			);
+		});
 
-                await new Promise((resolve) => {
-                        server.listen(0, '127.0.0.1', resolve);
-                });
+		await new Promise((resolve) => {
+			server.listen(0, '127.0.0.1', resolve);
+		});
 
-                const address = server.address();
-                if (!address || typeof address === 'string') {
-                        throw new Error('Unable to determine test server address');
-                }
+		const address = server.address();
+		if (!address || typeof address === 'string') {
+			throw new Error('Unable to determine test server address');
+		}
 
-                const originalOrg = state.org;
+		const originalOrg = state.org;
 
-                state.org = {
-                        ...originalOrg,
-                        id: '00D000000000001',
-                        instanceUrl: `http://127.0.0.1:${address.port}`,
-                        accessToken: 'test-token',
-                        apiVersion: '60.0'
-                };
+		state.org = {
+			...originalOrg,
+			id: '00D000000000001',
+			instanceUrl: `http://127.0.0.1:${address.port}`,
+			accessToken: 'test-token',
+			apiVersion: '60.0'
+		};
 
-                try {
-                        const result = await salesforceServices.callSalesforceApi('GET', 'AGENT', '/test-service');
+		try {
+			const result = await salesforceServices.callSalesforceApi('GET', 'AGENT', '/test-service');
 
-                        expect(serverRequests).toHaveLength(1);
-                        expect(serverRequests[0].url).toBe('/services/data/v60.0/agentforce/test-service');
-                        expect(serverRequests[0].method).toBe('GET');
-                        expect(serverRequests[0].headers.authorization).toBe('Bearer test-token');
-                        expect(result).toEqual({
-                                receivedUrl: '/services/data/v60.0/agentforce/test-service',
-                                receivedMethod: 'GET'
-                        });
-                } finally {
-                        await new Promise((resolve, reject) => {
-                                server.close((error) => {
-                                        error ? reject(error) : resolve();
-                                });
-                        });
-                        state.org = originalOrg;
-                }
-        });
+			expect(serverRequests).toHaveLength(1);
+			expect(serverRequests[0].url).toBe('/services/data/v60.0/agentforce/test-service');
+			expect(serverRequests[0].method).toBe('GET');
+			expect(serverRequests[0].headers.authorization).toBe('Bearer test-token');
+			expect(result).toEqual({
+				receivedUrl: '/services/data/v60.0/agentforce/test-service',
+				receivedMethod: 'GET'
+			});
+		} finally {
+			await new Promise((resolve, reject) => {
+				server.close((error) => {
+					error ? reject(error) : resolve();
+				});
+			});
+			state.org = originalOrg;
+		}
+	});
 
-        it('rejects invalid API types', async () => {
-                const salesforceServices = await importSalesforceServices();
+	it('rejects invalid API types', async () => {
+		const salesforceServices = await importSalesforceServices();
 
-                const result = await salesforceServices.callSalesforceApi('GET', 'INVALID', '/test-service');
+		const result = await salesforceServices.callSalesforceApi('GET', 'INVALID', '/test-service');
 
-                expect(result.isError).toBe(true);
-                expect(result.content?.[0]?.text).toContain(
-                        'Invalid API type: INVALID. Must be one of: REST, TOOLING, UI, APEX, AGENT'
-                );
-        });
+		expect(result.isError).toBe(true);
+		expect(result.content?.[0]?.text).toContain(
+			'Invalid API type: INVALID. Must be one of: REST, TOOLING, UI, APEX, AGENT'
+		);
+	});
 });
