@@ -116,7 +116,11 @@ jobs:
                   if sf org display --json > /dev/null 2>&1; then
                     echo "✅ Test 4 PASSED: SF CLI is logged in"
                     echo "Org details:"
-                    sf org display --json | jq -r '.result | "  Org ID: \(.id)\n  Username: \(.username)\n  Instance URL: \(.instanceUrl)\n  Connected Status: \(.connectedStatus)"'
+                    ORG_JSON="$(sf org display --json)"
+                    echo "  Org ID: $(echo "$ORG_JSON" | jq -r '.result.id')"
+                    echo "  Username: $(echo "$ORG_JSON" | jq -r '.result.username')"
+                    echo "  Instance URL: $(echo "$ORG_JSON" | jq -r '.result.instanceUrl')"
+                    echo "  Connected Status: $(echo "$ORG_JSON" | jq -r '.result.connectedStatus')"
                   else
                     echo "❌ Test 4 FAILED: SF CLI is not logged in"
                     exit 1
