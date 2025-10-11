@@ -131,14 +131,19 @@ jobs:
                     echo "✅ Test 5 PASSED: Can query Salesforce data"
                     echo "Sample query result:"
                     QUERY_RESULT_JSON=$(sf data query --query "SELECT Id, Name FROM User LIMIT 1" --json)
-                    USER_ID=$(echo "$QUERY_RESULT_JSON" | jq -r '.result.records[0].Id')
-                    USER_NAME=$(echo "$QUERY_RESULT_JSON" | jq -r '.result.records[0].Name')
-                    echo "  User ID: $USER_ID"
-                    echo "  User Name: $USER_NAME"
+                  tmpfile=$(mktemp)
+                  if sf data query --query "SELECT Id, Name FROM User LIMIT 1" --json > "$tmpfile" 2>&1; then
+                    echo "✅ Test 5 PASSED: Can query Salesforce data"
+                    echo "Sample query result:"
+                    sf data query --query "SELECT Id, Name FROM User LIMIT 1" --json | jq -r '.result.records[0] | "  User ID: \(.Id)\n  User Name: \(.Name)"'
                   else
                     echo "❌ Test 5 FAILED: Cannot query Salesforce data"
+                    echo "Error output:"
+                    cat "$tmpfile"
+                    rm -f "$tmpfile"
                     exit 1
                   fi
+                  rm -f "$tmpfile"
 
                   echo ""
                   echo "=== All Authorization Verification Tests Passed! ==="
