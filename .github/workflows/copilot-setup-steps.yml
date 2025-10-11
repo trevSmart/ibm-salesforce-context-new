@@ -130,7 +130,11 @@ jobs:
                   if sf data query --query "SELECT Id, Name FROM User LIMIT 1" --json > /dev/null 2>&1; then
                     echo "✅ Test 5 PASSED: Can query Salesforce data"
                     echo "Sample query result:"
-                    sf data query --query "SELECT Id, Name FROM User LIMIT 1" --json | jq -r '.result.records[0] | "  User ID: \(.Id)\n  User Name: \(.Name)"'
+                    QUERY_RESULT_JSON=$(sf data query --query "SELECT Id, Name FROM User LIMIT 1" --json)
+                    USER_ID=$(echo "$QUERY_RESULT_JSON" | jq -r '.result.records[0].Id')
+                    USER_NAME=$(echo "$QUERY_RESULT_JSON" | jq -r '.result.records[0].Name')
+                    echo "  User ID: $USER_ID"
+                    echo "  User Name: $USER_NAME"
                   else
                     echo "❌ Test 5 FAILED: Cannot query Salesforce data"
                     exit 1
