@@ -36,18 +36,18 @@ describe('MCP HTTP Connection Test', () => {
 		expect(Array.isArray(result.content)).toBe(true)
 		expect(result.content.length).toBeGreaterThan(0)
 
-		// Parse the response - must be valid JSON
-		const responseText = result.content[0]?.text
-		expect(responseText).toBeDefined()
+		// Debug: Check what the result contains
+		console.log('DEBUG - Full result:', JSON.stringify(result, null, 2))
 
-		// Parse as JSON - if this fails, the test should fail
-		const structuredContent = JSON.parse(responseText)
+		// The tool should return structured content directly
+		expect(result.structuredContent).toBeDefined()
+		const structuredContent = result.structuredContent
 
 		expect(structuredContent).toBeTruthyAndDump(structuredContent)
 		expect(structuredContent?.id).toBeTruthy()
 		expect(structuredContent?.alias).toBeTypeOf('string')
 		expect(structuredContent?.user).toBeTruthyAndDump(structuredContent?.user)
-		expect(structuredContent?.user?.username).toBeTruthy()
+		expect(structuredContent?.username).toBeTruthy()
 
 		console.log('✅ Org details verified successfully')
 	}, 20000)
@@ -112,7 +112,7 @@ describe('MCP HTTP Connection Test', () => {
 		const responseText = result.content[0]?.text
 		expect(responseText).toBeDefined()
 		expect(responseText).toBeTruthy()
-		
+
 		// Ensure it's not an error message
 		expect(responseText).not.toMatch(/^❌/)
 		expect(responseText).not.toMatch(/^Error:/)

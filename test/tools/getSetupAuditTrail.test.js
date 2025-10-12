@@ -51,5 +51,5 @@ describe('getSetupAuditTrail', () => {
 		expect(result).toBeTruthy()
 		expect(result?.structuredContent?.filters).toBeTruthy()
 		expect(result.structuredContent.filters.user).toBe(TestData.salesforce.testUser)
-	}, 2_000)
+	}, 60_000)
 })

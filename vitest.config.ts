@@ -7,6 +7,13 @@ export default defineConfig({
 		testTimeout: 10000,
 		hookTimeout: 12000,
 		retry: 2,
+		// Force single worker to avoid multiple server instances
+		pool: 'threads',
+		poolOptions: {
+			threads: {
+				singleThread: true
+			}
+		},
 		include: ['test/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
 		coverage: {
 			enabled: false,

@@ -23,8 +23,11 @@ const transportModule = await import(transportPath)
 const { setupServer, readyPromise, mcpServer } = serverModule
 const { stopHttpServer } = transportModule
 
-const port = 3000 + Number(process.env.VITEST_WORKER_ID || 0)
-process.env.MCP_HTTP_PORT = String(port)
+// Use a fixed port for all workers to share the same server instance
+process.env.MCP_HTTP_PORT = '3002'
+
+// Set workspace path to current project directory
+process.env.WORKSPACE_FOLDER_PATHS = process.cwd()
 
 // Enable dry-run mode for reportIssue to prevent creating real GitHub issues during tests
 process.env.MCP_REPORT_ISSUE_DRY_RUN = 'true'
