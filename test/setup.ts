@@ -44,7 +44,7 @@ beforeAll(async () => {
 
 	const result = await setupServer('http')
 	await readyPromise
-	
+
 	// Capture the ACTUAL port that the server is using
 	if (result?.transportInfo?.port) {
 		process.env.MCP_HTTP_PORT = String(result.transportInfo.port)
@@ -58,7 +58,7 @@ afterAll(async () => {
 	if (mcpServerModule.setServerShuttingDown) {
 		mcpServerModule.setServerShuttingDown(true)
 	}
-	
+
 	await stopHttpServer()
 	await mcpServer.close()
 })
