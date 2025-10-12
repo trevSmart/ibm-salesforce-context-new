@@ -36,6 +36,7 @@ This project includes a comprehensive automated code review system powered by Gi
 - **Dependabot Integration**: Automated dependency updates with security focus
 - **Scheduled Health Checks**: Weekly automated code quality assessments
 - **Vulnerability Reporting**: Automatic issue creation for security concerns
+- **Security Documentation**: See [SECURITY.md](SECURITY.md) for known vulnerabilities and mitigation strategies
 
 #### **Workflow Triggers**
 - Pull requests and pushes to main branches
