@@ -40,6 +40,18 @@ jobs:
         node-version: [22.17.1]
 
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v5
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
     - name: Setup Salesforce Authentication
       uses: ./.github/workflows/salesforce-auth-setup.yml
       with:
@@ -51,8 +63,7 @@ jobs:
           SF_ORG_CLIENT_PASSWORD: ${{ secrets.SF_ORG_CLIENT_PASSWORD }}
 
     - name: Run tests
-      run: |
-        echo "Tests steps disabled"
+      run: npm run test
 
   security:
     runs-on: ubuntu-latest
