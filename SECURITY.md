@@ -27,7 +27,7 @@ The following vulnerabilities are present in `@salesforce/cli` transitive depend
    - **Severity**: High
    - **Type**: Symlink validation bypass vulnerability
    - **Location**: `@salesforce/cli` bundled dependencies
-   - **Affected Versions**: 2.0.0 - 2.1.3
+   - **Affected Versions**: 2.0.0 - 2.1.3 (fixed in 2.1.4)
    - **CVSS Score**: 7.5 (High)
    - **Status**: Cannot be fixed - requires Salesforce CLI update
 
