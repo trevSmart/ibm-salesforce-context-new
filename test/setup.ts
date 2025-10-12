@@ -42,11 +42,23 @@ beforeAll(async () => {
 		console.error('Could not clean .test-artifacts:', err)
 	}
 
-	await setupServer('http')
+	const result = await setupServer('http')
 	await readyPromise
+	
+	// Capture the ACTUAL port that the server is using
+	if (result?.transportInfo?.port) {
+		process.env.MCP_HTTP_PORT = String(result.transportInfo.port)
+		console.log(`✓ Test server started on port ${result.transportInfo.port}`)
+	}
 })
 
 afterAll(async () => {
+	// Signal server is shutting down to prevent notifications during cleanup
+	const mcpServerModule = await import('../src/mcp-server.js')
+	if (mcpServerModule.setServerShuttingDown) {
+		mcpServerModule.setServerShuttingDown(true)
+	}
+	
 	await stopHttpServer()
 	await mcpServer.close()
 })

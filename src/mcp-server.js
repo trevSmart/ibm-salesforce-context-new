@@ -154,6 +154,13 @@ const mcpServer = new McpServer(serverInfo, {
 // (utils reads via globalThis.__mcpServer instead of importing this module)
 globalThis.__mcpServer = mcpServer;
 
+// Track server lifecycle to avoid sending notifications during cleanup
+let isServerShuttingDown = false;
+
+export function setServerShuttingDown(value) {
+	isServerShuttingDown = value;
+}
+
 export function newResource(uri, name, description, mimeType = 'text/plain', content, annotations = {}) {
 	try {
 		logger.debug(`MCP resource "${uri}" changed.`);
@@ -175,7 +182,17 @@ export function newResource(uri, name, description, mimeType = 'text/plain', con
 		}
 
 		resources[uri] = resource;
-		mcpServer.server.sendResourceListChanged();
+
+		// Send notification only if server is not shutting down
+		if (!isServerShuttingDown) {
+			try {
+				mcpServer.server.sendResourceListChanged();
+			} catch (error) {
+				// Silently ignore connection errors (can happen during test cleanup)
+				logger.debug(`Resource list change notification skipped: ${error.message}`);
+			}
+		}
+
 		return resource;
 	} catch (error) {
 		logger.error(error, `Error setting resource ${uri}, stack: ${error.stack}`);
@@ -186,7 +203,16 @@ export function clearResources() {
 	if (Object.keys(resources).length) {
 		logger.debug('Clearing resources...');
 		resources = {};
-		mcpServer.server.sendResourceListChanged();
+
+		// Send notification only if server is not shutting down
+		if (!isServerShuttingDown) {
+			try {
+				mcpServer.server.sendResourceListChanged();
+			} catch (error) {
+				// Silently ignore connection errors (can happen during test cleanup)
+				logger.debug(`Resource list change notification skipped: ${error.message}`);
+			}
+		}
 	}
 }
 
@@ -252,7 +278,14 @@ export async function setupServer(transport) {
 	}
 
 	logger.info(connectedMessage);
-	return {protocolVersion, serverInfo, capabilities};
+
+	// Return both protocol info AND transport info (including actual port)
+	return {
+		protocolVersion,
+		serverInfo,
+		capabilities,
+		transportInfo
+	};
 }
 
 export function sendProgressNotification(progressToken, progress, total, message) {
@@ -281,17 +314,21 @@ try {
 }
 */
 
-// Handle graceful shutdown
-process.on('SIGINT', async () => {
-	logger.info('Received SIGINT, cleaning up...');
-	await targetOrgWatcher.stop();
-	process.exit(0);
-});
+// Handle graceful shutdown - only register once
+if (process.listenerCount('SIGINT') === 0) {
+	process.on('SIGINT', async () => {
+		logger.info('Received SIGINT, cleaning up...');
+		await targetOrgWatcher.stop();
+		process.exit(0);
+	});
+}
 
-process.on('SIGTERM', async () => {
-	logger.info('Received SIGTERM, cleaning up...');
-	await targetOrgWatcher.stop();
-	process.exit(0);
-});
+if (process.listenerCount('SIGTERM') === 0) {
+	process.on('SIGTERM', async () => {
+		logger.info('Received SIGTERM, cleaning up...');
+		await targetOrgWatcher.stop();
+		process.exit(0);
+	});
+}
 
 export {mcpServer};

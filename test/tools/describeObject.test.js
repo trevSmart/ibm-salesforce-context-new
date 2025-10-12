@@ -12,7 +12,7 @@ describe('describeObject', () => {
 		await disconnectMcpClient(client)
 	})
 
-	describe.concurrent('reads', () => {
+	describe('reads', () => {
 		test('with non-existent object', async () => {
 			const result = await client.callTool('describeObject', {
 				sObjectName: 'NonExistentObject__c',
