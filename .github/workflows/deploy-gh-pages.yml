@@ -1,12 +1,13 @@
 # DISABLED: GitHub Pages workflow temporarily disabled due to configuration issues
-# name: Deploy to GitHub Pages
+name: Deploy to GitHub Pages
 
-# on:
-#   push:
-#     branches: [ main, master, develop ]
-#     paths:
-#       - 'docs/**'
-#   workflow_dispatch:
+on:
+  # DISABLED: All triggers commented out to disable the workflow
+  # push:
+  #   branches: [ main, master, develop ]
+  #   paths:
+  #     - 'docs/**'
+  # workflow_dispatch:
 
 # permissions:
 #   contents: read
