@@ -161,6 +161,30 @@ export function setServerShuttingDown(value) {
 	isServerShuttingDown = value;
 }
 
+export async function closeServer() {
+	try {
+		isServerShuttingDown = true;
+
+		// Clear all resources
+		clearResources();
+
+		// Stop org watcher
+		if (targetOrgWatcher) {
+			await targetOrgWatcher.stop();
+		}
+
+		// Close MCP server
+		if (mcpServer) {
+			await mcpServer.close();
+		}
+
+		logger.info('✓ Server closed successfully');
+	} catch (error) {
+		logger.error('Error closing server:', error);
+		throw error;
+	}
+}
+
 export function newResource(uri, name, description, mimeType = 'text/plain', content, annotations = {}) {
 	try {
 		logger.debug(`MCP resource "${uri}" changed.`);

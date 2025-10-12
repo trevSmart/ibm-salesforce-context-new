@@ -52,15 +52,42 @@ beforeAll(async () => {
 	}
 })
 
-afterAll(async () => {
-	// Signal server is shutting down to prevent notifications during cleanup
-	const mcpServerModule = await import('../src/mcp-server.js')
-	if (mcpServerModule.setServerShuttingDown) {
-		mcpServerModule.setServerShuttingDown(true)
-	}
+// Global cleanup handler
+const cleanupServer = async () => {
+	try {
+		const mcpServerModule = await import('../src/mcp-server.js')
+		if (mcpServerModule.setServerShuttingDown) {
+			mcpServerModule.setServerShuttingDown(true)
+		}
 
-	await stopHttpServer()
-	await mcpServer.close()
+		await stopHttpServer()
+		await mcpServer.close()
+
+		console.log('✓ Server cleanup completed')
+	} catch (error) {
+		console.error('Error during server cleanup:', error)
+	}
+}
+
+afterAll(async () => {
+	await cleanupServer()
+})
+
+// Register cleanup handlers for process signals
+process.on('SIGINT', async () => {
+	console.log('\n⚠️  Received SIGINT, cleaning up...')
+	await cleanupServer()
+	process.exit(0)
+})
+
+process.on('SIGTERM', async () => {
+	console.log('\n⚠️  Received SIGTERM, cleaning up...')
+	await cleanupServer()
+	process.exit(0)
+})
+
+process.on('exit', () => {
+	console.log('Process exiting...')
 })
 
 // Helper for file names

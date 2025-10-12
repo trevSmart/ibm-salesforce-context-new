@@ -17,6 +17,8 @@
 		"test": "vitest --silent --run",
 		"test:cov": "c8 -o coverage --reporter=text --reporter=html vitest run",
 		"test:watch": "vitest --watch",
+		"test:cleanup": "pkill -f 'node.*index.js' || true",
+		"test:clean": "npm run test:cleanup && npm run test",
 		"start": "node index.js --transport http",
 		"publish-package": "sh dev/publish-package.sh",
 		"publish-package-skip-tests": "sh dev/publish-package.sh --skip-tests",

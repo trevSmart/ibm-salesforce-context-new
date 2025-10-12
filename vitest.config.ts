@@ -14,6 +14,10 @@ export default defineConfig({
 				singleThread: true
 			}
 		},
+		// Ensure teardown runs even on interrupt
+		teardownTimeout: 10000,
+		// Force exit after tests complete
+		forceExit: true,
 		include: ['test/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
 		coverage: {
 			enabled: false,

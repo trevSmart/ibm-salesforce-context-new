@@ -719,12 +719,30 @@ export async function connectTransport(mcpServer, transportType) {
 export default connectTransport;
 
 export async function stopHttpServer() {
-	return new Promise((resolve) => {
+	return new Promise((resolve, reject) => {
 		if (httpServer) {
-			httpServer.close(() => {
-				httpServer = undefined;
-				resolve();
+			// Force close all connections
+			httpServer.closeAllConnections?.();
+
+			httpServer.close((err) => {
+				if (err) {
+					logger.error('Error closing HTTP server:', err);
+					reject(err);
+				} else {
+					logger.debug('HTTP server closed successfully');
+					httpServer = undefined;
+					resolve();
+				}
 			});
+
+			// Timeout fallback
+			setTimeout(() => {
+				if (httpServer) {
+					logger.warn('HTTP server close timeout, forcing shutdown');
+					httpServer = undefined;
+					resolve();
+				}
+			}, 5000);
 		} else {
 			resolve();
 		}
