@@ -33,12 +33,23 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    environment: copilot
 
     strategy:
       matrix:
         node-version: [22.17.1]
 
     steps:
+    - name: Setup Salesforce Authentication
+      uses: ./.github/workflows/salesforce-auth-setup.yml
+      with:
+          log_level: "info"
+      secrets:
+          SF_ORG_CLIENT_ID: ${{ secrets.SF_ORG_CLIENT_ID }}
+          SF_ORG_CLIENT_SECRET: ${{ secrets.SF_ORG_CLIENT_SECRET }}
+          SF_ORG_CLIENT_USERNAME: ${{ secrets.SF_ORG_CLIENT_USERNAME }}
+          SF_ORG_CLIENT_PASSWORD: ${{ secrets.SF_ORG_CLIENT_PASSWORD }}
+
     - name: Run tests
       run: |
         echo "Tests steps disabled"

@@ -1,0 +1,156 @@
+name: "Salesforce Authentication Setup"
+
+on:
+    workflow_call:
+        inputs:
+            log_level:
+                description: "Log level for debugging"
+                required: false
+                default: "debug"
+                type: string
+        secrets:
+            SF_ORG_CLIENT_ID:
+                description: "Salesforce org client ID"
+                required: true
+            SF_ORG_CLIENT_SECRET:
+                description: "Salesforce org client secret"
+                required: true
+            SF_ORG_CLIENT_USERNAME:
+                description: "Salesforce org username"
+                required: true
+            SF_ORG_CLIENT_PASSWORD:
+                description: "Salesforce org password"
+                required: true
+
+jobs:
+    salesforce-auth-setup:
+        runs-on: ubuntu-latest
+        environment: copilot
+        permissions:
+            contents: read
+
+        env:
+            SF_ORG_CLIENT_ID: ${{ secrets.SF_ORG_CLIENT_ID }}
+            SF_ORG_CLIENT_SECRET: ${{ secrets.SF_ORG_CLIENT_SECRET }}
+            SF_ORG_CLIENT_USERNAME: ${{ secrets.SF_ORG_CLIENT_USERNAME }}
+            SF_ORG_CLIENT_PASSWORD: ${{ secrets.SF_ORG_CLIENT_PASSWORD }}
+            LOG_LEVEL: ${{ inputs.log_level }}
+
+        steps:
+            - uses: actions/checkout@v5
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "22"
+                  cache: "npm"
+
+            - run: npm ci
+
+            - name: Install Salesforce CLI globally
+              run: npm install -g @salesforce/cli
+
+            - name: Authenticate with Salesforce org
+              run: |
+                  echo "Authenticating with Salesforce org..."
+
+                  if [ -z "${SF_ORG_CLIENT_ID:-}" ] || [ -z "${SF_ORG_CLIENT_SECRET:-}" ] || \
+                     [ -z "${SF_ORG_CLIENT_USERNAME:-}" ] || [ -z "${SF_ORG_CLIENT_PASSWORD:-}" ]; then
+                    echo "⚠️  Missing Salesforce org credentials in environment variables"
+                    echo "SF_AUTH_SUCCESS=false" >> "$GITHUB_ENV"
+                  else
+                    response=$(curl -s -X POST "https://test.salesforce.com/services/oauth2/token" \
+                      -H "Content-Type: application/x-www-form-urlencoded" \
+                      --data-urlencode "grant_type=password" \
+                      --data-urlencode "client_id=${SF_ORG_CLIENT_ID}" \
+                      --data-urlencode "client_secret=${SF_ORG_CLIENT_SECRET}" \
+                      --data-urlencode "username=${SF_ORG_CLIENT_USERNAME}" \
+                      --data-urlencode "password=${SF_ORG_CLIENT_PASSWORD}")
+
+                    SF_ACCESS_TOKEN=$(echo "$response" | jq -r '.access_token' 2>/dev/null)
+                    SF_INSTANCE_URL=$(echo "$response" | jq -r '.instance_url' 2>/dev/null)
+
+                    if [ -n "${SF_ACCESS_TOKEN:-}" ] && [ "${SF_ACCESS_TOKEN}" != "null" ]; then
+                      echo "✅ Successfully obtained access token"
+                      echo "SF_ACCESS_TOKEN=${SF_ACCESS_TOKEN}" >> "$GITHUB_ENV"
+                      echo "SF_INSTANCE_URL=${SF_INSTANCE_URL}" >> "$GITHUB_ENV"
+                      echo "SF_AUTH_SUCCESS=true" >> "$GITHUB_ENV"
+                    else
+                      echo "❌ Failed to get access token. Response:"
+                      echo "$response"
+                      echo "SF_AUTH_SUCCESS=false" >> "$GITHUB_ENV"
+                    fi
+                  fi
+
+            - name: Login and verify Salesforce org connection
+              if: env.SF_AUTH_SUCCESS == 'true'
+              run: |
+                  echo "Logging into Salesforce org..."
+                  sf org login access-token --instance-url "$SF_INSTANCE_URL" --no-prompt --set-default
+
+                  echo "Verifying Salesforce org connection..."
+                  if sf org display --json &>/dev/null; then
+                    echo "✅ Successfully connected to a Salesforce org"
+                    sf org display
+                  else
+                    echo "❌ Failed to connect to Salesforce org"
+                    exit 1
+                  fi
+
+            - name: Verify Salesforce org authorization
+              if: env.SF_AUTH_SUCCESS == 'true'
+              run: |
+                  echo ""
+                  echo "=== Comprehensive Authorization Verification ==="
+                  echo ""
+
+                  # Test 1: Verify SF_AUTH_SUCCESS is set to true
+                  if [ "$SF_AUTH_SUCCESS" = "true" ]; then
+                    echo "✅ Test 1 PASSED: SF_AUTH_SUCCESS is set to true"
+                  else
+                    echo "❌ Test 1 FAILED: SF_AUTH_SUCCESS is not true (value: $SF_AUTH_SUCCESS)"
+                    exit 1
+                  fi
+
+                  # Test 2: Verify SF_ACCESS_TOKEN is set
+                  if [ -n "${SF_ACCESS_TOKEN:-}" ]; then
+                    echo "✅ Test 2 PASSED: SF_ACCESS_TOKEN is set (length: ${#SF_ACCESS_TOKEN})"
+                  else
+                    echo "❌ Test 2 FAILED: SF_ACCESS_TOKEN is not set"
+                    exit 1
+                  fi
+
+                  # Test 3: Verify SF_INSTANCE_URL is set
+                  if [ -n "${SF_INSTANCE_URL:-}" ]; then
+                    echo "✅ Test 3 PASSED: SF_INSTANCE_URL is set ($SF_INSTANCE_URL)"
+                  else
+                    echo "❌ Test 3 FAILED: SF_INSTANCE_URL is not set"
+                    exit 1
+                  fi
+
+                  # Test 4: Verify SF CLI is logged in
+                  if sf org display --json > /dev/null 2>&1; then
+                    echo "✅ Test 4 PASSED: SF CLI is logged in"
+                    echo "Org details:"
+                    ORG_JSON="$(sf org display --json)"
+                    echo "  Org ID: $(echo "$ORG_JSON" | jq -r '.result.id')"
+                    echo "  Username: $(echo "$ORG_JSON" | jq -r '.result.username')"
+                    echo "  Instance URL: $(echo "$ORG_JSON" | jq -r '.result.instanceUrl')"
+                    echo "  Connected Status: $(echo "$ORG_JSON" | jq -r '.result.connectedStatus')"
+                  else
+                    echo "❌ Test 4 FAILED: SF CLI is not logged in"
+                    exit 1
+                  fi
+
+                  # Test 5: Verify we can query Salesforce data
+                  if sf data query --query "SELECT Id, Name FROM User LIMIT 1" --json > /dev/null 2>&1; then
+                    echo "✅ Test 5 PASSED: Can query Salesforce data"
+                    echo "Sample query result:"
+                    sf data query --query "SELECT Id, Name FROM User LIMIT 1" --json | jq -r '.result.records[0] | "  User ID: \(.Id)\n  User Name: \(.Name)"'
+                  else
+                    echo "❌ Test 5 FAILED: Cannot query Salesforce data"
+                    exit 1
+                  fi
+
+                  echo ""
+                  echo "=== All Authorization Verification Tests Passed! ==="
+                  echo ""
