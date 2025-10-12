@@ -1,13 +1,11 @@
-# DISABLED: GitHub Pages workflow temporarily disabled due to configuration issues
 name: Deploy to GitHub Pages
 
 on:
-  # DISABLED: All triggers commented out to disable the workflow
-  # push:
-  #   branches: [ main, master, develop ]
-  #   paths:
-  #     - 'docs/**'
-  # workflow_dispatch:
+  push:
+    branches: [ main, master, develop ]
+    paths:
+      - 'docs/**'
+  workflow_dispatch:
 
 # permissions:
 #   contents: read
@@ -18,25 +16,24 @@ on:
 #   group: "pages"
 #   cancel-in-progress: false
 
-jobs:
-  # DISABLED: Job commented out to disable the workflow
-  # deploy:
-  #   environment:
-  #     name: github-pages
-  #     url: ${{ steps.deployment.outputs.page_url }}
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v5
+# jobs:
+#   deploy:
+#     environment:
+#       name: github-pages
+#       url: ${{ steps.deployment.outputs.page_url }}
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v5
 
-  #     - name: Setup Pages
-  #       uses: actions/configure-pages@v5
+#       - name: Setup Pages
+#         uses: actions/configure-pages@v5
 
-  #     - name: Upload artifact
-  #       uses: actions/upload-pages-artifact@v4
-  #       with:
-  #         path: './docs'
+#       - name: Upload artifact
+#         uses: actions/upload-pages-artifact@v4
+#         with:
+#           path: './docs'
 
-  #     - name: Deploy to GitHub Pages
-  #       id: deployment
-  #       uses: actions/deploy-pages@v4
+#       - name: Deploy to GitHub Pages
+#         id: deployment
+#         uses: actions/deploy-pages@v4
