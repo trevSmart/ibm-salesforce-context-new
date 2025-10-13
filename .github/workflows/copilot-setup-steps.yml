@@ -9,6 +9,7 @@ on:
 
 jobs:
     salesforce-auth:
+        permissions: {}
         uses: ./.github/workflows/salesforce-auth-setup.yml
         with:
             log_level: "debug"
