@@ -29,10 +29,10 @@ Always reference these instructions first and fallback to search or bash command
   - Root endpoint provides beautiful dashboard with server status
 
 - **Testing (requires Salesforce setup)**:
-  - `npm test` -- runs Vitest tests. NEVER CANCEL: takes 30-45 seconds with SF org, 2+ minutes without (due to timeouts). Set timeout to 300+ seconds.
+  - `npm test` -- runs Vitest tests. NEVER CANCEL: takes ~120 seconds with SF org, 2+ minutes without (due to timeouts). Set timeout to 300+ seconds.
   - Tests require: Salesforce CLI connected to org, optionally SF project structure
   - Without SF org: all tests fail with "Org details not available" - this is expected
-  - Parallel test execution optimized for 31% speed improvement (30+ test files)
+  - Parallel test execution optimized for 31% speed improvement (26 test files)
   - Retry mechanism: tests retry up to 2 times on failure
 
 ## Validation Scenarios
@@ -98,7 +98,7 @@ kill %1
 npm ci
 npm install @salesforce/cli --save-dev  # if not already installed
 sf org display --json  # verify org connection
-npm test  # NEVER CANCEL: 30s-2min depending on org setup
+npm test  # NEVER CANCEL: ~120s with SF org, 2+ min without
 npm run lint:fix
 ```
 
@@ -116,7 +116,7 @@ npm run lint:fix
 - `tsconfig.json` - TypeScript support for development
 
 **Testing**:
-- `test/` - 30+ test files organized by feature
+- `test/` - 26 test files organized by feature
 - `test/setup.ts` - Test setup with server initialization
 - Tests use parallel execution for performance
 
