@@ -338,21 +338,17 @@ try {
 }
 */
 
-// Handle graceful shutdown - only register once
-if (process.listenerCount('SIGINT') === 0) {
-	process.on('SIGINT', async () => {
-		logger.info('Received SIGINT, cleaning up...');
-		await targetOrgWatcher.stop();
-		process.exit(0);
-	});
-}
+// Handle graceful shutdown - use once() to prevent duplicate listeners
+process.once('SIGINT', async () => {
+	logger.info('Received SIGINT, cleaning up...');
+	await targetOrgWatcher.stop();
+	process.exit(0);
+});
 
-if (process.listenerCount('SIGTERM') === 0) {
-	process.on('SIGTERM', async () => {
-		logger.info('Received SIGTERM, cleaning up...');
-		await targetOrgWatcher.stop();
-		process.exit(0);
-	});
-}
+process.once('SIGTERM', async () => {
+	logger.info('Received SIGTERM, cleaning up...');
+	await targetOrgWatcher.stop();
+	process.exit(0);
+});
 
 export {mcpServer};

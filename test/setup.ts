@@ -3,6 +3,10 @@ import * as path from 'node:path'
 import { afterAll, beforeAll, expect } from 'vitest'
 import { config } from 'dotenv'
 
+// Increase max listeners to prevent warnings in test environment
+// Tests may cause multiple listener registrations due to module imports and retries
+process.setMaxListeners(30)
+
 // Load environment variables from .env file before running tests
 config()
 
@@ -73,22 +77,8 @@ afterAll(async () => {
 	await cleanupServer()
 })
 
-// Register cleanup handlers for process signals
-process.on('SIGINT', async () => {
-	console.log('\n⚠️  Received SIGINT, cleaning up...')
-	await cleanupServer()
-	process.exit(0)
-})
-
-process.on('SIGTERM', async () => {
-	console.log('\n⚠️  Received SIGTERM, cleaning up...')
-	await cleanupServer()
-	process.exit(0)
-})
-
-process.on('exit', () => {
-	console.log('Process exiting...')
-})
+// Note: Signal handlers (SIGINT, SIGTERM) are registered in mcp-server.js
+// to prevent duplicate listener warnings. The server module handles cleanup.
 
 // Helper for file names
 function slug(s: string) {
