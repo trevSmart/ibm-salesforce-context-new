@@ -70,7 +70,8 @@ jobs:
 
     - name: Verify Salesforce connection
       run: |
-        sf org display --json > org-details.json
+        # Filter out accessToken immediately to avoid writing it to disk
+        sf org display --json | jq 'del(.result.accessToken)' > org-details.json
         jq '{
           status: .status,
           result: {

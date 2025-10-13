@@ -252,6 +252,8 @@ export async function getOrgAndUserDetails(skipCache = false) {
 			throw new Error('Error: Could not retrieve Salesforce org and user details.');
 		}
 
+		// Return org details including the accessToken for internal API calls
+		// The accessToken will be sanitized when exposed via MCP resources or logs
 		return {
 			...orgResult,
 			user: {id: null, username: orgResult.username, profileName: null, name: null}
