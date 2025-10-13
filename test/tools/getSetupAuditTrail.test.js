@@ -39,7 +39,7 @@ describe('getSetupAuditTrail', () => {
 			expect(typeof result.structuredContent.setupAuditTrailFileTotalRecords).toBe('number')
 			expect(Array.isArray(result.structuredContent.records)).toBe(true)
 		},
-		30000,
+		30_000,
 	)
 
 	test.skipIf(process.env.SKIP_OPTIONAL_TESTS === 'true')('cached with user filter', async () => {
