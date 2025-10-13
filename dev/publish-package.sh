@@ -276,14 +276,14 @@ vecho "\033[95mPreparing list of exported names to preserve...\033[0m"
 # Build a list of exported names (ESM) to reserve during obfuscation
 reserved_tmp=$(mktemp)
 # export function|class|const|let|var NAME
-grep -RhoE "export[[:space:]]+(function|class|const|let|var)[[:space:]]+[A-Za-z_][$A-Za-z0-9_]*" dist 2>/dev/null | awk '{print $NF}' >> "$reserved_tmp" || true
+grep -RhoE "export[[:space:]]+(function|class|const|let|var)[[:space:]]+[A-Za-z_][A-Za-z0-9_]*" dist 2>/dev/null | awk '{print $NF}' >> "$reserved_tmp" || true
 # export { a, b as c }
 grep -RhoE "export[[:space:]]*\{[^}]+\}" dist 2>/dev/null \
   | sed -E 's/.*\{([^}]*)\}.*/\1/' \
   | tr ',' '\n' \
   | sed -E 's/[[:space:]]+as[[:space:]]+.*$//' \
   | sed -E 's/^\s+|\s+$//g' \
-  | grep -E '^[A-Za-z_][$A-Za-z0-9_]*$' >> "$reserved_tmp" || true
+  | grep -E '^[A-Za-z_][A-Za-z0-9_]*$' >> "$reserved_tmp" || true
 
 # Build pattern for --reserved-names (comma-separated)
 OBF_RESERVED=$(sort -u "$reserved_tmp" | awk 'BEGIN{ORS=","} {printf "^%s$", $0} END{print ""}' | sed 's/,$//')
