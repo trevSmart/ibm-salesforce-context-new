@@ -63,7 +63,7 @@ beforeAll(async () => {
 // Global cleanup handler
 const cleanupServer = async () => {
 	try {
-		const mcpServerModule = await import('../src/mcp-server.js')
+		const mcpServerModule = await import(serverPath)
 		if (mcpServerModule.setServerShuttingDown) {
 			mcpServerModule.setServerShuttingDown(true)
 		}
