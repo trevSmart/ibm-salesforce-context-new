@@ -536,7 +536,18 @@ export async function getSetupAuditTrailToolHandler({lastDays = 30, user = null,
 					type: 'text',
 					text: `Error retrieving Setup Audit Trail data:\n\nError message:\n${error.message}\n\nError stack:\n${error.stack}`
 				}
-			]
+			],
+			structuredContent: {
+				filters: {
+					lastDays,
+					user,
+					metadataName,
+					resolvedUsername: null
+				},
+				setupAuditTrailFileTotalRecords: 0,
+				setupAuditTrailFileFilteredTotalRecords: 0,
+				records: []
+			}
 		};
 	}
 }
