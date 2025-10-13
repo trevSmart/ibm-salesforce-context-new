@@ -10,7 +10,7 @@ import {connectTransport} from './lib/transport.js';
 import {applyFetchSslOptions} from './lib/networkUtils.js';
 import {InitializationPhases} from './lib/initialization.js';
 import {HandlerRegistry} from './lib/handlerRegistry.js';
-import {textFileContent, verifyServerAccess} from './utils.js';
+import {textFileContent, verifyServerAccess, sanitizeSensitiveData} from './utils.js';
 
 // Define state object here instead of importing it
 export const state = {
@@ -56,7 +56,9 @@ async function refreshOrgCompanyDetails() {
 			logger.debug('Organization company details refreshed');
 
 			if (state.userPermissionsValidated) {
-				newResource('mcp://org/orgAndUserDetail.json', 'Org and user details', 'Org and user details', 'application/json', JSON.stringify(state.org, null, 3));
+				// Sanitize sensitive data before exposing via MCP resource
+				const sanitizedOrg = sanitizeSensitiveData(state.org);
+				newResource('mcp://org/orgAndUserDetail.json', 'Org and user details', 'Org and user details', 'application/json', JSON.stringify(sanitizedOrg, null, 3));
 			}
 		} catch (error) {
 			logger.warn(error, 'Failed to refresh organization company details');
@@ -109,7 +111,9 @@ async function updateOrgAndUserDetails() {
 					};
 					state.userPermissionsValidated = true;
 
-					newResource('mcp://org/orgAndUserDetail.json', 'Org and user details', 'Org and user details', 'application/json', JSON.stringify(state.org, null, 3));
+					// Sanitize sensitive data before exposing via MCP resource
+					const sanitizedOrg = sanitizeSensitiveData(state.org);
+					newResource('mcp://org/orgAndUserDetail.json', 'Org and user details', 'Org and user details', 'application/json', JSON.stringify(sanitizedOrg, null, 3));
 				} else {
 					state.userPermissionsValidated = false;
 					const errorMessage = config.bypassUserPermissionsValidation ? `User "${newUsername}" not found in org "${state.org.alias}"` : `User "${newUsername}" not found or with insufficient permissions in org "${state.org.alias}"`;

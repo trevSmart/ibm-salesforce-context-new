@@ -11,6 +11,10 @@ if (!process.env.PASSWORD) {
 	console.warn('Warning: PASSWORD environment variable not found. Make sure .env file exists and contains PASSWORD=value')
 }
 
+// Import sanitization utility
+const utilsPath = process.cwd().endsWith('/dist') || process.cwd().endsWith('\\dist') ? './src/utils.js' : '../src/utils.js'
+const { sanitizeSensitiveData } = await import(utilsPath)
+
 // Determine which server to use based on current working directory and environment
 const isRunningFromDist = process.cwd().endsWith('/dist') || process.cwd().endsWith('\\dist')
 const serverPath = isRunningFromDist ? './src/mcp-server.js' : '../src/mcp-server.js'
@@ -104,7 +108,9 @@ function writeArtifact(testName: string, label: string, data: unknown) {
 	const dir = path.join(process.cwd(), '.test-artifacts')
 	fs.mkdirSync(dir, { recursive: true })
 	const file = path.join(dir, `${Date.now()}_${slug(testName)}_${slug(label)}.json`)
-	fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8')
+	// Sanitize sensitive data before writing to test artifacts
+	const sanitizedData = sanitizeSensitiveData(data)
+	fs.writeFileSync(file, JSON.stringify(sanitizedData, null, 2), 'utf8')
 	return file
 }
 

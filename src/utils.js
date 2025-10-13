@@ -496,3 +496,35 @@ export function addResourceToContent(content, resource) {
 		logger.debug(`Skipped resource link attachment for ${name} (client doesn't support resources or resource_links). Resource still available via the salesforceContextUtils tools`);
 	}
 }
+
+/**
+ * Sanitize sensitive fields from an object for safe logging/display
+ * @param {Object} obj - Object to sanitize
+ * @param {string[]} fieldsToRedact - Array of field names to redact (default: common sensitive fields)
+ * @returns {Object} Sanitized copy of the object
+ */
+export function sanitizeSensitiveData(obj, fieldsToRedact = ['accessToken', 'access_token', 'password', 'client_secret', 'clientSecret']) {
+	if (!obj || typeof obj !== 'object') {
+		return obj;
+	}
+
+	// Create a shallow copy to avoid modifying the original
+	const sanitized = Array.isArray(obj) ? [...obj] : {...obj};
+
+	for (const key of Object.keys(sanitized)) {
+		if (fieldsToRedact.includes(key)) {
+			// Redact the value but show a hint about its length
+			const value = sanitized[key];
+			if (typeof value === 'string' && value.length > 0) {
+				sanitized[key] = `[REDACTED - length: ${value.length}]`;
+			} else {
+				sanitized[key] = '[REDACTED]';
+			}
+		} else if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
+			// Recursively sanitize nested objects
+			sanitized[key] = sanitizeSensitiveData(sanitized[key], fieldsToRedact);
+		}
+	}
+
+	return sanitized;
+}

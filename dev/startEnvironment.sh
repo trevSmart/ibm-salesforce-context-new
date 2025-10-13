@@ -15,7 +15,13 @@ response=$(curl -s -X POST "https://test.salesforce.com/services/oauth2/token" \
 # Check if response contains an error
 if echo "$response" | grep -q '"error"'; then
   echo "Error: OAuth authentication failed"
-  echo "$response"
+  # Extract and display only the error message, not the full response which may contain sensitive data
+  error_msg=$(echo "$response" | grep -o '"error_description":"[^"]*"' | cut -d'"' -f4)
+  if [ -n "$error_msg" ]; then
+    echo "Error details: $error_msg"
+  else
+    echo "Authentication failed. Check your credentials."
+  fi
   export SF_AUTH_SUCCESS=false
   exit 1
 fi
@@ -48,7 +54,11 @@ sf org login access-token --instance-url "$SF_INSTANCE_URL" --no-prompt --alias 
 
 # Verify the login
 echo "Verifying Salesforce org connection..."
-sf org display
+if sf org display --json > /dev/null 2>&1; then
+  echo "✓ Successfully verified connection to org '$SF_ORG_ALIAS'"
+else
+  echo "Warning: Could not verify org connection"
+fi
 
 # Mark authentication as successful
 export SF_AUTH_SUCCESS=true
