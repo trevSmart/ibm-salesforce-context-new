@@ -335,21 +335,32 @@ try {
 }
 */
 
-// Handle graceful shutdown - only register once
-if (process.listenerCount('SIGINT') === 0) {
-	process.on('SIGINT', async () => {
+/**
+ * Register signal handlers for graceful shutdown
+ * Should be called once when the server starts
+ * Uses a global flag to ensure handlers are only registered once per process
+ */
+export function registerSignalHandlers() {
+	// Use global flag to track if handlers have been registered in this process
+	if (globalThis.__signalHandlersRegistered) {
+		logger.debug('Signal handlers already registered, skipping');
+		return;
+	}
+
+	process.once('SIGINT', async () => {
 		logger.info('Received SIGINT, cleaning up...');
 		await targetOrgWatcher.stop();
 		process.exit(0);
 	});
-}
 
-if (process.listenerCount('SIGTERM') === 0) {
-	process.on('SIGTERM', async () => {
+	process.once('SIGTERM', async () => {
 		logger.info('Received SIGTERM, cleaning up...');
 		await targetOrgWatcher.stop();
 		process.exit(0);
 	});
+
+	globalThis.__signalHandlersRegistered = true;
+	logger.debug('Signal handlers registered');
 }
 
 export {mcpServer};

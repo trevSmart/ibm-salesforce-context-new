@@ -46,6 +46,10 @@ beforeAll(async () => {
 		console.error('Could not clean .test-artifacts:', err)
 	}
 
+	// Register signal handlers for test environment
+	const { registerSignalHandlers } = await import(serverPath)
+	registerSignalHandlers()
+
 	const result = await setupServer('http')
 	await readyPromise
 
@@ -77,22 +81,8 @@ afterAll(async () => {
 	await cleanupServer()
 })
 
-// Register cleanup handlers for process signals
-process.on('SIGINT', async () => {
-	console.log('\n⚠️  Received SIGINT, cleaning up...')
-	await cleanupServer()
-	process.exit(0)
-})
-
-process.on('SIGTERM', async () => {
-	console.log('\n⚠️  Received SIGTERM, cleaning up...')
-	await cleanupServer()
-	process.exit(0)
-})
-
-process.on('exit', () => {
-	console.log('Process exiting...')
-})
+// Note: Signal handlers (SIGINT, SIGTERM) are registered in mcp-server.js
+// to prevent duplicate listener warnings. The server module handles cleanup.
 
 // Helper for file names
 function slug(s: string) {

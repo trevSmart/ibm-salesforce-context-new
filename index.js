@@ -127,6 +127,10 @@ export async function main(rawArgs) {
 			process.env.WORKSPACE_FOLDER_PATHS = config.workspacePaths;
 		}
 
+		// Import and register signal handlers for production use
+		const {registerSignalHandlers} = await import('./src/mcp-server.js');
+		registerSignalHandlers();
+
 		await setupServer(transport);
 	} catch (error) {
 		const logger = createLogger();
