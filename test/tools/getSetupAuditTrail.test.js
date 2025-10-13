@@ -34,6 +34,7 @@ describe('getSetupAuditTrail', () => {
 
 			const result = await client.callTool('getSetupAuditTrail', { lastDays: 7 })
 
+			console.log('DEBUG result:', JSON.stringify(result, null, 2))
 			expect(result).toBeTruthy()
 			expect(result?.structuredContent?.filters).toBeTruthy()
 			expect(typeof result.structuredContent.setupAuditTrailFileTotalRecords).toBe('number')
