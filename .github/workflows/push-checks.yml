@@ -34,6 +34,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     needs: [lint]
+    environment: copilot
 
     strategy:
       matrix:
