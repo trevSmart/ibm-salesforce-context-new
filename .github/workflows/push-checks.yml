@@ -31,40 +31,59 @@ jobs:
     - name: Run linting
       run: npm run lint:fix
 
-  # DISABLED: Test job temporarily disabled due to Salesforce authentication issues
-  # test:
-  #   runs-on: ubuntu-latest
-  #   environment: copilot
+  test:
+    runs-on: ubuntu-latest
+    needs: [lint]
 
-  #   strategy:
-  #     matrix:
-  #       node-version: [22.17.1]
+    strategy:
+      matrix:
+        node-version: [22.17.1]
 
-  #   steps:
-  #   - name: Checkout code
-  #     uses: actions/checkout@v5
+    env:
+      SFDX_USE_GENERIC_UNIX_KEYCHAIN: 'true'
+      SF_ORG_ALIAS: 'github-ci'
 
-  #   - name: Setup Node.js ${{ matrix.node-version }}
-  #     uses: actions/setup-node@v5
-  #     with:
-  #       node-version: ${{ matrix.node-version }}
-  #       cache: 'npm'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
 
-  #   - name: Install dependencies
-  #     run: npm ci
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v5
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
 
-  #   - name: Setup Salesforce Authentication
-  #     uses: ./.github/workflows/salesforce-auth-setup.yml
-  #     with:
-  #         log_level: "info"
-  #     secrets:
-  #         SF_ORG_CLIENT_ID: ${{ secrets.SF_ORG_CLIENT_ID }}
-  #         SF_ORG_CLIENT_SECRET: ${{ secrets.SF_ORG_CLIENT_SECRET }}
-  #         SF_ORG_CLIENT_USERNAME: ${{ secrets.SF_ORG_CLIENT_USERNAME }}
-  #         SF_ORG_CLIENT_PASSWORD: ${{ secrets.SF_ORG_CLIENT_PASSWORD }}
+    - name: Install dependencies
+      run: npm ci
 
-  #   - name: Run tests
-  #     run: npm run test
+    - name: Expose local Salesforce CLI
+      run: echo "${{ github.workspace }}/node_modules/.bin" >> "$GITHUB_PATH"
+
+    - name: Authenticate with Salesforce
+      env:
+        SF_ORG_CLIENT_ID: ${{ secrets.SF_ORG_CLIENT_ID }}
+        SF_ORG_CLIENT_SECRET: ${{ secrets.SF_ORG_CLIENT_SECRET }}
+        SF_ORG_CLIENT_USERNAME: ${{ secrets.SF_ORG_CLIENT_USERNAME }}
+        SF_ORG_CLIENT_PASSWORD: ${{ secrets.SF_ORG_CLIENT_PASSWORD }}
+      run: ./dev/startEnvironment.sh
+
+    - name: Verify Salesforce connection
+      run: |
+        sf org display --json > org-details.json
+        jq '{
+          status: .status,
+          result: {
+            id: .result.id,
+            username: .result.username,
+            instanceUrl: .result.instanceUrl,
+            connectedStatus: .result.connectedStatus,
+            alias: .result.alias
+          }
+        }' org-details.json
+        rm -f org-details.json
+
+    - name: Run tests
+      run: npm run test
 
   security:
     runs-on: ubuntu-latest
