@@ -391,7 +391,8 @@ echo "\033[96mEncoding Markdown files...\033[0m"
 find dist -name '*.md' | while read -r file; do
   if [ -f "$file" ]; then
     b64file="$file.pam"
-    base64 -i "$file" -o "$b64file"
+    # Cross-platform base64 encoding: use input redirection instead of -i/-o flags
+    base64 < "$file" > "$b64file"
     rm -f "$file"
     echo "   $file"
   fi
@@ -404,7 +405,8 @@ echo "\033[96mEncoding Apex files...\033[0m"
 find dist -name '*.apex' | while read -r file; do
   if [ -f "$file" ]; then
     b64file="$file.pam"
-    base64 -i "$file" -o "$b64file"
+    # Cross-platform base64 encoding: use input redirection instead of -i/-o flags
+    base64 < "$file" > "$b64file"
     rm -f "$file"
     echo "   $file"
   fi
