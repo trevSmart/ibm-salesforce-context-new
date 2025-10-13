@@ -23,15 +23,7 @@ The following vulnerabilities are present in `@salesforce/cli` transitive depend
    - **CVSS Score**: 7.5 (High)
    - **Status**: Cannot be fixed - requires Salesforce CLI update; project uses safe v8.3.0 for direct dependencies
 
-3. **tar-fs** (GHSA-vj76-c3g6-qr5v)
-   - **Severity**: High
-   - **Type**: Symlink validation bypass vulnerability
-   - **Location**: `@salesforce/cli` bundled dependencies
-   - **Affected Versions**: 2.0.0 - 2.1.3 (fixed in 2.1.4)
-   - **CVSS Score**: 7.5 (High)
-   - **Status**: Cannot be fixed - requires Salesforce CLI update
-
-4. **fast-redact** (GHSA-ffrw-9mx8-89p8)
+3. **fast-redact** (GHSA-ffrw-9mx8-89p8)
    - **Severity**: Low
    - **Type**: Prototype pollution (CWE-1321)
    - **Location**: `@salesforce/cli` via `pino` logger
@@ -44,7 +36,7 @@ The following vulnerabilities are present in `@salesforce/cli` transitive depend
 - **Impact**: Low to Moderate
   - All vulnerabilities are in development/testing dependencies only (@salesforce/cli is devDependency)
   - The MCP server does not expose these libraries to external users
-  - High-severity vulnerabilities (path-to-regexp, tar-fs) require specific attack conditions unlikely in development context
+  - High-severity vulnerability (path-to-regexp) requires specific attack conditions unlikely in development context
   - Low-severity vulnerabilities (brace-expansion, fast-redact) have minimal practical impact
 - **Exposure**: None
   - These vulnerabilities exist in the Salesforce CLI tool used only for testing
@@ -74,7 +66,7 @@ The following vulnerabilities are present in `@salesforce/cli` transitive depend
 **Current mitigation status:**
 - ✅ brace-expansion: Partially mitigated via npm overrides (hoisted instances only)
 - ❌ path-to-regexp: Cannot override bundled v1.8.0 and v6.2.2 in @salesforce/cli
-- ❌ tar-fs: Cannot override bundled v2.1.3 in @salesforce/cli
+- ✅ tar-fs: Fixed in @salesforce/cli v2.110.11
 - ❌ fast-redact: No patched version available yet
 
 ### Reporting Security Issues
