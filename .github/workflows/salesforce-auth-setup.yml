@@ -75,8 +75,14 @@ jobs:
                       echo "SF_INSTANCE_URL=${SF_INSTANCE_URL}" >> "$GITHUB_ENV"
                       echo "SF_AUTH_SUCCESS=true" >> "$GITHUB_ENV"
                     else
-                      echo "❌ Failed to get access token. Response:"
-                      echo "$response"
+                      echo "❌ Failed to get access token"
+                      # Extract only error message if present, not full response which may contain sensitive data
+                      error_msg=$(echo "$response" | jq -r '.error_description' 2>/dev/null)
+                      if [ -n "$error_msg" ] && [ "$error_msg" != "null" ]; then
+                        echo "Error: $error_msg"
+                      else
+                        echo "Authentication failed. Check credentials."
+                      fi
                       echo "SF_AUTH_SUCCESS=false" >> "$GITHUB_ENV"
                     fi
                   fi
@@ -90,7 +96,8 @@ jobs:
                   echo "Verifying Salesforce org connection..."
                   if sf org display --json &>/dev/null; then
                     echo "✅ Successfully connected to a Salesforce org"
-                    sf org display
+                    # Get org details without exposing access token
+                    sf org display --json | jq -r 'del(.result.accessToken) | {username: .result.username, instanceUrl: .result.instanceUrl, alias: .result.alias}'
                   else
                     echo "❌ Failed to connect to Salesforce org"
                     exit 1
