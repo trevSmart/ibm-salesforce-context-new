@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {promisify} from 'node:util';
 import config from '../config.js';
-import {state} from '../mcp-server.js';
+import {state} from '../state.js';
 import {createModuleLogger} from './logger.js';
 import {applyFetchSslOptions} from './networkUtils.js';
 import {cleanupObsoleteTempFiles, ensureBaseTmpDir} from './tempManager.js';

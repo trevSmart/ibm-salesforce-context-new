@@ -3,6 +3,7 @@ import {InitializeRequestSchema} from '@modelcontextprotocol/sdk/types.js';
 
 import client from './client.js';
 import config from './config.js';
+import {state} from './state.js';
 import {createModuleLogger} from './lib/logger.js';
 import targetOrgWatcher from './lib/OrgWatcher.js';
 import {executeSoqlQuery, getOrgAndUserDetails} from './lib/salesforceServices.js';
@@ -12,16 +13,8 @@ import {InitializationPhases} from './lib/initialization.js';
 import {HandlerRegistry} from './lib/handlerRegistry.js';
 import {textFileContent, verifyServerAccess} from './utils.js';
 
-// Define state object here instead of importing it
-export const state = {
-	org: {},
-	releaseName: null,
-	startedDate: new Date(),
-	userPermissionsValidated: false,
-	handshakeValidated: false,
-	currentLogLevel: process.env.LOG_LEVEL || 'info',
-	workspacePath: process.cwd()
-};
+// Re-export state for backward compatibility
+export {state};
 
 const ORG_COMPANY_DETAILS_QUERY = 'SELECT Name, OrganizationType, PrimaryContact, Phone, Street, City, PostalCode, Country, Division, InstanceName, IsSandbox, CreatedDate FROM Organization LIMIT 1';
 

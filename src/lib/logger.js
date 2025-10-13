@@ -2,7 +2,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import client from '../client.js';
 import config from '../config.js';
-import {state} from '../mcp-server.js';
+import {state} from '../state.js';
 
 // Internal: builds log prefix with emoji and optional config prefix
 function getLogPrefix(logLevel) {

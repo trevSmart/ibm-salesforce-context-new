@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {chromium} from 'playwright';
-import {state} from '../mcp-server.js';
+import {state} from '../state.js';
 import {createModuleLogger} from './logger.js';
 
 const logger = createModuleLogger(import.meta.url);

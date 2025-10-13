@@ -4,7 +4,8 @@ import config from '../config.js';
 import {createModuleLogger} from '../lib/logger.js';
 import {applyFetchSslOptions} from '../lib/networkUtils.js';
 import {executeAnonymousApex, getOrgAndUserDetails} from '../lib/salesforceServices.js';
-import {clearResources, newResource, resources, sendProgressNotification, state} from '../mcp-server.js';
+import {clearResources, newResource, resources, sendProgressNotification} from '../mcp-server.js';
+import {state} from '../state.js';
 import {formatDate, textFileContent, addResourceToContent} from '../utils.js';
 
 const logger = createModuleLogger(import.meta.url);
