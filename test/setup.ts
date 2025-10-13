@@ -13,9 +13,10 @@ if (!process.env.PASSWORD) {
 
 // Import sanitization utility
 // Use import.meta.url to resolve paths relative to this module's location, not cwd
-// When this file is at ../test/setup.ts and cwd is dist/, we need to import from cwd, not from this file's location
+// When this file is at test/setup.ts and cwd is root, import from ../src/utils.js
+// When this file is at test/setup.ts (loaded from ../test/ when cwd is dist/), import from ../dist/src/utils.js
 const isRunningFromDist = process.cwd().endsWith('/dist') || process.cwd().endsWith('\\dist')
-const utilsPath = new URL(isRunningFromDist ? '../src/utils.js' : '../src/utils.js', import.meta.url).href
+const utilsPath = new URL(isRunningFromDist ? '../dist/src/utils.js' : '../src/utils.js', import.meta.url).href
 const { sanitizeSensitiveData } = await import(utilsPath)
 
 // Determine which server to use based on current working directory
