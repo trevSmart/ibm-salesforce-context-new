@@ -1,5 +1,5 @@
-import {describe, it, expect} from 'vitest';
-import {sanitizeSensitiveData} from '../../src/utils.js';
+import { describe, it, expect } from 'vitest';
+import { sanitizeSensitiveData } from '../../src/utils.js';
 
 describe('sanitizeSensitiveData', () => {
 	it('should redact accessToken field', () => {
