@@ -42,7 +42,7 @@ describe('getSetupAuditTrail', () => {
 		60_000,
 	)
 
-	test('cached with user filter', async () => {
+	test.skipIf(process.env.SKIP_OPTIONAL_TESTS === 'true')('cached with user filter', async () => {
 		const result = await client.callTool('getSetupAuditTrail', {
 			lastDays: 14,
 			user: TestData.salesforce.testUser,

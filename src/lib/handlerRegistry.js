@@ -147,7 +147,7 @@ export class HandlerRegistry {
 					if (!(config.bypassUserPermissionsValidation || this.state.userPermissionsValidated)) {
 						throw new Error(`🚫 Request blocked due to unsuccessful user validation for "${this.state.org.username}".`);
 					}
-					if (!this.state.org.user.id) {
+					if (!this.state.org.user?.id) {
 						throw new Error('❌ Org and user details not available. The server may still be initializing.');
 					}
 				}
