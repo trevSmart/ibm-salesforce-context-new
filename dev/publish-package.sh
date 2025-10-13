@@ -285,6 +285,14 @@ grep -RhoE "export[[:space:]]*\{[^}]+\}" dist 2>/dev/null \
   | sed -E 's/^\s+|\s+$//g' \
   | grep -E '^[A-Za-z_][A-Za-z0-9_]*$' >> "$reserved_tmp" || true
 
+# Add MCP protocol property names that must not be obfuscated
+# These are used in tool responses and must maintain their names for the MCP protocol
+echo "structuredContent" >> "$reserved_tmp"
+echo "isError" >> "$reserved_tmp"
+echo "content" >> "$reserved_tmp"
+echo "type" >> "$reserved_tmp"
+echo "text" >> "$reserved_tmp"
+
 # Build pattern for --reserved-names (comma-separated)
 OBF_RESERVED=$(sort -u "$reserved_tmp" | awk 'BEGIN{ORS=","} {printf "^%s$", $0} END{print ""}' | sed 's/,$//')
 rm -f "$reserved_tmp"
