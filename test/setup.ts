@@ -12,13 +12,17 @@ if (!process.env.PASSWORD) {
 }
 
 // Import sanitization utility
-const utilsPath = process.cwd().endsWith('/dist') || process.cwd().endsWith('\\dist') ? './src/utils.js' : '../src/utils.js'
+// Use import.meta.url to resolve paths relative to this module's location, not cwd
+// When this file is at test/setup.ts and cwd is root, import from ../src/utils.js
+// When this file is at test/setup.ts (loaded from ../test/ when cwd is dist/), import from ../dist/src/utils.js
+const isRunningFromDist = process.cwd().endsWith('/dist') || process.cwd().endsWith('\\dist')
+const utilsPath = new URL(isRunningFromDist ? '../dist/src/utils.js' : '../src/utils.js', import.meta.url).href
 const { sanitizeSensitiveData } = await import(utilsPath)
 
-// Determine which server to use based on current working directory and environment
-const isRunningFromDist = process.cwd().endsWith('/dist') || process.cwd().endsWith('\\dist')
-const serverPath = isRunningFromDist ? './src/mcp-server.js' : '../src/mcp-server.js'
-const transportPath = isRunningFromDist ? './src/lib/transport.js' : '../src/lib/transport.js'
+// Determine which server to use based on current working directory
+// When running from dist/, import from parent's dist/src/, not from parent's src/
+const serverPath = new URL(isRunningFromDist ? '../dist/src/mcp-server.js' : '../src/mcp-server.js', import.meta.url).href
+const transportPath = new URL(isRunningFromDist ? '../dist/src/lib/transport.js' : '../src/lib/transport.js', import.meta.url).href
 
 // Dynamic imports based on whether we're running from dist or src
 const serverModule = await import(serverPath)
@@ -63,7 +67,7 @@ beforeAll(async () => {
 // Global cleanup handler
 const cleanupServer = async () => {
 	try {
-		const mcpServerModule = await import('../src/mcp-server.js')
+		const mcpServerModule = await import(serverPath)
 		if (mcpServerModule.setServerShuttingDown) {
 			mcpServerModule.setServerShuttingDown(true)
 		}
