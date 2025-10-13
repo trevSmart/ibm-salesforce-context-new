@@ -26,14 +26,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Check if Pages is enabled
+        id: check-pages
+        run: |
+          response=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/pages" || echo "not_found")
+          if [[ "$response" == *"not_found"* ]] || [[ "$response" == *"404"* ]]; then
+            echo "pages_enabled=false" >> $GITHUB_OUTPUT
+            echo "Pages is not enabled for this repository. Skipping deployment."
+          else
+            echo "pages_enabled=true" >> $GITHUB_OUTPUT
+            echo "Pages is enabled. Proceeding with deployment."
+          fi
+
       - name: Setup Pages
+        if: steps.check-pages.outputs.pages_enabled == 'true'
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
+        if: steps.check-pages.outputs.pages_enabled == 'true'
         uses: actions/upload-pages-artifact@v4
         with:
           path: './docs'
 
       - name: Deploy to GitHub Pages
+        if: steps.check-pages.outputs.pages_enabled == 'true'
         id: deployment
         uses: actions/deploy-pages@v4
