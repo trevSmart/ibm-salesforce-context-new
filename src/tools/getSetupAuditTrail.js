@@ -4,7 +4,8 @@ import {z} from 'zod';
 import {retrieveSetupAuditTrailFile} from '../lib/auditTrailDownloader.js';
 import {createModuleLogger} from '../lib/logger.js';
 import {executeSoqlQuery} from '../lib/salesforceServices.js';
-import {newResource, state, sendProgressNotification} from '../mcp-server.js';
+import {newResource, sendProgressNotification} from '../mcp-server.js';
+import {state} from '../state.js';
 import {textFileContent, addResourceToContent} from '../utils.js';
 
 const logger = createModuleLogger(import.meta.url);

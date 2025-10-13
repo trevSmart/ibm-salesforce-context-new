@@ -5,7 +5,7 @@ import config from './config.js';
 import {createModuleLogger} from './lib/logger.js';
 import {applyFetchSslOptions} from './lib/networkUtils.js';
 import {cleanupObsoleteTempFiles, ensureBaseTmpDir} from './lib/tempManager.js';
-import {state} from './mcp-server.js';
+import {state} from './state.js';
 import client from './client.js';
 
 const logger = createModuleLogger(import.meta.url);

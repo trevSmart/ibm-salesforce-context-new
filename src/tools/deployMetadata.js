@@ -2,7 +2,8 @@ import {z} from 'zod';
 import client from '../client.js';
 import {createModuleLogger} from '../lib/logger.js';
 import {deployMetadata} from '../lib/salesforceServices.js';
-import {mcpServer, state} from '../mcp-server.js';
+import {mcpServer} from '../mcp-server.js';
+import {state} from '../state.js';
 import {getFileNameFromPath, textFileContent} from '../utils.js';
 
 export const deployMetadataToolDefinition = {

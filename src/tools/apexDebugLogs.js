@@ -3,7 +3,8 @@ import {z} from 'zod';
 import client from '../client.js';
 import {createModuleLogger} from '../lib/logger.js';
 import {dmlOperation, executeSoqlQuery, runCliCommand} from '../lib/salesforceServices.js';
-import {mcpServer, newResource, state, sendProgressNotification} from '../mcp-server.js';
+import {mcpServer, newResource, sendProgressNotification} from '../mcp-server.js';
+import {state} from '../state.js';
 import {formatDate, textFileContent, addResourceToContent} from '../utils.js'; // ensureTmpDir, writeToTmpFile
 
 // import path from 'path';

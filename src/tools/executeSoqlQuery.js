@@ -1,6 +1,6 @@
 import {createModuleLogger} from '../lib/logger.js';
 import {executeSoqlQuery} from '../lib/salesforceServices.js';
-import {state} from '../mcp-server.js';
+import {state} from '../state.js';
 import {textFileContent} from '../utils.js';
 
 const logger = createModuleLogger(import.meta.url);

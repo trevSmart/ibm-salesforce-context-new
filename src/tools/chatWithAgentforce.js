@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import {z} from 'zod';
 import {createModuleLogger} from '../lib/logger.js';
 import {callSalesforceApi} from '../lib/salesforceServices.js';
-import {state} from '../mcp-server.js';
+import {state} from '../state.js';
 import {textFileContent} from '../utils.js';
 
 let currentSessionId = null;
