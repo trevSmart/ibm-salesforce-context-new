@@ -509,8 +509,8 @@ export function sanitizeSensitiveData(obj, fieldsToRedact = DEFAULT_SENSITIVE_FI
 		return obj;
 	}
 
-	// Create a shallow copy to avoid modifying the original
-	const sanitized = Array.isArray(obj) ? [...obj] : {...obj};
+	// Create a deep copy to avoid modifying the original
+	const sanitized = structuredClone(obj);
 
 	for (const key of Object.keys(sanitized)) {
 		if (fieldsToRedact.includes(key)) {
