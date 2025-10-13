@@ -309,6 +309,15 @@ else
     fi
 
     # Continue: also obfuscate ESM but preserve exported names and disable self-defending
+    # Advanced obfuscation options enabled for maximum code protection:
+    # - Control flow flattening (0.75): Makes code structure harder to follow
+    # - Dead code injection (0.4): Adds misleading code paths
+    # - String array encoding (base64): Encodes string literals
+    # - String transformations: Rotate, shuffle, and wrap string array references
+    # - Split strings: Breaks strings into chunks
+    # - Simplify & numbers-to-expressions: Transforms simple expressions
+    # - Transform object keys: Obfuscates object property access
+    # - Hexadecimal identifier names: Uses hex-based variable names
 
     OBF_LOG=$(mktemp)
     obf_tmp="${file%.js}.obf.tmp.js"   # IMPORTANT: must end in .js to avoid ghost directories
@@ -320,9 +329,29 @@ else
       --debug-protection false \
       --unicode-escape-sequence true \
       --rename-globals false \
-      --string-array true \
       --self-defending false \
+      --control-flow-flattening true \
+      --control-flow-flattening-threshold 0.75 \
+      --dead-code-injection true \
+      --dead-code-injection-threshold 0.4 \
+      # The following string array options have been grouped together for clarity.
+      # Note: --string-array true was moved here from its previous position to improve logical grouping.
+      --string-array true \
       --string-array-threshold 0.75 \
+      --string-array-encoding base64 \
+      --string-array-calls-transform true \
+      --string-array-calls-transform-threshold 0.5 \
+      --string-array-rotate true \
+      --string-array-shuffle true \
+      --string-array-wrappers-count 1 \
+      --string-array-wrappers-chained-calls true \
+      --string-array-wrappers-parameters-max-count 2 \
+      --split-strings true \
+      --split-strings-chunk-length 10 \
+      --simplify true \
+      --numbers-to-expressions true \
+      --transform-object-keys true \
+      --identifier-names-generator hexadecimal \
       ${OBF_RESERVED:+--reserved-names "$OBF_RESERVED"} \
       >"$OBF_LOG" 2>&1 || {
         echo "❌ Error obfuscating $file"
