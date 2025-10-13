@@ -3,10 +3,6 @@ import * as path from 'node:path'
 import { afterAll, beforeAll, expect } from 'vitest'
 import { config } from 'dotenv'
 
-// Increase max listeners to prevent warnings in test environment
-// Tests may cause multiple listener registrations due to module imports and retries
-process.setMaxListeners(30)
-
 // Load environment variables from .env file before running tests
 config()
 
@@ -45,6 +41,10 @@ beforeAll(async () => {
 	} catch (err) {
 		console.error('Could not clean .test-artifacts:', err)
 	}
+
+	// Register signal handlers for test environment
+	const { registerSignalHandlers } = await import(serverPath)
+	registerSignalHandlers()
 
 	const result = await setupServer('http')
 	await readyPromise
