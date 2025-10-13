@@ -503,7 +503,8 @@ export function addResourceToContent(content, resource) {
  * @param {string[]} fieldsToRedact - Array of field names to redact (default: common sensitive fields)
  * @returns {Object} Sanitized copy of the object
  */
-export function sanitizeSensitiveData(obj, fieldsToRedact = ['accessToken', 'access_token', 'password', 'client_secret', 'clientSecret']) {
+const DEFAULT_SENSITIVE_FIELDS = ['accessToken', 'access_token', 'password', 'client_secret', 'clientSecret'];
+export function sanitizeSensitiveData(obj, fieldsToRedact = DEFAULT_SENSITIVE_FIELDS) {
 	if (!obj || typeof obj !== 'object') {
 		return obj;
 	}
