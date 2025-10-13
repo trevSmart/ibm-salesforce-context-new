@@ -334,6 +334,8 @@ else
       --control-flow-flattening-threshold 0.75 \
       --dead-code-injection true \
       --dead-code-injection-threshold 0.4 \
+      # The following string array options have been grouped together for clarity.
+      # Note: --string-array true was moved here from its previous position to improve logical grouping.
       --string-array true \
       --string-array-threshold 0.75 \
       --string-array-encoding base64 \
