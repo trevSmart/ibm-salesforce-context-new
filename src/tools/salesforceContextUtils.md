@@ -1,7 +1,7 @@
 # IBM Salesforce Context server utilities Tool
 
 Allows you to execute utility actions like:
-  - getOrgAndUserDetails: Obtains the details of the Salesforce organization and the current user (Id, name, URL, profile, etc.).
+  - getOrgAndUserDetails: Obtains the details of the Salesforce organization and the current user (Id, alias, release version, URL, profile, etc.).
   - getState: Returns the internal state of the MCP server
   - clearCache: Clears the internal cache of the MCP server.
   - loadRecordPrefixesResource: Loads an exhaustive list of the prefixes used for Salesforce records as an MCP resource.
@@ -16,7 +16,7 @@ Allows you to execute utility actions like:
 
 - Use only the following allowed action values:
   - **"getOrgAndUserDetails"**:
-    - Obtains the details of the current target Salesforce organization (alias, instance URL, etc.) and the current user (Name, User Id, username, etc...).
+    - Obtains the details of the current target Salesforce organization (alias, instance URL, release version, etc.) and the current user (Name, User Id, username, profile name, user role name, etc...).
   - **"getState"**:
     - Returns the current internal state of the MCP server (log level, workspace path, connected MCP client information, etc.).
   - **"clearCache"**:

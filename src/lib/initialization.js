@@ -237,6 +237,10 @@ export class InitializationPhases {
 
 				// Fetch org release information
 				await this.fetchOrgReleaseInfo(applyFetchSslOptions);
+
+				// Refresh exposed MCP resource with latest org details (including release info)
+				// Uses existing update function which sanitizes and republishes the resource
+				await updateOrgAndUserDetails();
 			} catch (error) {
 				logger.warn(error, 'Post-initialization logic failed, but server will continue running');
 			}
