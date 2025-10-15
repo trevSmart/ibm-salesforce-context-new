@@ -12,8 +12,5 @@ assignees: ''
 ### 🎯 Expected Behavior
 
 
-### 🔍 Actual Behavior
-
-
 **Issue created by**: @${{ github.actor }}
 **Created on**: ${{ github.event.created_at }}
