@@ -1,0 +1,64 @@
+name: "Copilot Setup Steps"
+
+on:
+    workflow_dispatch:
+    push:
+        paths: [.github/workflows/copilot-setup-steps.yml]
+    pull_request:
+        paths: [.github/workflows/copilot-setup-steps.yml]
+
+jobs:
+    salesforce-auth:
+        permissions: {}
+        uses: ./.github/workflows/salesforce-auth-setup.yml
+        with:
+            log_level: "debug"
+        secrets: inherit
+
+    copilot-setup-steps:
+        runs-on: ubuntu-latest
+        environment: copilot
+        needs: salesforce-auth
+        permissions:
+            contents: read
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v5
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: "22"
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Install Salesforce CLI
+              run: npm install -g @salesforce/cli
+
+            - name: Create Salesforce project
+              run: |
+                  echo "Creating Salesforce project..."
+                  if sf project generate --name SalesforceTestProject --output-dir . &>/dev/null; then
+                    echo "✅ Successfully created Salesforce project"
+                  else
+                    echo "❌ Failed to create Salesforce project"
+                    exit 1
+                  fi
+
+                  echo "Setting up project structure..."
+                  ls -la
+
+                  # Move force-app directory to current location
+                  mv SalesforceTestProject/force-app .
+
+                  # Copy sfdx-project.json to current location
+                  cp SalesforceTestProject/sfdx-project.json .
+
+                  # Clean up the generated project directory
+                  rm -rf SalesforceTestProject
+
+                  echo "Project setup completed:"
+                  ls -la

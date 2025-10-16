@@ -1,0 +1,81 @@
+# Dependabot configuration for MCP Salesforce project
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-dependency-updates
+
+version: 2
+updates:
+  # Enable version updates for npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "Europe/Madrid"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "trevSmart"
+    assignees:
+      - "trevSmart"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "npm"
+    ignore:
+      # Ignore major version updates for critical dependencies
+      - dependency-name: "@modelcontextprotocol/sdk"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "zod"
+        update-types: ["version-update:semver-major"]
+      # Note: Nested vulnerabilities in @salesforce/cli (brace-expansion, path-to-regexp)
+      # cannot be fixed via dependabot updates due to deep nesting constraints
+      # See SECURITY.md for detailed analysis and mitigation strategies
+    # Group minor and patch updates together
+    groups:
+      mcp-dependencies:
+        patterns:
+          - "@modelcontextprotocol/*"
+        update-types:
+          - "minor"
+          - "patch"
+      dev-dependencies:
+        patterns:
+          # - "biome*"
+          - "@babel/*"
+          - "javascript-obfuscator"
+        update-types:
+          - "minor"
+          - "patch"
+      utility-dependencies:
+        patterns:
+          - "semver"
+          - "globals"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "Europe/Madrid"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "trevSmart"
+    assignees:
+      - "trevSmart"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"

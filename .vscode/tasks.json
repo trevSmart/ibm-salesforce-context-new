@@ -1,0 +1,168 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Biome lint",
+			"detail": "Check and fix all files with Biome",
+			"type": "process",
+			"command": "biome",
+			"args": ["check", "--write"],
+			"presentation": {
+				"showReuseMessage": false,
+				"panel": "shared",
+				"revealProblems": "onProblem",
+				"clear": true,
+				"focus": false
+			},
+			"problemMatcher": {
+				"owner": "biome",
+				"source": "biome",
+				"pattern": [
+					{
+						"regexp": "^::(?<severity>\\S+)\\s+title=(?<title>.+),file=(?<file>.+),line=(?<line>\\d+),endLine=(?<endLine>\\d+),col=(?<col>\\d+),endColumn=(?<endColumn>\\d+)::(?<message>.+)$",
+						"kind": "location",
+						"severity": 1,
+						"code": 2,
+						"file": 3,
+						"line": 4,
+						"endLine": 5,
+						"column": 6,
+						"endColumn": 7,
+						"message": 8
+					}
+				]
+			}
+		},
+		{
+			"type": "npm",
+			"script": "test:mcpInspector",
+			"group": {
+				"kind": "test"
+			},
+			"problemMatcher": [],
+			"label": "Run MCP Inspector",
+			"detail": "Open MCP Inspector in Safari",
+			"presentation": {
+				"showReuseMessage": false,
+				"reveal": "silent",
+				"close": true,
+				"panel": "new",
+				"focus": true
+			}
+		},
+		{
+			"label": "Vitest: Run all tests",
+			"type": "shell",
+			"command": ["${command:testing.runAll}"],
+			"group": {
+				"kind": "test"
+			},
+			"problemMatcher": [],
+			"presentation": {
+				"showReuseMessage": false,
+				"reveal": "silent",
+				"close": false,
+				"panel": "shared",
+				"focus": true,
+				"clear": true
+			}
+		},
+		{
+			"label": "Vitest: Coverage",
+			"type": "npm",
+			"script": "test:cov",
+			"group": {
+				"kind": "test"
+			}
+		},
+		{
+			"label": "Vitest: Watch",
+			"type": "npm",
+			"script": "test:watch",
+			"group": {
+				"kind": "test"
+			}
+		},
+		{
+			"label": "Start (HTTP)",
+			"type": "npm",
+			"script": "start",
+			"group": {
+				"kind": "build"
+			},
+			"problemMatcher": [],
+			"presentation": {
+				"showReuseMessage": false,
+				"reveal": "silent",
+				"close": true,
+				"panel": "shared",
+				"focus": true,
+				"clear": true
+			}
+		},
+		{
+			"type": "npm",
+			"script": "publish-package",
+			"group": {
+				"kind": "build"
+			},
+			"problemMatcher": [],
+			"label": "Publish server package",
+			"detail": "Publish server package to npm",
+			"presentation": {
+				"showReuseMessage": false,
+				"close": false,
+				"panel": "new",
+				"focus": true
+			}
+		},
+		{
+			"type": "npm",
+			"script": "publish-package-skip-tests",
+			"group": {
+				"kind": "build"
+			},
+			"problemMatcher": [],
+			"label": "Publish server package (skip tests)",
+			"detail": "Publish server package to npm (skip tests)",
+			"presentation": {
+				"showReuseMessage": false,
+				"close": false,
+				"panel": "new",
+				"focus": true
+			}
+		},
+		{
+			"type": "npm",
+			"script": "publish-package-skip-obfuscation",
+			"group": {
+				"kind": "build"
+			},
+			"problemMatcher": [],
+			"label": "Publish server package (skip obfuscation)",
+			"detail": "Publish server package to npm (skip obfuscation)",
+			"presentation": {
+				"showReuseMessage": false,
+				"close": false,
+				"panel": "new",
+				"focus": true
+			}
+		},
+		{
+			"type": "npm",
+			"script": "publish-package-skip-tests-and-obfuscation",
+			"group": {
+				"kind": "build"
+			},
+			"problemMatcher": [],
+			"label": "Publish server package (skip tests and obfuscation)",
+			"detail": "Publish server package to npm (skip tests and obfuscation)",
+			"presentation": {
+				"showReuseMessage": false,
+				"close": false,
+				"panel": "new",
+				"focus": true
+			}
+		}
+	]
+}

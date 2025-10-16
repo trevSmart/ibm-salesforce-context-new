@@ -1,0 +1,41 @@
+# GitHub Pages Configuration
+# This file configures the GitHub Pages site
+
+  # Site settings
+  title: IBM Salesforce Context
+description: An MCP server by IBM that provides Salesforce org context to your IDE AI agent
+url: "https://trevsmart.github.io"
+baseurl: "/ibm-salesforce-context"
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+permalink: pretty
+
+# Plugins
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# Collections
+collections:
+  docs:
+    output: true
+    permalink: /:collection/:name
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "docs"
+    values:
+      layout: "default"
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - .git
+  - .github

@@ -1,0 +1,63 @@
+# Ensure dist/ is included in the npm package by overriding .gitignore
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Temp/Runtime
+tmp/
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# IDE/Editor
+.vscode/
+.idea/
+.cursor/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.old*
+.nvmrc
+.biome*
+
+# Project-specific
+dev/
+test/
+venv/
+docs/
+notebooks/
+*.bak
+*.tmp
+*.temp
+rules/
+.fiveserverrc
+@/
+biome.json
+.github/
+.cursorignore
+.env
+/dist
+
+# Git and NPM configuration files that shouldn't be in the published package.
+.npm-cache/
+.npm-tmp/
+
+# Intentionally NOT ignoring dist/ so it is published
+# Intentionally NOT ignoring src/ for now because the current entrypoint imports from ./src
+
+force-app/
+sfdx-project.json
+.sfdx/
+.sf/

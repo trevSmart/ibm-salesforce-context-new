@@ -1,0 +1,138 @@
+import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+
+describe('dmlOperation and getRecord', () => {
+	let client
+	let createdAccountId
+
+	beforeAll(async () => {
+		// Create and connect to the MCP server
+		client = await createMcpClient()
+	})
+
+	afterAll(async () => {
+		await disconnectMcpClient(client)
+	})
+
+	test('create Account', async () => {
+		// Verify that the client is defined
+		expect(client).toBeTruthy()
+
+		const result = await client.callTool('dmlOperation', {
+			operations: {
+				create: [
+					{
+						sObjectName: 'Account',
+						fields: {
+							// biome-ignore lint/style/useNamingConvention: Salesforce field names must be PascalCase
+							Name: 'Test MCP Tool Account',
+							// biome-ignore lint/style/useNamingConvention: Salesforce field names must be PascalCase
+							Description: 'Account created by MCP tool test',
+						},
+					},
+				],
+			},
+		})
+
+		expect(result?.structuredContent?.outcome).toBeTruthyAndDump(result)
+		expect(result.structuredContent.successes).toBeTruthy()
+		expect(result.structuredContent.successes.length).toBeGreaterThan(0)
+
+		// Store the created account ID for subsequent tests
+		createdAccountId = result.structuredContent.successes[0].id
+		expect(createdAccountId).toBeTruthy()
+	})
+
+	test('update Account', async () => {
+		const result = await client.callTool('dmlOperation', {
+			operations: {
+				update: [
+					{
+						sObjectName: 'Account',
+						recordId: createdAccountId,
+						fields: {
+							// biome-ignore lint/style/useNamingConvention: Salesforce field names must be PascalCase
+							Description: `Updated by MCP Tool test at ${new Date().toISOString()}`,
+						},
+					},
+				],
+			},
+		})
+
+		expect(result).toBeTruthy()
+		expect(result?.structuredContent?.outcome).toBeTruthyAndDump(result?.structuredContent)
+	})
+
+	test('getRecord - retrieve created Account', async () => {
+		const result = await client.callTool('getRecord', {
+			sObjectName: 'Account',
+			recordId: createdAccountId,
+		})
+
+		expect(result?.structuredContent).toBeTruthyAndDump(result)
+		expect(result.structuredContent.sObject).toBe('Account')
+		expect(result.structuredContent.fields).toBeTruthy()
+		expect(result.structuredContent.fields.Name).toBe('Test MCP Tool Account')
+		expect(result.structuredContent.fields.Description).toContain('Updated by MCP Tool test')
+	})
+
+	test('getRecord - with non-existent SObject should return error', async () => {
+		const result = await client.callTool('getRecord', {
+			sObjectName: 'NonExistentObject__c',
+			recordId: '001000000000000AAA',
+		})
+
+		// Verify that the result indicates an error
+		expect(result.isError).toBe(true)
+		expect(result.content).toBeTruthy()
+		expect(result.content[0].type).toBe('text')
+		expect(result.content[0].text).toContain('error')
+	})
+
+	test('delete Account - WARNING: This performs a REAL DELETE operation', async () => {
+		// CRITICAL VALIDATIONS BEFORE DELETE:
+		// 1. Ensure we have a valid account ID from previous tests
+		expect(createdAccountId).toBeTruthy()
+		expect(typeof createdAccountId).toBe('string')
+		expect(createdAccountId.length).toBeGreaterThan(0)
+		expect(createdAccountId).toMatch(/^001[a-zA-Z0-9]{15}$/) // Salesforce Account ID format
+
+		// 2. Verify the account still exists before deletion
+		const preDeleteCheck = await client.callTool('getRecord', {
+			sObjectName: 'Account',
+			recordId: createdAccountId,
+		})
+		expect(preDeleteCheck?.structuredContent).toBeTruthy()
+		expect(preDeleteCheck.structuredContent.sObject).toBe('Account')
+		expect(preDeleteCheck.structuredContent.fields.Name).toBe('Test MCP Tool Account')
+
+		// 3. Perform the DELETE operation
+		const result = await client.callTool('dmlOperation', {
+			operations: {
+				delete: [
+					{
+						sObjectName: 'Account',
+						recordId: createdAccountId,
+					},
+				],
+			},
+		})
+
+		// 4. Validate DELETE operation success
+		expect(result?.structuredContent?.outcome).toBeTruthyAndDump(result)
+		expect(result.structuredContent.outcome).toBe('success')
+		expect(result.structuredContent.statistics.succeeded).toBe(1)
+		expect(result.structuredContent.statistics.failed).toBe(0)
+
+		// 5. Verify the account no longer exists (should return error)
+		const postDeleteCheck = await client.callTool('getRecord', {
+			sObjectName: 'Account',
+			recordId: createdAccountId,
+		})
+		expect(postDeleteCheck.isError).toBe(true)
+		expect(postDeleteCheck.content).toBeTruthy()
+		expect(postDeleteCheck.content[0].text).toContain('error')
+
+		// 6. Clear the ID to prevent accidental reuse
+		createdAccountId = null
+	})
+})

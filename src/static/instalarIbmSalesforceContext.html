@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Deep Links MCP - IBM Salesforce Context</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/3991db92c8.js" crossorigin="anonymous"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: black;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 40px 80px;
+            overflow-y: scroll;
+        }
+
+        .container {
+            background: linear-gradient(180deg, #f8fafc 0%, #d1d9e6 100%);
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px 50px 20px;
+            max-width: 740px;
+            width: 100%;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            visibility: hidden;
+        }
+
+        .container.loaded {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 26px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 22px;
+            margin-bottom: 0;
+            font-weight: 300;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 3px;
+            margin-left: 2px;
+            color: #2c3e50;
+            font-weight: 200;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px 16px;
+            /* border: 1px solid #e1e8ed; */
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 300;
+            transition: border-color 0.3s ease-in-out;
+            height: 34px;
+            box-sizing: border-box;
+        }
+
+        .form-group input::placeholder {
+            color: #adb5bd;
+        }
+
+        .workspace-input {
+            width: 100%;
+            padding: 8px 16px;
+            border: 1px solid #d7d7d7;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 200;
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.12s ease-in-out, box-shadow 0.12s ease-in-out;
+            height: 34px;
+            box-sizing: border-box;
+            flex: 1;
+            letter-spacing: 0.6px;
+        }
+
+        .workspace-input:focus {
+            outline: none;
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 1px #0d6efd40;
+        }
+
+        .generate-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, background-color 0.45s ease-in-out;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .generate-button:hover:not(:has(.custom-spinner)):not(:has(.fa-check)) {
+            background: #0056b3 !important;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            margin-top: 8px;
+            margin-left: 0;
+            padding-left: 0;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            margin-left: 0;
+            padding-left: 0;
+        }
+
+        .radio-item input[type="radio"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .radio-item label {
+            margin-bottom: 0;
+            font-weight: normal;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .config-preview {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out, margin-top 0.5s ease-in-out, margin-bottom 0.5s ease-in-out, opacity 0.5s ease-in-out;
+        }
+
+        .config-preview.show {
+            max-height: 800px;
+            padding: 20px;
+            margin-top: 40px;
+            margin-bottom: 25px;
+            opacity: 1;
+        }
+
+        .config-preview h3 {
+            color: #2c3e50;
+            margin-bottom: 2px;
+            font-size: 12px;
+            font-weight: 200;
+            margin-left: 2px;
+        }
+
+        .config-json {
+            background: #f0f1f2;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 12px 50px 20px 12px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 10.5px;
+            color: #6c757d;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            margin-bottom: 0;
+            position: relative;
+            min-height: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .config-json::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tooltip-icon {
+            position: relative;
+            top: -7px;
+            font-size: 12px;
+            color: #a8a8a8;
+            padding-right: 7px;
+        }
+
+        .tooltip-popover {
+            position: absolute;
+            background: #2c3e50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            font-weight: 400;
+            white-space: normal;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(5px);
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out, transform 0.2s ease-in-out;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(calc(-50% - 3px)) translateY(2px);
+            margin-bottom: 8px;
+            text-align: center;
+            line-height: 1.5;
+            width: 300px;
+        }
+
+        .tooltip-popover::before {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid #2c3e50;
+        }
+
+        .tooltip-icon:hover {
+            color: #9f9f9f;
+        }
+
+        .tooltip-icon:hover .tooltip-popover {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(calc(-50% - 3px)) translateY(-2px);
+        }
+
+        .copy-button {
+            background: #ced4da;
+            color: white;
+            border: none;
+            padding: 6px;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, background-color 0.45s ease-in-out;
+            position: absolute;
+            top: 28px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .copy-button:hover {
+            background: #007bff !important;
+        }
+
+        .copy-button[style*="background-color: #28a745"] {
+            background-color: #28a745 !important;
+        }
+
+        .copy-button-popover {
+            position: fixed;
+            background: #2c3e50;
+            color: white;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12.4px;
+            font-weight: 200;
+            white-space: nowrap;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(calc(-50% - 14px));
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out, transform 0.2s ease-in-out;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .copy-button-popover::before {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid #2c3e50;
+        }
+
+        .config-section.expanded .copy-button:hover .copy-button-popover {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(calc(-50% - 22px));
+            transition-delay: 0s;
+        }
+
+        .copy-button .copy-button-popover {
+            transition-delay: 200ms;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 38px;
+            height: 20px;
+            margin-top: -2px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #e67e8a;
+            transition: 0.15s ease-in-out;
+            border-radius: 20px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.15s ease-in-out;
+            border-radius: 50%;
+        }
+
+        input:checked+.toggle-slider {
+            background-color: #007bff;
+        }
+
+        input:checked+.toggle-slider:before {
+            transform: translateX(18px);
+        }
+
+        .custom-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 0.5s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+
+        .button-preview {
+            background: inherit;
+            border: 1px solid #d7d7d7;
+            border-radius: 9px;
+            padding: 0;
+            margin-top: 0;
+            text-align: left;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94), padding 0.25s ease-in-out, margin-top 0.25s ease-in-out, opacity 0.25s ease-in-out, border 0.25s ease-in-out;
+        }
+
+        .button-preview.show {
+            max-height: 500px;
+            padding: 23px 20px 30px 20px;
+            margin-top: 28px;
+            opacity: 1;
+        }
+
+        .button-preview h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .button-preview .button-container {
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid #d0d0d0;
+            color: #6c757d;
+            font-size: 12px;
+            font-weight: 100;
+            letter-spacing: 0.6px;
+            cursor: default;
+        }
+
+        .config-toggle {
+            background: none;
+            border: none;
+            color: #6c757d;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 0;
+            margin-right: 6px;
+            transition: color 0.2s ease-in-out;
+        }
+
+        .config-toggle:hover {
+            color: #2c3e50;
+        }
+
+        .config-section h3:hover {
+            color: #2c3e50;
+        }
+
+        .config-section h3:hover .config-toggle {
+            color: #2c3e50;
+        }
+
+        .config-section h3 span:hover {
+            color: #2c3e50;
+        }
+
+        .config-section {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+        }
+
+        .config-section.collapsed {
+            max-height: 0;
+        }
+
+        .config-section.expanded {
+            max-height: 400px;
+        }
+
+        .config-section.collapsed .config-json {
+            opacity: 0;
+            max-height: 0;
+        }
+
+        .config-section.collapsed .copy-button {
+            display: none;
+        }
+
+        .config-section {
+            position: relative;
+        }
+
+        .config-json {
+            transition: opacity 0.3s ease-in-out, max-height 0.3s ease-in-out, padding 0.3s ease-in-out, margin 0.3s ease-in-out;
+        }
+
+        .loading-spinner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            border: 4px solid transparent;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            z-index: 9999;
+        }
+
+        .loading-spinner.hidden {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+
+        .version-badge {
+            position: absolute;
+            right: 0;
+            color: #ababab;
+            border: 1px solid #bcbcbc;
+            border-radius: 5px;
+            padding: 2px 5px;
+            letter-spacing: 0.7px;
+            font-weight: 400;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="loading-spinner" id="loadingSpinner"></div>
+    <div class="container">
+        <div class="header">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/IBM_logo.svg/960px-IBM_logo.svg.png" alt="IBM Logo" style="width: 80px; height: auto; margin-bottom: 20px; filter: saturate(1.6);">
+            <h1><span style="font-weight: 300;">Instalar</span> <span style="font-weight: 500;">IBM Salesforce Context</span></h1>
+            <a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener noreferrer" style="display: block; left: 90px; position: relative;">
+                <img src="https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/main/docs/logo/light.svg" alt="Model Context Protocol Logo" style="width: 165px; height: auto; opacity: 0.5;">
+            </a>
+        </div>
+
+        <div class="form-group">
+            <label for="workspacePath">Ruta local del proyecto de Salesforce</label>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="workspacePath" placeholder="/Users/trevorSmart/Documents/Proyectos/CaixaBank/" value="" required class="workspace-input" />
+                <button type="button" id="generateButton" class="generate-button">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div style="display: flex; align-items: center; gap: 4px;">
+
+                <label style="font-size: 14px; font-weight: 200; margin-left: 2px;">Requerir SSL estricta</label>
+                <i class="fas fa-circle-info tooltip-icon" data-tooltip="Información sobre SSL estricta">
+                    <div class="tooltip-popover">Desactivar SSL puede evitar problemas de conexión al trabajar en VPN.</div>
+                </i>
+                <label class="toggle-switch" style="margin-left: 4px;">
+                    <input type="checkbox" id="requireStrictSSL" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="button-preview" id="buttonPreview">
+            <div class="button-container" id="buttonContainer"></div>
+            <div class="config-section" id="configSection" style="overflow: visible;">
+                <h3 style="font-size: 12px; font-weight: 100; margin-left: 2px; margin-bottom: 3px;">
+                    <button class="config-toggle" onclick="toggleConfig()" id="configToggle">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <span style="cursor: pointer;" onclick="toggleConfig()">JSON de configuración</span>
+                </h3>
+                <div class="config-json" id="configJson" style="position: relative;"></div>
+                <button class="copy-button" onclick="copyConfig()">
+                    <i class="fas fa-copy"></i>
+                    <div class="copy-button-popover">Copiar al portapapeles</div>
+                </button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div style="display: flex; align-items: center; justify-content: center; position: relative;">
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <div style="color: #9f6025; font-size: 11.1px; font-weight: 200; letter-spacing: 0.7px;">
+                        IBM Salesforce Context requiere una instalación previa de <a href="https://nodejs.org" target="_blank">Node.js</a>.
+                    </div>
+                    <div style="margin-top: 8px; font-size: 11.3px; font-weight: 200; letter-spacing: 0.7px;">
+                        <span>
+                            Copyright
+                            <span style="font-weight: 400;">IBM Consulting</span>
+                            2025.
+                        </span>
+                    </div>
+                </div>
+                <span class="version-badge">
+                    v0.4
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function getMcpConfig() {
+            const workspacePath = document.getElementById('workspacePath').value.trim();
+            const requireStrictSSL = document.getElementById('requireStrictSSL').checked;
+
+            const config = {
+                "name": "IBM Salesforce Context",
+                "server-name": "ibm-salesforce-context",
+                "type": "stdio",
+                "command": "npx",
+                "args": [
+                    "-y",
+                    "test_research4@latest"
+                ],
+                "env": {
+                    "WORKSPACE_FOLDER_PATHS": workspacePath
+                }
+            };
+
+            // Només afegir strict-ssl si no es requereix SSL estricta
+            if (!requireStrictSSL) {
+                config.args.push("strict-ssl=false");
+            }
+
+            return config;
+        }
+
+        function makeMcpDeepLink(mcpConfig, editorType = 'vscode') {
+            if (editorType === 'cursor') {
+                // Cursor utilitza base64 encoding
+                const json = JSON.stringify(mcpConfig);
+                const base64 = btoa(json);
+                return `cursor://anysphere.cursor-deeplink/mcp/install?name=${mcpConfig.name}&config=${base64}`;
+            } else if (editorType === 'vscode-insiders') {
+                // VS Code Insiders utilitza URL encoding
+                const scheme = 'vscode-insiders:mcp/install?';
+                const json = JSON.stringify(mcpConfig);
+                const encoded = encodeURIComponent(json);
+                return scheme + encoded;
+            } else {
+                // VS Code utilitza URL encoding
+                const scheme = 'vscode:mcp/install?';
+                const json = JSON.stringify(mcpConfig);
+                const encoded = encodeURIComponent(json);
+                return scheme + encoded;
+            }
+        }
+
+        function makeMcpInstallButton(mcpConfig, editorType = 'vscode') {
+            const deepLink = makeMcpDeepLink(mcpConfig, editorType);
+
+            if (editorType === 'cursor') {
+                // Cursor utilitza el seu propi estil de botó
+                return `<a href="${deepLink}"><img src="https://cursor.com/deeplink/mcp-install-dark.svg" alt="Add MCP server to Cursor" style="font-size: 11px;" /></a>`;
+            } else if (editorType === 'vscode-insiders') {
+                // VS Code Insiders utilitza el badge de shields.io amb color diferent
+                return `<a href="${deepLink}"><img src="https://img.shields.io/badge/VS_Code_Insiders-Install_IBM_Salesforce_Context-24bfa5?style=flat&logo=visualstudiocode&logoColor=ffffff" alt="Install in VS Code Insiders" style="filter: saturate(1.2); height: 22px;"></a>`;
+            } else {
+                // VS Code utilitza el badge de shields.io
+                return `<a href="${deepLink}"><img src="https://img.shields.io/badge/VS_Code-Install_IBM_Salesforce_Context-0098FF?style=flat&logo=visualstudiocode&logoColor=ffffff" alt="Install in VS Code" style="filter: saturate(1.2); height: 22px;"></a>`;
+            }
+        }
+
+        function updateConfigPreview() {
+            const config = getMcpConfig();
+            const jsonString = JSON.stringify(config, null, 2);
+            // Mostrar les rutes de Windows amb una sola barra invertida per a millor llegibilitat
+            const displayString = jsonString.replace(/\\\\/g, '\\');
+            document.getElementById('configJson').textContent = displayString;
+        }
+
+        function copyConfig() {
+            const config = getMcpConfig();
+            const configText = JSON.stringify(config, null, 2);
+            navigator.clipboard.writeText(configText).then(function () {
+                const button = document.querySelector('.copy-button');
+                const originalIcon = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i>';
+                button.style.backgroundColor = '#28a745';
+                setTimeout(() => {
+                    button.innerHTML = originalIcon;
+                    button.style.backgroundColor = '#ced4da';
+                }, 2000);
+            }).catch(function (err) {
+                console.error('Error al copiar: ', err);
+            });
+        }
+
+        function toggleConfig() {
+            const configSection = document.getElementById('configSection');
+            const toggleButton = document.getElementById('configToggle');
+            const icon = toggleButton.querySelector('i');
+
+            if (configSection.classList.contains('expanded')) {
+                configSection.classList.remove('expanded');
+                configSection.classList.add('collapsed');
+                icon.className = 'fas fa-chevron-right';
+            } else {
+                configSection.classList.remove('collapsed');
+                configSection.classList.add('expanded');
+                icon.className = 'fas fa-chevron-down';
+            }
+        }
+
+        function generateAllButtons() {
+            const workspacePath = document.getElementById('workspacePath').value.trim();
+
+            // Validar que el workspace path no estigui buit
+            if (!workspacePath) {
+                const input = document.getElementById('workspacePath');
+                input.style.borderColor = '#dc3545';
+                setTimeout(() => {
+                    input.style.borderColor = '';
+                }, 2000);
+                return;
+            }
+
+            // Mostrar espinador al botó
+            const buttonIcon = document.querySelector('#generateButton i');
+            const generateButton = document.getElementById('generateButton');
+            buttonIcon.style.display = 'none';
+            generateButton.innerHTML = '<div class="custom-spinner"></div>';
+
+            // Esperar 0.3 segons abans de mostrar el contingut
+            setTimeout(() => {
+                // Fer la transició suau de spinner a xec
+                const spinner = generateButton.querySelector('.custom-spinner');
+                spinner.style.opacity = '0';
+
+                setTimeout(() => {
+                    generateButton.innerHTML = '<i class="fas fa-check"></i>';
+                    generateButton.style.backgroundColor = '#28a745';
+                }, 75);
+
+                // Esperar 0.15 segons més abans de revelar la secció
+                setTimeout(() => {
+                    const config = getMcpConfig();
+
+                    // Generar els tres botons
+                    const vscodeButton = makeMcpInstallButton(config, 'vscode');
+                    const vscodeInsidersButton = makeMcpInstallButton(config, 'vscode-insiders');
+                    const cursorButton = makeMcpInstallButton(config, 'cursor');
+
+                    // Mostrar tots els botons amb espaiat
+                    document.getElementById('buttonContainer').innerHTML = `
+                        <div style="margin-bottom: 12px;">${vscodeButton}</div>
+                        <div style="margin-bottom: 12px;">${vscodeInsidersButton}</div>
+                        <div style="margin-bottom: 12px;">${cursorButton}</div>
+                    `;
+
+                    // Mostrar la secció amb transició
+                    document.getElementById('buttonPreview').classList.add('show');
+
+                    // Actualitzar la configuració
+                    updateConfigPreview();
+
+                    // Minimitzar la configuració després de generar
+                    const configSection = document.getElementById('configSection');
+                    const toggleButton = document.getElementById('configToggle');
+                    const icon = toggleButton.querySelector('i');
+                    configSection.classList.remove('expanded');
+                    configSection.classList.add('collapsed');
+                    icon.className = 'fas fa-chevron-right';
+
+                    // Esperar que acabi la transició del contenidor i mantenir la icona de check més temps
+                    setTimeout(() => {
+                        generateButton.innerHTML = '<i class="fas fa-arrow-right"></i>';
+                        generateButton.style.backgroundColor = '#007bff';
+                        // Tornar el focus a l'input
+                        document.getElementById('workspacePath').focus();
+                    }, 800);
+                }, 150);
+            }, 300);
+        }
+
+        // Actualitzar la vista prèvia quan canvia el valor
+        document.getElementById('workspacePath').addEventListener('input', updateConfigPreview);
+
+        // Generar botons quan es prem Enter a l'input
+        document.getElementById('workspacePath').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                generateAllButtons();
+            }
+        });
+
+        // Actualitzar la vista prèvia quan canvia el toggle
+        document.getElementById('requireStrictSSL').addEventListener('change', updateConfigPreview);
+
+        // Generar botons quan es fa clic al botó
+        document.getElementById('generateButton').addEventListener('click', generateAllButtons);
+
+        // Posar el focus a l'input quan es carrega la pàgina
+        document.getElementById('workspacePath').focus();
+
+        // Esperar a que Font Awesome estigui carregat abans de mostrar la pàgina
+        function waitForFontAwesome() {
+            return new Promise((resolve) => {
+                if (window.FontAwesome && window.FontAwesome.dom && window.FontAwesome.dom.css()) {
+                    resolve();
+                } else {
+                    const checkInterval = setInterval(() => {
+                        if (window.FontAwesome && window.FontAwesome.dom && window.FontAwesome.dom.css()) {
+                            clearInterval(checkInterval);
+                            resolve();
+                        }
+                    }, 50);
+
+                    // Fallback: mostrar la pàgina després de 2 segons encara que Font Awesome no estigui carregat
+                    setTimeout(() => {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }, 2000);
+                }
+            });
+        }
+
+        // Mostrar la pàgina quan tot estigui carregat
+        Promise.all([
+            new Promise(resolve => window.addEventListener('load', resolve)),
+            waitForFontAwesome()
+        ]).then(() => {
+            // Amagar el spinner
+            document.getElementById('loadingSpinner').classList.add('hidden');
+            // Mostrar el contingut
+            document.querySelector('.container').classList.add('loaded');
+        });
+    </script>
+</body>
+
+</html>
