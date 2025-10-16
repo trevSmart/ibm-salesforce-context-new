@@ -242,7 +242,7 @@ export class InitializationPhases {
 				// Uses existing update function which sanitizes and republishes the resource
 				await updateOrgAndUserDetails();
 			} catch (error) {
-				logger.warn(error, 'Post-initialization logic failed, but server will continue running');
+				logger.warn(error, 'Post-initialization logic failed, server will continue running');
 			}
 		});
 	}
