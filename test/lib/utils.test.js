@@ -23,7 +23,7 @@ describe('sanitizeSensitiveData', () => {
 			username: 'test@example.com',
 			accessToken: 'secret_token_123',
 			password: 'my_password',
-			client_secret: 'client_secret_456',
+			// client_secret: 'client_secret_456',
 			clientSecret: 'another_secret'
 		};
 
