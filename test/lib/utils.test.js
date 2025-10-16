@@ -23,8 +23,8 @@ describe('sanitizeSensitiveData', () => {
 			username: 'test@example.com',
 			accessToken: 'secret_token_123',
 			password: 'my_password',
-			// client_secret: 'client_secret_456',
-			clientSecret: 'another_secret'
+			// biome-ignore lint/style/useNamingConvention: <Salesforce uses this naming>
+			client_secret: 'client_secret_456',
 		};
 
 		const sanitized = sanitizeSensitiveData(data);
@@ -33,7 +33,6 @@ describe('sanitizeSensitiveData', () => {
 		expect(sanitized.accessToken).toContain('[REDACTED');
 		expect(sanitized.password).toContain('[REDACTED');
 		expect(sanitized.client_secret).toContain('[REDACTED');
-		expect(sanitized.clientSecret).toContain('[REDACTED');
 	});
 
 	it('should handle nested objects', () => {
