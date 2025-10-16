@@ -231,4 +231,5 @@
         "editor.defaultFormatter": "biomejs.biome"
     },
     "chatgpt.commentCodeLensEnabled": false,
+    "xml.preferences.showSchemaDocumentationType": "none",
 }
