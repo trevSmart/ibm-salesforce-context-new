@@ -40,7 +40,7 @@ updates:
           - "patch"
       dev-dependencies:
         patterns:
-          - "biome*"
+          # - "biome*"
           - "@babel/*"
           - "javascript-obfuscator"
         update-types:
