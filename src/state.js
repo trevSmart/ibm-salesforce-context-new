@@ -20,5 +20,6 @@ export const state = {
 	userPermissionsValidated: false,
 	handshakeValidated: false,
 	currentLogLevel: process.env.LOG_LEVEL || 'info',
-	workspacePath: process.cwd()
+	workspacePath: process.cwd(),
+	initializationComplete: false
 };

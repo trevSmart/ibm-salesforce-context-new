@@ -2,7 +2,7 @@
 
 An MCP server by IBM that provides Salesforce org context to your IDE AI agent
 
-[![Push checks](https://github.com/trevSmart/ibm-salesforce-context/actions/workflows/push-checks.yml/badge.svg)](https://github.com/trevSmart/ibm-salesforce-context/actions/workflows/push-checks.yml) [![CodeQL](https://github.com/trevSmart/ibm-salesforce-context/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/trevSmart/ibm-salesforce-context/actions/workflows/github-code-scanning/codeql) [![Dependabot Updates](https://github.com/trevSmart/ibm-salesforce-context/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/trevSmart/ibm-salesforce-context/actions/workflows/dependabot/dependabot-updates)
+[![Push checks](https://github.com/trevSmart/ibm-salesforce-context-new/actions/workflows/push-checks.yml/badge.svg)](https://github.com/trevSmart/ibm-salesforce-context-new/actions/workflows/push-checks.yml) [![CodeQL](https://github.com/trevSmart/ibm-salesforce-context-new/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/trevSmart/ibm-salesforce-context-new/actions/workflows/github-code-scanning/codeql) [![Dependabot Updates](https://github.com/trevSmart/ibm-salesforce-context-new/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/trevSmart/ibm-salesforce-context-new/actions/workflows/dependabot/dependabot-updates)
 
 ### Key features
 - **Salesforce Integration**: Seamless connection to Salesforce orgs for AI-powered development

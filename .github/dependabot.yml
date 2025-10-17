@@ -21,7 +21,9 @@ updates:
     labels:
       - "dependencies"
       - "npm"
+    rebase-strategy: "auto"
     ignore:
+      - dependency-type: "development"
       # Ignore major version updates for critical dependencies
       - dependency-name: "@modelcontextprotocol/sdk"
         update-types: ["version-update:semver-major"]
@@ -30,7 +32,6 @@ updates:
       # Note: Nested vulnerabilities in @salesforce/cli (brace-expansion, path-to-regexp)
       # cannot be fixed via dependabot updates due to deep nesting constraints
       # See SECURITY.md for detailed analysis and mitigation strategies
-    # Group minor and patch updates together
     groups:
       mcp-dependencies:
         patterns:
@@ -40,7 +41,6 @@ updates:
           - "patch"
       dev-dependencies:
         patterns:
-          # - "biome*"
           - "@babel/*"
           - "javascript-obfuscator"
         update-types:
@@ -50,6 +50,13 @@ updates:
         patterns:
           - "semver"
           - "globals"
+        update-types:
+          - "minor"
+          - "patch"
+      # Default fallback group for any other dependency not covered above
+      default-minor-patch:
+        patterns:
+          - "*"
         update-types:
           - "minor"
           - "patch"
@@ -72,6 +79,7 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+    rebase-strategy: "auto"
     groups:
       github-actions:
         patterns:

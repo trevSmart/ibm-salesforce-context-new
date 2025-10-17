@@ -137,6 +137,29 @@ export class HandlerRegistry {
 	}
 
 	/**
+	 * Load dynamic tool handler for tools not in static handlers
+	 */
+	async loadDynamicToolHandler(toolName, params, args) {
+		// Validate tool name to prevent path traversal attacks
+		if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(toolName)) {
+			throw new Error(`Invalid tool name format: "${toolName}". Tool names must be alphanumeric with underscores.`);
+		}
+
+		try {
+			const toolModule = await import(`../tools/${toolName}.js`);
+			const toolHandler = toolModule?.[`${toolName}ToolHandler`];
+
+			if (!toolHandler) {
+				throw new Error(`Tool "${toolName}" module does not export a handler function named "${toolName}ToolHandler".`);
+			}
+
+			return await toolHandler(params, args);
+		} catch (importError) {
+			throw new Error(`Failed to import tool module for "${toolName}": ${importError.message}`);
+		}
+	}
+
+	/**
 	 * Create a secure tool handler with validation
 	 */
 	createSecureToolHandler(toolName, staticToolHandlers) {
@@ -144,6 +167,15 @@ export class HandlerRegistry {
 			try {
 				// Security validation (except for utility tool)
 				if (toolName !== 'salesforceContextUtils') {
+					// Allow SOQL queries during initialization if org details are available
+					if (toolName === 'executeSoqlQuery' && this.state.org?.id && this.state.org?.instanceUrl && this.state.org?.accessToken) {
+						// Skip user validation during initialization
+						return (await staticToolHandlers[toolName]?.(params, args)) || (await this.loadDynamicToolHandler(toolName, params, args));
+					}
+
+					if (!this.state.initializationComplete) {
+						throw new Error('❌ Server initialization not complete. Please wait for the server to finish initializing.');
+					}
 					if (!(config.bypassUserPermissionsValidation || this.state.userPermissionsValidated)) {
 						throw new Error(`🚫 Request blocked due to unsuccessful user validation for "${this.state.org.username}".`);
 					}

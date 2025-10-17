@@ -78,6 +78,8 @@ export async function executeSoqlQueryToolHandler({query, useToolingApi = false}
 
 		// Build response message
 
+		logger.debug('queryResult', JSON.stringify(queryResult, null, 2));
+
 		return {
 			content: [
 				{
