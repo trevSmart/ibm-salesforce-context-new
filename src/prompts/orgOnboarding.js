@@ -38,36 +38,35 @@ export async function orgOnboardingPromptHandler() {
 - If the org is a sandbox org, you can mention the volume of records but the insight must be based on the relative volume of records between the different objects, not the absolute record count as it probably will be different in a production org.
 - Present user roles in a hierarchy tree with a maximum depth of 4 levels and a maximum number of 5 roles per level, level must be represented with a different emoji. Use a monospace font for the tree for example:
  \`\`\`
-📊 CaixaBank Salesforce Role Hierarchy Tree
+📊 ACME Salesforce Role Hierarchy Tree
 
    🏛️ ROOT LEVEL (No Parent)
    │
-   ├── 🎯 CoE
+   ├── 🎯 Center of Excellence
    │   │
    │   └── 🔧 Technical Office
    │
-   ├── 🚨 COPS
+   ├── 🚨 Operations
    │
-   └── 👥 Mis Clientes
+   └── 👥 Sales
        │
-       ├── 🏢 CIB y Empresas
+       ├── 🏢 Private and Corporate Banking
        │   │
-       │   ├── 🏦 CIB
+       │   ├── 🏦 Private Banking
        │   │
-       │   └── 🏢 EMP
+       │   └── 🏢 Corporate Banking
        │       │
-       │       └── 📈 Commercial System
+       │       └── 📈 Public Banking
        │
-       ├── 🎉 Eventos
+       ├── 🎉 Events
        │   │
-       │   ├── 📈 Eventos Accionista
+       │   ├── 📈 Shareholder Events
        │   │   │
-       │   │   └── 📊 Promotor Accionista
+       │   │   └── 📊 Shareholder Tracking
        │   │
-       │   │
-       │   └── 🏛️ Promotor Interno
+       │   └── 🏛️ Others
        │
-       └── 📈 Commercial System
+       └── 📈 Administration
  \`\`\`
 
 - Use bullet points when mentioning lists of items (only when it makes sense to do so, and when there are 3 objects or more). This is very important, don't use bullet points for lists of 2 or less items. This bullet points must be presented with each point in its own line.

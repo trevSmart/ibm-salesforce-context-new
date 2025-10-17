@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-if git diff --cached | grep -qi "LITERAL_PROHIBIT"; then
-  echo "🚫 Commit bloquejat: trobat el literal prohibit (sense distingir majúscules/minúscules)."
+if git diff --cached | grep -qi --color=always "caixa"; then
+  echo "🚫 Commit blocked because it contains a forbidden literal."
   exit 1
 fi
