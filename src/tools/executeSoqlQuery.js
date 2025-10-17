@@ -79,11 +79,13 @@ export async function executeSoqlQueryToolHandler({query, useToolingApi = false}
 		// Build response message
 		const totalSize = queryResult.totalSize || queryResult.records.length;
 
+		logger.debug('queryResult', JSON.stringify(queryResult, null, 2));
+
 		return {
 			content: [
 				{
 					type: 'text',
-					text: `SOQL query executed successfully. Returned ${totalSize} record${totalSize !== 1 ? 's' : ''}.`
+					text: `SOQL query executed successfully. Returned ${totalSize} record${totalSize !== 1 ? 's' : ''}:\n${JSON.stringify(queryResult.records, null, 2)}`
 				}
 			],
 			structuredContent: queryResult

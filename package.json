@@ -23,7 +23,8 @@
 		"publish-package": "sh dev/publish-package.sh",
 		"publish-package-skip-tests": "sh dev/publish-package.sh --skip-tests",
 		"publish-package-skip-obfuscation": "sh dev/publish-package.sh --skip-obfuscation",
-		"publish-package-skip-tests-and-obfuscation": "sh dev/publish-package.sh --skip-tests --skip-obfuscation"
+		"publish-package-skip-tests-and-obfuscation": "sh dev/publish-package.sh --skip-tests --skip-obfuscation",
+		"prepare": "husky"
 	},
 	"keywords": [
 		"test",
@@ -53,6 +54,7 @@
 		"c8": "^10.1.3",
 		"dotenv": "^17.2.2",
 		"globals": "^16.3.0",
+		"husky": "^9.1.7",
 		"javascript-obfuscator": "^4.1.0",
 		"microscope-mcp-client": "^0.1.32",
 		"node-fetch": "^3.3.2",

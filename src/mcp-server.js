@@ -125,6 +125,7 @@ async function updateOrgAndUserDetails() {
 		}
 
 		logger.info(`Server initialized and running. Target org: ${state.org.alias}`, 'init');
+		state.initializationComplete = true;
 		if (typeof resolveOrgReady === 'function') {
 			resolveOrgReady();
 		}
@@ -133,6 +134,7 @@ async function updateOrgAndUserDetails() {
 		// console.error(error);
 		state.org = {};
 		state.userPermissionsValidated = false;
+		state.initializationComplete = true; // Mark as complete even on error to allow tools to respond
 	}
 }
 

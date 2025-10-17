@@ -161,7 +161,7 @@ export async function salesforceContextUtilsToolHandler({action, issueDescriptio
 				content: [
 					{
 						type: 'text',
-						text: 'Successfully retrieved the org and user details'
+						text: `Successfully retrieved the org and user details: \n${JSON.stringify({...orgAndUserDetails, companyDetails}, null, 2)}`
 					}
 				],
 				structuredContent: {...orgAndUserDetails, companyDetails}
