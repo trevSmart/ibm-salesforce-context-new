@@ -77,7 +77,6 @@ export async function executeSoqlQueryToolHandler({query, useToolingApi = false}
 		queryResult.records = queryResult.records.map((r) => addUrlToRecord({...r}));
 
 		// Build response message
-		const _totalSize = queryResult.totalSize || queryResult.records.length;
 
 		return {
 			content: [
