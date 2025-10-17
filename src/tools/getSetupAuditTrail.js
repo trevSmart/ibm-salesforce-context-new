@@ -505,10 +505,22 @@ export async function getSetupAuditTrailToolHandler({lastDays = 30, user = null,
 		// Compress the Action field to reduce response size
 		const compressedRecords = compressActionField(records);
 
+		const structuredResult = {
+			filters: {
+				lastDays,
+				user,
+				metadataName,
+				resolvedUsername
+			},
+			setupAuditTrailFileTotalRecords: totalRecords,
+			setupAuditTrailFileFilteredTotalRecords: finalFilteredRecords,
+			records: compressedRecords
+		};
+
 		const content = [
 			{
 				type: 'text',
-				text: `Setup audit trail CSV processed successfully. Total records: ${totalRecords}, Filtered records: ${finalFilteredRecords}`
+				text: JSON.stringify(structuredResult, null, 2)
 			}
 		];
 
@@ -516,39 +528,32 @@ export async function getSetupAuditTrailToolHandler({lastDays = 30, user = null,
 
 		return {
 			content,
-			structuredContent: {
-				filters: {
-					lastDays,
-					user,
-					metadataName,
-					resolvedUsername
-				},
-				setupAuditTrailFileTotalRecords: totalRecords,
-				setupAuditTrailFileFilteredTotalRecords: finalFilteredRecords,
-				records: compressedRecords
-			}
+			structuredContent: structuredResult
 		};
 	} catch (error) {
 		logger.error(error, 'Error getting setup audit trail data');
+		const errorResult = {
+			error: true,
+			message: error.message,
+			filters: {
+				lastDays,
+				user,
+				metadataName,
+				resolvedUsername: null
+			},
+			setupAuditTrailFileTotalRecords: 0,
+			setupAuditTrailFileFilteredTotalRecords: 0,
+			records: []
+		};
 		return {
 			isError: true,
 			content: [
 				{
 					type: 'text',
-					text: `Error retrieving Setup Audit Trail data:\n\nError message:\n${error.message}\n\nError stack:\n${error.stack}`
+					text: JSON.stringify(errorResult, null, 2)
 				}
 			],
-			structuredContent: {
-				filters: {
-					lastDays,
-					user,
-					metadataName,
-					resolvedUsername: null
-				},
-				setupAuditTrailFileTotalRecords: 0,
-				setupAuditTrailFileFilteredTotalRecords: 0,
-				records: []
-			}
+			structuredContent: errorResult
 		};
 	}
 }
