@@ -48,14 +48,19 @@ export async function deployMetadataToolHandler({sourceDir, validationOnly = fal
 			});
 
 			if (elicitResult.action !== 'accept' || elicitResult.content?.confirm !== 'Yes') {
+				const cancelledResult = {
+					success: false,
+					cancelled: true,
+					reason: 'user_cancelled'
+				};
 				return {
 					content: [
 						{
 							type: 'text',
-							text: 'User has cancelled the metadata deployment'
+							text: JSON.stringify(cancelledResult, null, 2)
 						}
 					],
-					structuredContent: elicitResult
+					structuredContent: cancelledResult
 				};
 			}
 		}
@@ -67,7 +72,7 @@ export async function deployMetadataToolHandler({sourceDir, validationOnly = fal
 			content: [
 				{
 					type: 'text',
-					text: JSON.stringify(result, null, 3)
+					text: JSON.stringify(result, null, 2)
 				}
 			],
 			structuredContent: result
@@ -75,15 +80,21 @@ export async function deployMetadataToolHandler({sourceDir, validationOnly = fal
 	} catch (error) {
 		logger.error(error, 'Error deploying metadata');
 
+		const errorResult = {
+			success: false,
+			error: true,
+			message: error.message
+		};
+
 		return {
 			isError: true,
 			content: [
 				{
 					type: 'text',
-					text: `❌ Error deploying metadata: ${error.message}`
+					text: JSON.stringify(errorResult, null, 2)
 				}
 			],
-			structuredContent: error
+			structuredContent: errorResult
 		};
 	}
 }

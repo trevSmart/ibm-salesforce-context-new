@@ -86,18 +86,19 @@ export async function dmlOperationToolHandler({operations, options = {}}) {
 			});
 
 			if (elicitResult.action !== 'accept' || elicitResult.content?.confirm !== 'Yes') {
+				const cancelledResult = {
+					outcome: 'cancelled',
+					statistics: {total: 0, succeeded: 0, failed: 0},
+					cancellationReason: 'user_cancelled'
+				};
 				return {
 					content: [
 						{
 							type: 'text',
-							text: 'User has cancelled the operations'
+							text: JSON.stringify(cancelledResult, null, 2)
 						}
 					],
-					structuredContent: {
-						outcome: 'cancelled',
-						statistics: {total: 0, succeeded: 0, failed: 0},
-						cancellationReason: 'user_cancelled'
-					}
+					structuredContent: cancelledResult
 				};
 			}
 		}
@@ -105,8 +106,8 @@ export async function dmlOperationToolHandler({operations, options = {}}) {
 		const response = await dmlOperation(operations, options);
 		const stats = response.statistics;
 
-		const errorSummaryText = `DML request completed with ${stats.failed} error(s). ${stats.succeeded} operation(s) succeeded, ${stats.failed} failed.`;
-		const successSummaryText = `DML request completed successfully. All ${stats.succeeded} operation(s) succeeded.`;
+		const _errorSummaryText = `DML request completed with ${stats.failed} error(s). ${stats.succeeded} operation(s) succeeded, ${stats.failed} failed.`;
+		const _successSummaryText = `DML request completed successfully. All ${stats.succeeded} operation(s) succeeded.`;
 
 		if (response.outcome !== 'success') {
 			return {
@@ -114,7 +115,7 @@ export async function dmlOperationToolHandler({operations, options = {}}) {
 				content: [
 					{
 						type: 'text',
-						text: `❌ ${errorSummaryText}`
+						text: JSON.stringify(response, null, 2)
 					}
 				],
 				structuredContent: response
@@ -125,7 +126,7 @@ export async function dmlOperationToolHandler({operations, options = {}}) {
 			content: [
 				{
 					type: 'text',
-					text: successSummaryText
+					text: JSON.stringify(response, null, 2)
 				}
 			],
 			structuredContent: response
@@ -133,19 +134,21 @@ export async function dmlOperationToolHandler({operations, options = {}}) {
 	} catch (error) {
 		logger.error(`Error in dmlOperationTool: ${error.message}`);
 
+		const errorResult = {
+			outcome: 'error',
+			statistics: {total: 0, succeeded: 0, failed: 0},
+			errors: [{index: -1, message: error.message}]
+		};
+
 		return {
 			isError: true,
 			content: [
 				{
 					type: 'text',
-					text: `❌ Error in DML operation request: ${error.message}`
+					text: JSON.stringify(errorResult, null, 2)
 				}
 			],
-			structuredContent: {
-				outcome: 'error',
-				statistics: {total: 0, succeeded: 0, failed: 0},
-				errors: [{index: -1, message: error.message}]
-			}
+			structuredContent: errorResult
 		};
 	}
 }

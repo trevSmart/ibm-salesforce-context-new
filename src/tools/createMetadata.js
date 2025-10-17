@@ -60,22 +60,23 @@ export async function createMetadataToolHandler({type, name, outputDir, triggerS
 			content: [
 				{
 					type: 'text',
-					text: `Successfully created ${result.files.length} metadata files.`
+					text: JSON.stringify(result, null, 2)
 				}
 			],
 			structuredContent: result
 		};
 	} catch (error) {
 		logger.error(error, 'Error creating metadata');
+		const errorResult = {success: false, error: true, message: error.message};
 		return {
 			isError: true,
 			content: [
 				{
 					type: 'text',
-					text: `❌ ${error.message}`
+					text: JSON.stringify(errorResult, null, 2)
 				}
 			],
-			structuredContent: {success: false, error: error.message}
+			structuredContent: errorResult
 		};
 	}
 }

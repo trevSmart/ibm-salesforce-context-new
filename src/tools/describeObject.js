@@ -38,15 +38,16 @@ export async function describeObjectToolHandler({sObjectName, includeFields = tr
 
 			// Apply filtering to cached data
 			const filteredData = applyFiltering(cached, includeFields, includePicklistValues);
+			const cachedResult = {wasCached: true, ...filteredData};
 
 			return {
 				content: [
 					{
 						type: 'text',
-						text: `Successfully retrieved from cache the SObject schema for ${sObjectName} with the following data: ${JSON.stringify(filteredData, null, 3)}`
+						text: JSON.stringify(cachedResult, null, 2)
 					}
 				],
-				structuredContent: {wasCached: true, ...filteredData}
+				structuredContent: cachedResult
 			};
 		}
 
@@ -92,7 +93,7 @@ export async function describeObjectToolHandler({sObjectName, includeFields = tr
 			content: [
 				{
 					type: 'text',
-					text: `Successfully retrieved the SObject schema for ${sObjectName}`
+					text: JSON.stringify(filteredData, null, 2)
 				}
 			],
 			structuredContent: filteredData
@@ -100,15 +101,17 @@ export async function describeObjectToolHandler({sObjectName, includeFields = tr
 	} catch (error) {
 		logger.error(error);
 
+		const errorResult = {error: true, message: error.message};
+
 		return {
 			isError: true,
 			content: [
 				{
 					type: 'text',
-					text: error.message
+					text: JSON.stringify(errorResult, null, 2)
 				}
 			],
-			structuredContent: {error: true, message: error.message}
+			structuredContent: errorResult
 		};
 	}
 }

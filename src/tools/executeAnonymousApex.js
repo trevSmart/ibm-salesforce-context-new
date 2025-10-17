@@ -67,9 +67,14 @@ export async function executeAnonymousApexToolHandler({apexCode, mayModify}, arg
 			});
 
 			if (elicitResult.action !== 'accept' || elicitResult.content?.confirm !== 'Yes') {
+				const cancelledResult = {
+					success: false,
+					cancelled: true,
+					reason: 'user_cancelled'
+				};
 				return {
-					content: [{type: 'text', text: 'User has cancelled the Anonymous Apex script execution'}],
-					structuredContent: elicitResult
+					content: [{type: 'text', text: JSON.stringify(cancelledResult, null, 2)}],
+					structuredContent: cancelledResult
 				};
 			}
 		}
@@ -82,7 +87,7 @@ export async function executeAnonymousApexToolHandler({apexCode, mayModify}, arg
 		const content = [
 			{
 				type: 'text',
-				text: `Anonymous Apex execution result:\n\n${JSON.stringify(result.logs)}`
+				text: JSON.stringify(result, null, 2)
 			}
 		];
 
@@ -107,14 +112,16 @@ export async function executeAnonymousApexToolHandler({apexCode, mayModify}, arg
 		return {content, structuredContent: result};
 	} catch (error) {
 		logger.error(error);
+		const errorResult = {error: true, message: error.message};
 		return {
 			isError: true,
 			content: [
 				{
 					type: 'text',
-					text: `Error: ${error.message}`
+					text: JSON.stringify(errorResult, null, 2)
 				}
-			]
+			],
+			structuredContent: errorResult
 		};
 	}
 }

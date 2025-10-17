@@ -167,21 +167,23 @@ export async function runApexTestToolHandler({classNames = [], methodNames = [],
 			content: [
 				{
 					type: 'text',
-					text: 'Successfully ran Apex tests'
+					text: JSON.stringify(structuredContent, null, 2)
 				}
 			],
 			structuredContent
 		};
 	} catch (error) {
 		logger.error(error, 'Error running Apex tests');
+		const errorResult = {error: true, message: error.message};
 		return {
 			isError: true,
 			content: [
 				{
 					type: 'text',
-					text: error.message
+					text: JSON.stringify(errorResult, null, 2)
 				}
-			]
+			],
+			structuredContent: errorResult
 		};
 	}
 }

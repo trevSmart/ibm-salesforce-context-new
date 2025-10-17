@@ -56,22 +56,23 @@ export async function getRecordToolHandler({sObjectName, recordId}) {
 			content: [
 				{
 					type: 'text',
-					text: `Successfully retrieved details for the ${sObjectName} record with Id ${id}`
+					text: JSON.stringify(structured, null, 2)
 				}
 			],
 			structuredContent: structured
 		};
 	} catch (error) {
 		logger.error(error);
+		const errorStructure = {error: true, message: error.message};
 		return {
 			isError: true,
 			content: [
 				{
 					type: 'text',
-					text: error.message
+					text: JSON.stringify(errorStructure, null, 2)
 				}
 			],
-			structuredContent: error
+			structuredContent: errorStructure
 		};
 	}
 }
