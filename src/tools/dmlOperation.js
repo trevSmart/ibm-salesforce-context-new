@@ -107,7 +107,6 @@ export async function dmlOperationToolHandler({operations, options = {}}) {
 		const stats = response.statistics;
 
 		const _errorSummaryText = `DML request completed with ${stats.failed} error(s). ${stats.succeeded} operation(s) succeeded, ${stats.failed} failed.`;
-		const _successSummaryText = `DML request completed successfully. All ${stats.succeeded} operation(s) succeeded.`;
 
 		if (response.outcome !== 'success') {
 			return {
