@@ -19,6 +19,7 @@ jobs:
 
     - name: Check for forbidden literals
       run: |
+<<<<<<< HEAD
         FORBIDDEN_LITERAL="caixa"
         echo "🔍 Checking for forbidden literal: '$FORBIDDEN_LITERAL'"
 
@@ -60,6 +61,13 @@ jobs:
         else
           echo "ℹ️ No files to check (all changed files are excluded)"
         fi
+
+=======
+        # Get list of changed files in this push
+        CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+        # Call the shared forbidden literal check script
+        bash dev/forbidden-literal-check.sh "$CHANGED_FILES"
+>>>>>>> origin/main
   lint:
     runs-on: ubuntu-latest
     needs: [forbidden-literal-check]
