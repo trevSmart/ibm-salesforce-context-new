@@ -79,8 +79,8 @@ describe('apexDebugLogs', () => {
 		expect(result.structuredContent).toBeTruthy()
 
 		// Log content might be undefined if the log is empty or not available yet
-		if (result.structuredContent.logContent !== undefined) {
-			expect(result.structuredContent.logContent).toBeTruthy()
+		if (result.structuredContent.apexLog !== undefined) {
+			expect(result.structuredContent.apexLog).toBeTruthy()
 		} else {
 			console.log('Log content is not available yet (log might be empty or still processing)')
 		}
