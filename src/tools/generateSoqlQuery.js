@@ -217,21 +217,23 @@ export async function generateSoqlQueryToolHandler({soqlQueryDescription, involv
 			content: [
 				{
 					type: 'text',
-					text: samplingResponse.content.text
+					text: JSON.stringify(samplingResponse, null, 2)
 				}
 			],
 			structuredContent: samplingResponse
 		};
 	} catch (error) {
 		logger.error(error);
+		const errorResult = {error: true, message: error.message};
 		return {
 			isError: true,
 			content: [
 				{
 					type: 'text',
-					text: `❌ Error: ${error.message}`
+					text: JSON.stringify(errorResult, null, 2)
 				}
-			]
+			],
+			structuredContent: errorResult
 		};
 	}
 }

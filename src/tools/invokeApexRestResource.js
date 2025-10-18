@@ -127,7 +127,7 @@ export async function invokeApexRestResourceToolHandler({apexClassOrRestResource
 			content: [
 				{
 					type: 'text',
-					text: `Successfully called "${apexClassOrRestResourceName}" Apex rest resource`
+					text: JSON.stringify(structuredResponse, null, 2)
 				}
 			],
 			structuredContent: structuredResponse
@@ -153,7 +153,7 @@ export async function invokeApexRestResourceToolHandler({apexClassOrRestResource
 			content: [
 				{
 					type: 'text',
-					text: `Error invoking Apex REST Resource "${apexClassOrRestResourceName}" (${operation}): ${error.message}`
+					text: JSON.stringify(structuredError, null, 2)
 				}
 			],
 			structuredContent: structuredError

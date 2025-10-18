@@ -25,29 +25,33 @@ export async function getRecentlyViewedRecordsToolHandler() {
 		// Extract records from the SOQL response
 		const records = response?.records || [];
 
+		const result = {
+			records: records,
+			totalSize: response?.totalSize || 0,
+			done: true
+		};
+
 		return {
 			content: [
 				{
 					type: 'text',
-					text: `Retrieved ${records.length} recently viewed records successfully`
+					text: JSON.stringify(result, null, 2)
 				}
 			],
-			structuredContent: {
-				records: records,
-				totalSize: response?.totalSize || 0,
-				done: true
-			}
+			structuredContent: result
 		};
 	} catch (error) {
 		logger.error(error, 'Error getting recently viewed records');
+		const errorResult = {error: true, message: error?.message};
 		return {
 			isError: true,
 			content: [
 				{
 					type: 'text',
-					text: error?.message
+					text: JSON.stringify(errorResult, null, 2)
 				}
-			]
+			],
+			structuredContent: errorResult
 		};
 	}
 }

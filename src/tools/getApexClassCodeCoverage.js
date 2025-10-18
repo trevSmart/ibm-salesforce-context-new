@@ -31,22 +31,23 @@ export async function getApexClassCodeCoverageToolHandler({classNames}) {
 			content: [
 				{
 					type: 'text',
-					text: `Code coverage retrieved successfully (${coverage.summary.totalClasses} classes: ${coverage.summary.classesWithCoverage} with coverage, ${coverage.summary.classesWithoutCoverage} without coverage, ${coverage.summary.missingClasses} not found)`
+					text: JSON.stringify(coverage, null, 2)
 				}
 			],
 			structuredContent: coverage
 		};
 	} catch (error) {
 		logger.error(error, `Error getting code coverage for classes ${Array.isArray(classNames) ? classNames.join(', ') : classNames}`);
+		const errorResult = {error: true, message: error.message};
 		return {
 			isError: true,
 			content: [
 				{
 					type: 'text',
-					text: error.message
+					text: JSON.stringify(errorResult, null, 2)
 				}
 			],
-			structuredContent: error
+			structuredContent: errorResult
 		};
 	}
 }

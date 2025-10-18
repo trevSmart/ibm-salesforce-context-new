@@ -46,14 +46,15 @@ export async function salesforceContextUtilsToolHandler({action, issueDescriptio
 	try {
 		if (action === 'clearCache') {
 			clearResources();
+			const result = {action, status: 'success'};
 			return {
 				content: [
 					{
 						type: 'text',
-						text: '✅ Successfully cleared cached resources'
+						text: JSON.stringify(result, null, 2)
 					}
 				],
-				structuredContent: {action, status: 'success'}
+				structuredContent: result
 			};
 		} else if (action === 'getCurrentDatetime') {
 			const now = new Date();
@@ -75,14 +76,15 @@ export async function salesforceContextUtilsToolHandler({action, issueDescriptio
 				structuredContent: result
 			};
 		} else if (action === 'getState') {
+			const result = {state, client, resources};
 			return {
 				content: [
 					{
 						type: 'text',
-						text: 'Successfully retrieved the internal state of the MCP server'
+						text: JSON.stringify(result, null, 2)
 					}
 				],
-				structuredContent: {state, client, resources}
+				structuredContent: result
 			};
 		} else if (action === 'loadRecordPrefixesResource') {
 			const content = [];
@@ -157,17 +159,17 @@ export async function salesforceContextUtilsToolHandler({action, issueDescriptio
 		} else if (action === 'getOrgAndUserDetails') {
 			const orgAndUserDetails = await getOrgAndUserDetails();
 			const companyDetails = orgAndUserDetails?.companyDetails ?? state.org?.companyDetails ?? null;
-			const result = {
+			const result = {...orgAndUserDetails, companyDetails};
+			logger.info(result);
+			return {
 				content: [
 					{
 						type: 'text',
-						text: `Successfully retrieved the org and user details: \n${JSON.stringify({...orgAndUserDetails, companyDetails}, null, 2)}`
+						text: JSON.stringify(result, null, 2)
 					}
 				],
-				structuredContent: {...orgAndUserDetails, companyDetails}
+				structuredContent: result
 			};
-			logger.info(result);
-			return result;
 		} else if (action === 'reportIssue') {
 			if (progressToken) {
 				sendProgressNotification(progressToken, 1, 3, 'Starting reportIssue');
@@ -352,14 +354,15 @@ IMPORTANT: Generate your response in English.`;
 				});
 
 				if (elicitResult.action !== 'accept' || elicitResult.content?.confirm !== 'Yes') {
+					const cancelResult = {success: false, cancelled: true, reason: 'user_cancelled'};
 					return {
 						content: [
 							{
 								type: 'text',
-								text: 'User has cancelled the issue report'
+								text: JSON.stringify(cancelResult, null, 2)
 							}
 						],
-						structuredContent: elicitResult
+						structuredContent: cancelResult
 					};
 				}
 			}
@@ -430,7 +433,7 @@ IMPORTANT: Generate your response in English.`;
 							content: [
 								{
 									type: 'text',
-									text: `Issue ${result.issueId} successfully created`
+									text: JSON.stringify(result, null, 2)
 								}
 							],
 							structuredContent: result
@@ -450,14 +453,16 @@ IMPORTANT: Generate your response in English.`;
 		}
 	} catch (error) {
 		logger.error(error, 'Error in salesforceContextUtilsTool');
+		const errorResult = {error: true, message: error.message};
 		return {
 			isError: true,
 			content: [
 				{
 					type: 'text',
-					text: `❌ Error: ${error.message}`
+					text: JSON.stringify(errorResult, null, 2)
 				}
-			]
+			],
+			structuredContent: errorResult
 		};
 	}
 }

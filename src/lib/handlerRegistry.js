@@ -209,7 +209,8 @@ export class HandlerRegistry {
 				logger.error(error.message, `Error calling tool ${toolName}, stack: ${error.stack}`);
 				return {
 					isError: true,
-					content: [{type: 'text', text: error.message}]
+					content: [{type: 'text', text: error.message}],
+					structuredContent: {error: true, message: error.message}
 				};
 			}
 		};

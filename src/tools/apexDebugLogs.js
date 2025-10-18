@@ -392,31 +392,34 @@ export async function apexDebugLogsToolHandler({action, logId}, args) {
 				const now = new Date();
 				const status = startDate < now && expirationDate > now ? '🟢 Active' : '🟥 Inactive';
 
+				const result = {
+					user: user.name,
+					status,
+					traceFlagId: traceFlag.Id,
+					startDate: formatDate(startDate),
+					expirationDate: formatDate(expirationDate),
+					debugLevel: traceFlag?.DebugLevel?.DeveloperName || null
+				};
+
 				return {
 					content: [
 						{
 							type: 'text',
-							text: `Apex debug logs status for user ${user.name} in ${state?.org?.alias}: ${status}.`
+							text: JSON.stringify(result, null, 2)
 						}
 					],
-					structuredContent: {
-						user: user.name,
-						status,
-						traceFlagId: traceFlag.Id,
-						startDate: formatDate(startDate),
-						expirationDate: formatDate(expirationDate),
-						debugLevel: traceFlag?.DebugLevel?.DeveloperName || null
-					}
+					structuredContent: result
 				};
 			} else {
+				const result = {status: 'inactive', traceFlag: null};
 				return {
 					content: [
 						{
 							type: 'text',
-							text: `Apex debug logs status for user ${user.name} in ${state?.org?.alias}: 🟥 Inactive`
+							text: JSON.stringify(result, null, 2)
 						}
 					],
-					structuredContent: {status: 'inactive', traceFlag: null}
+					structuredContent: result
 				};
 			}
 		} else if (action === 'on') {
@@ -512,20 +515,22 @@ export async function apexDebugLogsToolHandler({action, logId}, args) {
 			logger.debug(traceFlagResult, 'Create TraceFlag result');
 			const newTraceFlagId = traceFlagResult.successes?.[0]?.id;
 
+			const result = {
+				traceFlagId: newTraceFlagId,
+				status: startDate <= now && now <= expirationDate ? '🟢 Active' : '🟥 Inactive',
+				startDate: formatDate(startDate),
+				expirationDate: formatDate(expirationDate),
+				debugLevelName: 'ReplayDebuggerLevels'
+			};
+
 			return {
 				content: [
 					{
 						type: 'text',
-						text: `Apex debug logs status for ${user.name} in ${state?.org?.alias}: active`
+						text: JSON.stringify(result, null, 2)
 					}
 				],
-				structuredContent: {
-					traceFlagId: newTraceFlagId,
-					status: startDate <= now && now <= expirationDate ? '🟢 Active' : '🟥 Inactive',
-					startDate: formatDate(startDate),
-					expirationDate: formatDate(expirationDate),
-					debugLevelName: 'ReplayDebuggerLevels'
-				}
+				structuredContent: result
 			};
 		} else if (action === 'off') {
 			sendProgressNotification(progressToken, 1, 1, 'Disabling trace flag...');
@@ -534,14 +539,15 @@ export async function apexDebugLogsToolHandler({action, logId}, args) {
 			const traceFlag = soqlTraceFlagResult?.records?.[0];
 
 			if (!traceFlag) {
+				const result = {status: 'inactive', message: 'Already inactive'};
 				return {
 					content: [
 						{
 							type: 'text',
-							text: `Debug logs were already inactive for ${user.name} in ${state?.org?.alias}, no action taken`
+							text: JSON.stringify(result, null, 2)
 						}
 					],
-					structuredContent: {}
+					structuredContent: result
 				};
 			}
 
@@ -559,18 +565,20 @@ export async function apexDebugLogsToolHandler({action, logId}, args) {
 				{useToolingApi: true}
 			);
 
+			const result = {
+				...traceFlag,
+				status: '🟥 Inactive',
+				newExpirationDate: formatDate(newExpirationDate)
+			};
+
 			return {
 				content: [
 					{
 						type: 'text',
-						text: `Apex debug logs status for ${user.name} in ${state?.org?.alias}: 🟥 Inactive`
+						text: JSON.stringify(result, null, 2)
 					}
 				],
-				structuredContent: {
-					...traceFlag,
-					status: '🟥 Inactive',
-					expirationDate: formatDate(newExpirationDate)
-				}
+				structuredContent: result
 			};
 		} else if (action === 'list') {
 			const response = await runCliCommand('sf apex list log --json');
@@ -615,14 +623,16 @@ export async function apexDebugLogsToolHandler({action, logId}, args) {
 				logs = [];
 			}
 
+			const result = {logs};
+
 			return {
 				content: [
 					{
 						type: 'text',
-						text: `${logs.length} Apex debug logs found in ${state?.org?.alias}`
+						text: JSON.stringify(result, null, 2)
 					}
 				],
-				structuredContent: {logs}
+				structuredContent: result
 			};
 		} else if (action === 'get') {
 			if (!logId) {
@@ -701,14 +711,16 @@ export async function apexDebugLogsToolHandler({action, logId}, args) {
 					});
 
 					if (elicitResult.action !== 'accept' || !elicitResult.content?.logId) {
+						const cancelResult = {error: true, message: 'User cancelled log selection'};
 						return {
 							isError: true,
 							content: [
 								{
 									type: 'text',
-									text: 'User has cancelled the log selection'
+									text: JSON.stringify(cancelResult, null, 2)
 								}
-							]
+							],
+							structuredContent: cancelResult
 						};
 					}
 
@@ -720,10 +732,12 @@ export async function apexDebugLogsToolHandler({action, logId}, args) {
 
 			const apexLog = await runCliCommand(`sf apex get log --log-id ${logId}`);
 
+			const result = {logId, apexLog};
+
 			const content = [
 				{
 					type: 'text',
-					text: `Succesfully retrieved Apex debug log ${logId}`
+					text: JSON.stringify(result, null, 2)
 				}
 			];
 
@@ -739,7 +753,7 @@ export async function apexDebugLogsToolHandler({action, logId}, args) {
 
 			return {
 				content,
-				structuredContent: {apexLog}
+				structuredContent: result
 			};
 
 			/*
@@ -753,14 +767,16 @@ export async function apexDebugLogsToolHandler({action, logId}, args) {
 		}
 	} catch (error) {
 		logger.error(error);
+		const errorResult = {error: true, message: error.message};
 		return {
 			isError: true,
 			content: [
 				{
 					type: 'text',
-					text: `❌ Error managing debug logs: ${error.message}`
+					text: JSON.stringify(errorResult, null, 2)
 				}
-			]
+			],
+			structuredContent: errorResult
 		};
 	}
 }

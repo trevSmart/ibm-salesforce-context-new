@@ -1,4 +1,6 @@
+import { describe, test, beforeAll, afterAll, expect } from 'vitest'
 import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { logTestResult } from '../testUtils.js'
 
 describe('Client Roots', () => {
 	let client
@@ -19,6 +21,11 @@ describe('Client Roots', () => {
 		// Get the list of available tools from the server
 		const toolsList = await client.listTools()
 
+		logTestResult('client-roots.test.js', 'Retrieve tools list', {
+			description: 'Tests that client can retrieve list of available tools from server',
+			output: `Retrieved ${toolsList.length} tools`
+		}, 'ok')
+
 		// Verify we received a tools list
 		expect(toolsList).toBeTruthy()
 		expect(Array.isArray(toolsList)).toBe(true)
@@ -36,7 +43,5 @@ describe('Client Roots', () => {
 		expect(toolNames).toContain('salesforceContextUtils')
 		expect(toolNames).toContain('executeAnonymousApex')
 		expect(toolNames).toContain('describeObject')
-
-		console.log(`Successfully retrieved ${toolsList.length} tools from the server`)
 	})
 })

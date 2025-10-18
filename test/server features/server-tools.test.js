@@ -1,4 +1,5 @@
 import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { logTestResult } from '../testUtils.js'
 
 describe('Server tools', () => {
 	let client
@@ -18,6 +19,11 @@ describe('Server tools', () => {
 
 		// Get the list of available tools from the server
 		const toolsList = await client.listTools()
+
+		logTestResult('server-tools.test.js', 'Retrieve tools list', {}, 'ok', {
+			description: 'Tests that server exposes list of available tools',
+			output: `Retrieved ${toolsList.length} tools`
+		})
 
 		// Verify we received a tools list
 		expect(toolsList).toBeTruthy()

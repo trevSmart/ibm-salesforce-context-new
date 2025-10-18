@@ -1,4 +1,5 @@
 import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { logTestResult, validateMcpToolResponse } from '../testUtils.js'
 
 describe('getApexClassCodeCoverage', () => {
 	let client
@@ -16,6 +17,10 @@ describe('getApexClassCodeCoverage', () => {
 		const result = await client.callTool('getApexClassCodeCoverage', {
 			classNames: ['TestMCPTool'],
 		})
+
+		validateMcpToolResponse(result, 'getApexClassCodeCoverage')
+		logTestResult('getApexClassCodeCoverage.test.js', 'Get Apex Class Code Coverage', { classNames: ['TestMCPTool'] }, 'ok', result)
+
 		expect(result?.structuredContent?.classes).toBeTruthy()
 		expect(Array.isArray(result.structuredContent.classes)).toBe(true)
 

@@ -5,8 +5,8 @@
 			"label": "Biome lint",
 			"detail": "Check and fix all files with Biome",
 			"type": "process",
-			"command": "biome",
-			"args": ["check", "--write"],
+			"command": "npm",
+			"args": ["run", "lint:fix"],
 			"presentation": {
 				"showReuseMessage": false,
 				"panel": "shared",

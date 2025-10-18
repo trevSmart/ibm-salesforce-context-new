@@ -115,14 +115,16 @@ async function sendMessage(message) {
 
 export async function chatWithAgentforceToolHandler({message}) {
 	if (!message) {
+		const errorResult = {error: true, message: 'The "message" field is required'};
 		return {
 			isError: true,
 			content: [
 				{
 					type: 'text',
-					text: 'Validation error: the "message" field is required'
+					text: JSON.stringify(errorResult, null, 2)
 				}
-			]
+			],
+			structuredContent: errorResult
 		};
 	}
 
@@ -136,7 +138,7 @@ export async function chatWithAgentforceToolHandler({message}) {
 			content: [
 				{
 					type: 'text',
-					text: response.messages?.[0].message || 'No response received from Agentforce'
+					text: JSON.stringify(response, null, 2)
 				}
 			],
 			data: response,
@@ -144,14 +146,16 @@ export async function chatWithAgentforceToolHandler({message}) {
 		};
 	} catch (error) {
 		logger.error(error);
+		const errorResult = {error: true, message: error.message};
 		return {
 			isError: true,
 			content: [
 				{
 					type: 'text',
-					text: `❌ Error: ${error.message}`
+					text: JSON.stringify(errorResult, null, 2)
 				}
-			]
+			],
+			structuredContent: errorResult
 		};
 	}
 }

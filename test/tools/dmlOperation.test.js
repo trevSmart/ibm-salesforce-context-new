@@ -1,12 +1,19 @@
 import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { logTestResult, validateMcpToolResponse } from '../testUtils.js'
 
 describe('dmlOperation and getRecord', () => {
 	let client
 	let createdAccountId
 
 	beforeAll(async () => {
-		// Create and connect to the MCP server
-		client = await createMcpClient()
+		try {
+			// Create and connect to the MCP server
+			client = await createMcpClient()
+		} catch (error) {
+			console.error('Failed to create MCP client:', error)
+			// Re-throw to ensure test fails rather than skips
+			throw error
+		}
 	})
 
 	afterAll(async () => {
@@ -14,10 +21,8 @@ describe('dmlOperation and getRecord', () => {
 	})
 
 	test('create Account', async () => {
-		// Verify that the client is defined
-		expect(client).toBeTruthy()
-
-		const result = await client.callTool('dmlOperation', {
+		// Create account used by tests
+		const createResult = await client.callTool('dmlOperation', {
 			operations: {
 				create: [
 					{
@@ -33,12 +38,30 @@ describe('dmlOperation and getRecord', () => {
 			},
 		})
 
-		expect(result?.structuredContent?.outcome).toBeTruthyAndDump(result)
-		expect(result.structuredContent.successes).toBeTruthy()
-		expect(result.structuredContent.successes.length).toBeGreaterThan(0)
+		validateMcpToolResponse(createResult, 'dmlOperation create Account')
+		logTestResult('dmlOperation.test.js', 'Create Account', {
+			operations: {
+				create: [
+					{
+						sObjectName: 'Account',
+						fields: {
+							// biome-ignore lint/style/useNamingConvention: Salesforce API field names
+							Name: 'Test MCP Tool Account',
+							// biome-ignore lint/style/useNamingConvention: Salesforce API field names
+							Description: 'Account created by MCP tool test',
+						},
+					},
+				],
+			},
+		}, 'ok', createResult)
+
+		// Basic validations
+		expect(createResult?.structuredContent?.outcome).toBeTruthy()
+		expect(createResult.structuredContent.successes).toBeTruthy()
+		expect(createResult.structuredContent.successes.length).toBeGreaterThan(0)
 
 		// Store the created account ID for subsequent tests
-		createdAccountId = result.structuredContent.successes[0].id
+		createdAccountId = createResult.structuredContent.successes[0].id
 		expect(createdAccountId).toBeTruthy()
 	})
 
@@ -58,7 +81,22 @@ describe('dmlOperation and getRecord', () => {
 			},
 		})
 
-		expect(result).toBeTruthy()
+		validateMcpToolResponse(result, 'dmlOperation update Account')
+		logTestResult('dmlOperation.test.js', 'Update Account', {
+			operations: {
+				update: [
+					{
+						sObjectName: 'Account',
+						recordId: createdAccountId,
+						fields: {
+							// biome-ignore lint/style/useNamingConvention: Salesforce API field names
+							Description: `Updated by MCP Tool test at ${new Date().toISOString()}`,
+						},
+					},
+				],
+			},
+		}, 'ok', result)
+
 		expect(result?.structuredContent?.outcome).toBeTruthyAndDump(result?.structuredContent)
 	})
 
@@ -68,7 +106,9 @@ describe('dmlOperation and getRecord', () => {
 			recordId: createdAccountId,
 		})
 
-		expect(result?.structuredContent).toBeTruthyAndDump(result)
+		validateMcpToolResponse(result, 'getRecord retrieve Account')
+		logTestResult('dmlOperation.test.js', 'Get Record', { sObjectName: 'Account', recordId: createdAccountId }, 'ok', result)
+
 		expect(result.structuredContent.sObject).toBe('Account')
 		expect(result.structuredContent.fields).toBeTruthy()
 		expect(result.structuredContent.fields.Name).toBe('Test MCP Tool Account')
@@ -80,6 +120,9 @@ describe('dmlOperation and getRecord', () => {
 			sObjectName: 'NonExistentObject__c',
 			recordId: '001000000000000AAA',
 		})
+
+		validateMcpToolResponse(result, 'getRecord with non-existent SObject')
+		logTestResult('dmlOperation.test.js', 'Get Record (error)', { sObjectName: 'NonExistentObject__c', recordId: '001000000000000AAA' }, 'ok', result)
 
 		// Verify that the result indicates an error
 		expect(result.isError).toBe(true)
@@ -94,7 +137,7 @@ describe('dmlOperation and getRecord', () => {
 		expect(createdAccountId).toBeTruthy()
 		expect(typeof createdAccountId).toBe('string')
 		expect(createdAccountId.length).toBeGreaterThan(0)
-		expect(createdAccountId).toMatch(/^001[a-zA-Z0-9]{15}$/) // Salesforce Account ID format
+		expect(createdAccountId).toMatch(/^001[a-zA-Z0-9]{12}(?:[a-zA-Z0-9]{3})?$/) // Salesforce Account ID format (supports 15 or 18 char IDs)
 
 		// 2. Verify the account still exists before deletion
 		const preDeleteCheck = await client.callTool('getRecord', {
@@ -123,6 +166,18 @@ describe('dmlOperation and getRecord', () => {
 				],
 			},
 		})
+
+		validateMcpToolResponse(result, 'dmlOperation delete Account')
+		logTestResult('dmlOperation.test.js', 'Delete Account', {
+			operations: {
+				delete: [
+					{
+						sObjectName: 'Account',
+						recordId: createdAccountId,
+					},
+				],
+			},
+		}, 'ok', result)
 
 		// 4. Validate DELETE operation success
 		expect(result?.structuredContent?.outcome).toBeTruthyAndDump(result)

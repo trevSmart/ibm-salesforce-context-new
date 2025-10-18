@@ -77,7 +77,6 @@ export async function executeSoqlQueryToolHandler({query, useToolingApi = false}
 		queryResult.records = queryResult.records.map((r) => addUrlToRecord({...r}));
 
 		// Build response message
-		const totalSize = queryResult.totalSize || queryResult.records.length;
 
 		logger.debug('queryResult', JSON.stringify(queryResult, null, 2));
 
@@ -85,21 +84,23 @@ export async function executeSoqlQueryToolHandler({query, useToolingApi = false}
 			content: [
 				{
 					type: 'text',
-					text: `SOQL query executed successfully. Returned ${totalSize} record${totalSize !== 1 ? 's' : ''}:\n${JSON.stringify(queryResult.records, null, 2)}`
+					text: JSON.stringify(queryResult, null, 2)
 				}
 			],
 			structuredContent: queryResult
 		};
 	} catch (error) {
 		logger.error(error);
+		const errorStructure = {error: true, message: error.message};
 		return {
 			isError: true,
 			content: [
 				{
 					type: 'text',
-					text: `❌ Error executing SOQL query: ${error.message}`
+					text: JSON.stringify(errorStructure, null, 2)
 				}
-			]
+			],
+			structuredContent: errorStructure
 		};
 	}
 }

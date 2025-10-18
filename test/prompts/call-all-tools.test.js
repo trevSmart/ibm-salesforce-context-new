@@ -1,4 +1,5 @@
 import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { logTestResult } from '../testUtils.js'
 
 describe('call-all-tools', () => {
 	let client
@@ -14,6 +15,11 @@ describe('call-all-tools', () => {
 
 	test('prompt', async () => {
 		const result = await client.getPrompt('tools-basic-run', {})
+
+		logTestResult('call-all-tools.test.js', 'Prompt', {}, 'ok', {
+			description: 'Tests that call-all-tools prompt returns valid messages with expected content'
+		})
+
 		const hasMessages = result?.messages
 		const isArray = Array.isArray(result?.messages)
 		const isValidMessages = hasMessages && isArray

@@ -67,7 +67,160 @@ The `dev/updateReadme.js` script handles:
 
 ## Testing
 
-### All test should perform real actions on the Salesforce org, without any mocking or stubbing.
+### Testing Philosophy
+
+**All tests must perform real actions on the Salesforce org, without any mocking, stubbing, or skipping.**
+
+Our testing approach is designed to surface real-world issues and ensure that any problems are immediately visible when running the test suite. This means:
+
+- **No Mocking**: Tests must interact with real Salesforce orgs and real MCP servers
+- **No Stubbing**: All external dependencies must be real (Salesforce CLI, HTTP servers, etc.)
+- **No Skipping**: Tests must never be skipped due to connection issues, timeouts, or other failures
+- **Fail Fast**: Connection failures, server startup issues, and other problems must cause test failures, not skips
+
+### Test Failure vs Skip Behavior
+
+**Critical**: When tests encounter issues (connection failures, timeouts, server unavailability), they must **FAIL** rather than be **SKIPPED**. This ensures that:
+
+1. **Parent test suites correctly show as "Failed"** when they contain failed tests
+2. **CI/CD pipelines properly detect issues** and don't pass with hidden problems
+3. **Developers are immediately alerted** to infrastructure or configuration problems
+4. **Test results accurately reflect** the actual state of the system
+
+**Configuration**: Our Vitest configuration enforces this behavior with:
+- Extended timeouts (30 seconds) to prevent premature skipping
+- Explicit error handling that re-throws connection failures
+- Global configuration that treats hook failures as test failures
+- No early bailout on first failure to ensure all issues are surfaced
+
+### Test Configuration Requirements
+
+**IMPORTANT**: The following configuration must be maintained in `vitest.config.ts`:
+
+```typescript
+export default defineConfig({
+	test: {
+		testTimeout: 30000,    // Extended timeout to prevent premature skipping
+		hookTimeout: 30000,    // Extended hook timeout
+		bail: 0,               // Don't bail on first failure
+		// ... other config
+	},
+})
+```
+
+**Test Setup Requirements**: The `test/setup.ts` file must include:
+- Error handling that re-throws connection failures
+- Global timeout configuration
+- Explicit error propagation in `beforeAll` hooks
+
+**Individual Test Requirements**: Each test file must:
+- Wrap `beforeAll` hooks in try-catch blocks that re-throw errors
+- Never silently catch connection failures
+- Ensure that infrastructure problems cause test failures, not skips
+
+### Handling Test Failures
+
+When tests fail due to infrastructure issues (connection failures, server unavailability, etc.):
+
+1. **DO NOT** modify tests to skip or mock the failing components
+2. **DO** investigate and fix the underlying infrastructure problem
+3. **DO** ensure that the test environment is properly configured
+4. **DO** verify that all prerequisites are met before running tests
+
+**Common Infrastructure Issues**:
+- Salesforce CLI not logged in: Run `sf org display --json` to verify
+- MCP server not starting: Check port availability and server configuration
+- Network connectivity issues: Verify firewall and proxy settings
+- Missing environment variables: Ensure `.env` file is properly configured
+
+### MCP Tool Response Validation
+
+**CRITICAL**: All MCP tools must return both `content` and `structuredContent` fields as required by the MCP protocol. Tests must validate this compliance.
+
+**Tool Response Requirements**:
+- **`content`**: Must be present, non-null, and an array with at least one element
+- **`structuredContent`**: Must be present, non-null, and an object (not an array)
+- **Both fields**: Must always be returned together - never one without the other
+
+**Test Validation Pattern**: All tool tests must use the `validateMcpToolResponse()` helper function:
+
+```javascript
+import { validateMcpToolResponse } from '../testUtils.js'
+
+test('tool test', async () => {
+    const result = await client.callTool('toolName', { /* args */ })
+
+    // Validate MCP tool response structure
+    validateMcpToolResponse(result, 'toolName test description')
+
+    // Then validate specific content
+    expect(result.structuredContent.specificField).toBeTruthy()
+    // ... other specific validations
+})
+```
+
+**Why This Matters**:
+- Ensures MCP protocol compliance across all tools
+- Prevents false positives when tools don't follow the protocol
+- Provides clear error messages when validation fails
+- Maintains consistency across all test files
+- Future-proofs validation rules in one central location
+
+**Implementation Status**: The `validateMcpToolResponse()` function is available in `test/testUtils.js` and must be used in all tool tests. Any test that doesn't validate both fields is incomplete and may miss protocol violations.
+
+### Test Output and Evidence
+
+**CRITICAL**: All tests must provide clear, structured evidence of their execution using the `logTestResult()` function.
+
+**Test Output Requirements**:
+- **Structured Evidence**: All tests must use `logTestResult()` to provide clear, readable evidence of test execution
+- **Consistent Format**: Test output follows a standardized format with clear sections
+- **No Duplication**: Avoid duplicate logging between `logTestResult()` and manual `console.log()`
+- **Appropriate Sections**: Only show relevant sections (INPUT, OUTPUT, RESULT) based on test type
+
+**Test Output Pattern**: All tests must use the `logTestResult()` helper function:
+
+```javascript
+import { logTestResult } from '../testUtils.js'
+
+// For MCP tool tests
+test('tool test', async () => {
+    const result = await client.callTool('toolName', { param: 'value' })
+
+    logTestResult('toolName.test.js', 'Test description', { param: 'value' }, 'ok', result)
+
+    // Validate results
+    expect(result.structuredContent.field).toBeTruthy()
+})
+
+// For non-MCP tests
+test('unit test', async () => {
+    const output = someFunction(input)
+
+    logTestResult('unit.test.js', 'Test description', {
+        description: 'What this test validates',
+        output: `Processed ${output.length} items`
+    }, 'ok')
+
+    // Validate results
+    expect(output).toBeTruthy()
+})
+```
+
+**Test Output Format**:
+- **MCP Tool Tests**: Show INPUT (tool parameters), RESULT (content + structuredContent)
+- **Non-MCP Tests**: Show DESCRIPTION, OUTPUT (test results summary)
+- **Error Cases**: Show appropriate error messages with ✗ FAIL status
+- **Skip Cases**: Show skip reasons with ⏭ SKIP status
+
+**Why This Matters**:
+- Provides clear evidence of test execution and results
+- Makes test failures easier to debug and understand
+- Ensures consistent test output across all test files
+- Helps identify issues in CI/CD pipelines
+- Improves developer experience when running tests
+
+**Implementation Status**: The `logTestResult()` function is available in `test/testUtils.js` and must be used in all tests. Any test that doesn't provide structured evidence is incomplete.
 
 ### Testing prerequisites
 

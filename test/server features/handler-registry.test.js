@@ -4,6 +4,7 @@
 
 import {describe, it, expect, beforeEach, vi} from 'vitest';
 import {HandlerRegistry} from '../../src/lib/handlerRegistry.js';
+import { logTestResult } from '../testUtils.js';
 
 describe('HandlerRegistry', () => {
 	let registry;
@@ -40,12 +41,20 @@ describe('HandlerRegistry', () => {
 	it('should register handlers only once', () => {
 		const mockRootsChangeHandler = vi.fn();
 
+		logTestResult('handler-registry.test.js', 'Register handlers only once', {}, 'ok', {
+			description: 'Tests that HandlerRegistry registers handlers only once, ignoring subsequent calls'
+		})
+
 		registry.registerAll(mockRootsChangeHandler);
 		registry.registerAll(mockRootsChangeHandler); // Second call should be ignored
 	});
 
 	it('should register notification handlers correctly', () => {
 		const mockRootsChangeHandler = vi.fn();
+
+		logTestResult('handler-registry.test.js', 'Register notification handlers', {}, 'ok', {
+			description: 'Tests that HandlerRegistry registers notification handlers correctly'
+		})
 
 		registry.registerNotificationHandlers(mockRootsChangeHandler);
 
@@ -56,6 +65,10 @@ describe('HandlerRegistry', () => {
 	});
 
 	it('should register resource handlers correctly', async () => {
+		logTestResult('handler-registry.test.js', 'Register resource handlers', {}, 'ok', {
+			description: 'Tests that HandlerRegistry registers resource handlers correctly'
+		})
+
 		registry.registerResourceHandlers();
 
 		expect(mockMcpServer.server.setRequestHandler).toHaveBeenCalledTimes(3);
@@ -76,6 +89,10 @@ describe('HandlerRegistry', () => {
 	});
 
 	it('should register prompt handlers correctly', () => {
+		logTestResult('handler-registry.test.js', 'Register prompt handlers', {}, 'ok', {
+			description: 'Tests that HandlerRegistry registers prompt handlers correctly'
+		})
+
 		registry.registerPromptHandlers();
 
 		expect(mockMcpServer.registerPrompt).toHaveBeenCalledWith(
@@ -99,6 +116,10 @@ describe('HandlerRegistry', () => {
 		const mockToolHandler = vi.fn().mockResolvedValue({content: 'test result'});
 		const _staticHandlers = {testTool: mockToolHandler};
 
+		logTestResult('handler-registry.test.js', 'Create secure tool handlers', {}, 'ok', {
+			description: 'Tests that HandlerRegistry creates secure tool handlers with validation'
+		})
+
 		registry.registerToolHandlers();
 
 		// Get one of the registered tool handlers to test
@@ -109,9 +130,35 @@ describe('HandlerRegistry', () => {
 		expect(salesforceUtilsCall).toBeDefined();
 		const [_toolName, _toolDefinition, toolHandler] = salesforceUtilsCall;
 
-		// Test the handler works
+		// Test the handler works with valid parameters
+		const result = await toolHandler({action: 'getState'}, {});
+		expect(result).toBeDefined();
+		expect(result.isError).toBeFalsy();
+	});
+
+	it('should handle invalid tool parameters gracefully', async () => {
+		logTestResult('handler-registry.test.js', 'Handle invalid tool parameters', {}, 'ok', {
+			description: 'Tests that HandlerRegistry handles invalid tool parameters gracefully'
+		})
+
+		registry.registerToolHandlers();
+
+		// Get the salesforceContextUtils tool handler
+		const salesforceUtilsCall = mockMcpServer.registerTool.mock.calls.find(
+			call => call[0] === 'salesforceContextUtils'
+		);
+
+		expect(salesforceUtilsCall).toBeDefined();
+		const [_toolName, _toolDefinition, toolHandler] = salesforceUtilsCall;
+
+		// Test the handler handles invalid parameters correctly
 		const result = await toolHandler({param: 'test'}, {});
 		expect(result).toBeDefined();
+		expect(result.isError).toBe(true);
+		expect(result.content).toBeDefined();
+		expect(result.content[0].text).toContain('Invalid action: undefined');
+		expect(result.structuredContent).toBeDefined();
+		expect(result.structuredContent.error).toBe(true);
 	});
 
 	/* it('should validate user permissions for secure tools', async () => {
@@ -137,6 +184,10 @@ describe('HandlerRegistry', () => {
 		mockState.userPermissionsValidated = false;
 		mockState.org.user.id = null;
 
+		logTestResult('handler-registry.test.js', 'Bypass validation for utility tools', {}, 'ok', {
+			description: 'Tests that HandlerRegistry bypasses validation for utility tools'
+		})
+
 		const mockUtilityHandler = vi.fn().mockResolvedValue({content: 'utility result'});
 		const staticHandlers = {salesforceContextUtils: mockUtilityHandler};
 
@@ -155,13 +206,21 @@ describe('HandlerRegistry', () => {
 		const mockErrorHandler = vi.fn().mockRejectedValue(new Error('Tool error'));
 		const staticHandlers = {testTool: mockErrorHandler};
 
+		// Set initialization complete to bypass initialization check
+		mockState.initializationComplete = true;
+
+		logTestResult('handler-registry.test.js', 'Handle tool errors gracefully', {}, 'ok', {
+			description: 'Tests that HandlerRegistry handles tool errors gracefully'
+		})
+
 		const handler = registry.createSecureToolHandler('testTool', staticHandlers);
 
 		const result = await handler({}, {});
 
 		expect(result).toEqual({
 			isError: true,
-			content: [{type: 'text', text: 'Tool error'}]
+			content: [{type: 'text', text: 'Tool error'}],
+			structuredContent: {error: true, message: 'Tool error'}
 		});
 	});
 });

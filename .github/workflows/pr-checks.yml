@@ -1,15 +1,101 @@
-name: Pull Request checks
+name: Pull Request Checks
 
 on:
   pull_request:
-    branches: [ main, master, develop ]
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
+  forbidden-literal-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+      with:
+        fetch-depth: 0  # Fetch full history to check all changed files
+
+    - name: Check for forbidden literals
+      run: |
+        FORBIDDEN_LITERAL="caixa"
+        echo "🔍 Checking for forbidden literal: '$FORBIDDEN_LITERAL'"
+
+        # Get list of changed files in this PR
+        CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+
+        echo "📁 Changed files in PR:"
+        echo "$CHANGED_FILES"
+
+        # Filter out the pre-commit script itself and other excluded files
+        FILTERED_FILES=$(echo "$CHANGED_FILES" | grep -v "dev/pre-commit.sh" | grep -v ".github/workflows/" || echo "")
+
+        if [ -n "$FILTERED_FILES" ]; then
+          echo "🔎 Checking filtered files for forbidden literal..."
+
+          # Check each file individually to handle spaces in filenames
+          FOUND_FORBIDDEN=false
+          VIOLATIONS=""
+
+          while IFS= read -r file; do
+            if [ -n "$file" ] && [ -f "$file" ]; then
+              if grep -H -n -E -i "$FORBIDDEN_LITERAL" "$file" > /dev/null 2>&1; then
+                FOUND_FORBIDDEN=true
+                VIOLATIONS="${VIOLATIONS}$(grep -H -n -E -i "$FORBIDDEN_LITERAL" "$file")\n"
+              fi
+            fi
+          done <<< "$FILTERED_FILES"
+
+          if [ "$FOUND_FORBIDDEN" = true ]; then
+            echo "❌ Forbidden literal '$FORBIDDEN_LITERAL' found in the following files:"
+            echo -e "$VIOLATIONS"
+            echo ""
+            echo "🚫 Pull request blocked due to forbidden content."
+            echo "Please remove the forbidden literal and push again."
+            exit 1
+          else
+            echo "✅ No forbidden literals found in changed files"
+          fi
+        else
+          echo "ℹ️ No files to check (all changed files are excluded)"
+        fi
+
+    - name: Comment on PR if forbidden literal found
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+
+          const botComment = comments.find(comment =>
+            comment.user.type === 'Bot' &&
+            comment.body.includes('🚫 Forbidden literal detected')
+          );
+
+          if (!botComment) {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `🚫 **Forbidden literal detected!**
+
+              This pull request contains the forbidden literal "caixa" in one or more files.
+
+              Please remove the forbidden literal and push your changes again. The check will automatically re-run.
+
+              **Note:** This check helps maintain code quality and prevents inappropriate content from being committed to the repository.`
+            });
+          }
+
   lint:
     runs-on: ubuntu-latest
+    needs: [forbidden-literal-check]
 
     strategy:
       matrix:
@@ -33,7 +119,7 @@ jobs:
 
   # test:
   #   runs-on: ubuntu-latest
-  #   needs: [lint]
+  #   needs: [forbidden-literal-check, lint]
   #   environment: copilot
 
   #   strategy:
@@ -84,12 +170,59 @@ jobs:
   #       }' org-details.json
   #       rm -f org-details.json
 
-  #   - name: Run tests
-  #     run: npm run test
+  #   - name: Run non-optional tests
+  #     run: npm run test:non-optional
+
+  #   - name: Run optional tests
+  #     id: run-optional-tests
+  #     run: npm run test:optional
+  #     continue-on-error: true
+
+  #   - name: Comment on PR with optional test results
+  #     if: always()
+  #     uses: actions/github-script@v7
+  #     with:
+  #       script: |
+  #         const optionalTestStatus = '${{ steps.run-optional-tests.outcome }}';
+  #         const testResult = optionalTestStatus === 'success' ? '✅' : '⚠️';
+  #         const statusText = optionalTestStatus === 'success' ? 'passed' : 'failed';
+
+  #         const { data: comments } = await github.rest.issues.listComments({
+  #           owner: context.repo.owner,
+  #           repo: context.repo.repo,
+  #           issue_number: context.issue.number,
+  #         });
+
+  #         const botComment = comments.find(comment =>
+  #           comment.user.type === 'Bot' &&
+  #           comment.body.includes('🧪 Optional Test Results')
+  #         );
+
+  #         const commentBody = `🧪 **Optional Test Results**
+
+  #         Optional tests ${statusText} (${testResult})
+
+  #         **Note:** Optional test failures do not block merging but should be addressed in future commits.`;
+
+  #         if (!botComment) {
+  #           await github.rest.issues.createComment({
+  #             owner: context.repo.owner,
+  #             repo: context.repo.repo,
+  #             issue_number: context.issue.number,
+  #             body: commentBody
+  #           });
+  #         } else {
+  #           await github.rest.issues.updateComment({
+  #             owner: context.repo.owner,
+  #             repo: context.repo.repo,
+  #             comment_id: botComment.id,
+  #             body: commentBody
+  #           });
+  #         }
 
   security:
     runs-on: ubuntu-latest
-    needs: [lint]
+    needs: [forbidden-literal-check, lint]
 
     steps:
     - name: Checkout code
