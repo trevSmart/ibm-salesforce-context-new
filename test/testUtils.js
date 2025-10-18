@@ -150,13 +150,14 @@ export function logTestResult(testFileName, testName, inputOrOptions, outcome, r
 	if (input && Object.keys(input).length > 0) {
 		console.log('INPUT:')
 		console.log('    {')
-		Object.entries(input).forEach(([key, value]) => {
+		const entries = Object.entries(input)
+		for (const [key, value] of entries) {
 			if (typeof value === 'string') {
-				console.log(`      ${key}: '${value}'${Object.keys(input).indexOf(key) < Object.keys(input).length - 1 ? ',' : ''}`)
+				console.log(`      ${key}: '${value}'${entries.indexOf([key, value]) < entries.length - 1 ? ',' : ''}`)
 			} else {
-				console.log(`      ${key}: ${JSON.stringify(value)}${Object.keys(input).indexOf(key) < Object.keys(input).length - 1 ? ',' : ''}`)
+				console.log(`      ${key}: ${JSON.stringify(value)}${entries.indexOf([key, value]) < entries.length - 1 ? ',' : ''}`)
 			}
-		})
+		}
 		console.log('    }\n')
 	}
 
@@ -179,9 +180,9 @@ export function logTestResult(testFileName, testName, inputOrOptions, outcome, r
 		const knownFields = ['content', 'structuredContent']
 		const otherFields = Object.keys(result).filter(key => !knownFields.includes(key))
 
-		otherFields.forEach(field => {
+		for (const field of otherFields) {
 			console.log(`    ${field}: ${JSON.stringify(result[field])}`)
-		})
+		}
 
 		if (otherFields.length > 0) {
 			console.log('')

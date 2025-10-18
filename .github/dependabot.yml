@@ -37,29 +37,29 @@ updates:
         patterns:
           - "@modelcontextprotocol/*"
         update-types:
-          - "minor"
-          - "patch"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
       dev-dependencies:
         patterns:
           - "@babel/*"
           - "javascript-obfuscator"
         update-types:
-          - "minor"
-          - "patch"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
       utility-dependencies:
         patterns:
           - "semver"
           - "globals"
         update-types:
-          - "minor"
-          - "patch"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
       # Default fallback group for any other dependency not covered above
       default-minor-patch:
         patterns:
           - "*"
         update-types:
-          - "minor"
-          - "patch"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
 
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
@@ -85,5 +85,5 @@ updates:
         patterns:
           - "*"
         update-types:
-          - "minor"
-          - "patch"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"

@@ -45,7 +45,9 @@ describe('dmlOperation and getRecord', () => {
 					{
 						sObjectName: 'Account',
 						fields: {
+							// biome-ignore lint/style/useNamingConvention: Salesforce API field names
 							Name: 'Test MCP Tool Account',
+							// biome-ignore lint/style/useNamingConvention: Salesforce API field names
 							Description: 'Account created by MCP tool test',
 						},
 					},
@@ -87,6 +89,7 @@ describe('dmlOperation and getRecord', () => {
 						sObjectName: 'Account',
 						recordId: createdAccountId,
 						fields: {
+							// biome-ignore lint/style/useNamingConvention: Salesforce API field names
 							Description: `Updated by MCP Tool test at ${new Date().toISOString()}`,
 						},
 					},
