@@ -42,10 +42,6 @@ export async function createMcpClient() {
 					}
 				}
 			}
-			// If the result already has structuredContent (e.g., from error handling), use it
-			if (result?.structuredContent) {
-				return result
-			}
 			// If no content or empty content, return result as-is
 			return result
 		},

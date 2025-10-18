@@ -1,3 +1,4 @@
+import { describe, test, beforeAll, afterAll, expect } from 'vitest'
 import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
 
 describe('Client Roots', () => {

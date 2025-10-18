@@ -17,7 +17,7 @@ export default defineConfig({
 		// Ensure teardown runs even on interrupt
 		teardownTimeout: 10000,
 		// Force exit after tests complete
-		forceExit: true,
+		bail: 0,
 		include: ['test/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
 		coverage: {
 			enabled: false,

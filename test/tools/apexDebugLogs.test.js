@@ -5,8 +5,14 @@ describe('apexDebugLogs', () => {
 	let logsList // Shared variable for test dependencies
 
 	beforeAll(async () => {
-		// Get shared MCP client instance
-		client = await createMcpClient()
+		try {
+			// Get shared MCP client instance
+			client = await createMcpClient()
+		} catch (error) {
+			console.error('Failed to create MCP client:', error)
+			// Re-throw to ensure test fails rather than skips
+			throw error
+		}
 	})
 
 	afterAll(async () => {
@@ -29,13 +35,6 @@ describe('apexDebugLogs', () => {
 	test('list', async () => {
 		const result = await client.callTool('apexDebugLogs', { action: 'list' })
 		expect(result).toBeTruthy()
-
-		// If result is an error, skip the test instead of failing
-		if (result.isError) {
-			console.log('Skipping test due to server error:', result.content?.[0]?.text)
-			return
-		}
-
 		expect(result.structuredContent).toBeTruthy()
 		expect(Array.isArray(result.structuredContent.logs)).toBe(true)
 
@@ -44,14 +43,15 @@ describe('apexDebugLogs', () => {
 	})
 
 	test('get', async () => {
-		// If logsList is not defined or empty, skip the test
+		// If logsList is not defined or empty, fail the test
 		if (!(logsList && Array.isArray(logsList)) || logsList.length === 0) {
-			console.log('No logs available for apexDebugLogs get test, skipping...')
-			return
+			throw new Error('No logs available for apexDebugLogs get test - this indicates a problem with the test setup or Salesforce org configuration')
 		}
 
 		// Use the first available log
 		const firstLog = logsList[0]
+		expect(firstLog).toBeTruthy()
+		expect(firstLog.Id).toBeTruthy()
 		const logId = firstLog.Id
 
 		// Now get the specific log content
@@ -59,13 +59,6 @@ describe('apexDebugLogs', () => {
 
 		// Check if result is defined and has the expected structure
 		expect(result).toBeTruthy()
-
-		// If result is an error, skip the test instead of failing
-		if (result.isError) {
-			console.log('Skipping test due to server error:', result.content?.[0]?.text)
-			return
-		}
-
 		expect(result.structuredContent).toBeTruthy()
 
 		// Log content might be undefined if the log is empty or not available yet

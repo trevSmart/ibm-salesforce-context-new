@@ -163,6 +163,7 @@ describe('createMetadata', () => {
 			triggerSObject: 'Account',
 			triggerEvent: ['after insert', 'before update'],
 		})
+
 		if (result?.structuredContent?.files) {
 			createdFiles.push(...result.structuredContent.files)
 		}
@@ -175,13 +176,13 @@ describe('createMetadata', () => {
 			type: 'lwc',
 			name: 'testMCPToolComponent',
 		})
+
 		if (result?.structuredContent?.files) {
 			createdFiles.push(...result.structuredContent.files)
 		}
 		expect(result?.structuredContent?.success).toBeTruthyAndDump(result?.structuredContent)
-		const files = result?.structuredContent?.files || []
-		expect(files.some((filePath) => filePath.includes('__tests__'))).toBe(false)
-		if (typeof result?.structuredContent?.stdout === 'string') {
+		expect(result.structuredContent.files.some((filePath) => filePath.includes('__tests__'))).toBe(false)
+		if (typeof result.structuredContent.stdout === 'string') {
 			expect(result.structuredContent.stdout.includes('__tests__')).toBe(false)
 		}
 	})

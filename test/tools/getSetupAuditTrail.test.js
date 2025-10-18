@@ -36,10 +36,9 @@ describe('getSetupAuditTrail', () => {
 
 			expect(result).toBeTruthy()
 
-			// If result is an error, skip the test instead of failing
+			// If result is an error, fail the test instead of skipping
 			if (result.isError) {
-				console.log('Skipping test due to server error:', result.content?.[0]?.text)
-				return
+				throw new Error(`Server error: ${result.content?.[0]?.text}`)
 			}
 
 			expect(result?.structuredContent?.filters).toBeTruthy()
@@ -63,10 +62,9 @@ describe('getSetupAuditTrail', () => {
 
 		expect(result).toBeTruthy()
 
-		// If result is an error, skip the test instead of failing
+		// If result is an error, fail the test instead of skipping
 		if (result.isError) {
-			console.log('Skipping test due to server error:', result.content?.[0]?.text)
-			return
+			throw new Error(`Server error: ${result.content?.[0]?.text}`)
 		}
 
 		expect(result?.structuredContent?.filters).toBeTruthy()

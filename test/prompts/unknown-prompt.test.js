@@ -4,8 +4,14 @@ describe('unknown-prompt', () => {
 	let client
 
 	beforeAll(async () => {
-		// Get shared MCP client instance
-		client = await createMcpClient()
+		try {
+			// Get shared MCP client instance
+			client = await createMcpClient()
+		} catch (error) {
+			console.error('Failed to create MCP client:', error)
+			// Re-throw to ensure test fails rather than skips
+			throw error
+		}
 	})
 
 	afterAll(async () => {

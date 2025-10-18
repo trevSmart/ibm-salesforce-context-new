@@ -23,8 +23,7 @@ describe('runApexTest', () => {
 		// Use the first available test class
 		const testClasses = queryResult?.structuredContent?.records || []
 		if (testClasses.length === 0) {
-			console.log('No test classes found, skipping test')
-			return
+			throw new Error('No test classes found - this indicates a problem with the Salesforce org configuration or test setup')
 		}
 
 		const testClassName = testClasses[0].Name

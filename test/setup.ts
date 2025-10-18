@@ -6,6 +6,15 @@ import { config } from 'dotenv'
 // Load environment variables from .env file before running tests
 config()
 
+// Configure global test behavior to prevent false skips
+import { vi } from 'vitest'
+
+// Ensure that hook failures are treated as test failures
+vi.setConfig({
+	testTimeout: 20_000,
+	hookTimeout: 20_000,
+})
+
 // Verify that PASSWORD environment variable is loaded
 if (!process.env.PASSWORD) {
 	console.warn('Warning: PASSWORD environment variable not found. Make sure .env file exists and contains PASSWORD=value')
@@ -50,17 +59,25 @@ beforeAll(async () => {
 		console.error('Could not clean .test-artifacts:', err)
 	}
 
-	// Register signal handlers for test environment
-	const { registerSignalHandlers } = await import(serverPath)
-	registerSignalHandlers()
+	try {
+		// Register signal handlers for test environment
+		const { registerSignalHandlers } = await import(serverPath)
+		registerSignalHandlers()
 
-	const result = await setupServer('http')
-	await readyPromise
+		const result = await setupServer('http')
+		await readyPromise
 
-	// Capture the ACTUAL port that the server is using
-	if (result?.transportInfo?.port) {
-		process.env.MCP_HTTP_PORT = String(result.transportInfo.port)
-		console.log(`✓ Test server started on port ${result.transportInfo.port}`)
+		// Capture the ACTUAL port that the server is using
+		if (result?.transportInfo?.port) {
+			process.env.MCP_HTTP_PORT = String(result.transportInfo.port)
+			console.log(`✓ Test server started on port ${result.transportInfo.port}`)
+		} else {
+			throw new Error('Failed to start test server: no port information available')
+		}
+	} catch (error) {
+		console.error('Failed to start test server:', error)
+		// Re-throw the error to ensure tests fail rather than skip
+		throw error
 	}
 })
 

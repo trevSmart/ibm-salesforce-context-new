@@ -1,11 +1,17 @@
-import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { createMcpClient, disconnectMcpClient, validateMcpToolResponse } from '../testMcpClient.js'
 
 describe('describeObject', () => {
 	let client
 
 	beforeAll(async () => {
-		// Create and connect to the MCP server
-		client = await createMcpClient()
+		try {
+			// Create and connect to the MCP server
+			client = await createMcpClient()
+		} catch (error) {
+			console.error('Failed to create MCP client:', error)
+			// Re-throw to ensure test fails rather than skips
+			throw error
+		}
 	})
 
 	afterAll(async () => {
@@ -30,8 +36,11 @@ describe('describeObject', () => {
 			sObjectName: 'Account',
 		})
 		console.log('Result:', JSON.stringify(result, null, 2))
-		expect(result).toBeTruthy()
-		expect(result?.structuredContent).toBeTruthy()
+
+		// Validate MCP tool response structure
+		validateMcpToolResponse(result, 'describeObject Account')
+
+		// Validate specific content
 		expect(result.structuredContent.name).toBe('Account')
 		expect(Array.isArray(result.structuredContent.fields)).toBe(true)
 		expect(result.structuredContent.fields.length).toBeGreaterThan(0)
@@ -42,8 +51,11 @@ describe('describeObject', () => {
 			sObjectName: 'Account',
 			includeFields: false,
 		})
-		expect(result).toBeTruthy()
-		expect(result?.structuredContent).toBeTruthy()
+
+		// Validate MCP tool response structure
+		validateMcpToolResponse(result, 'describeObject with includeFields false')
+
+		// Validate specific content
 		expect(result?.structuredContent?.wasCached).toBeTruthy()
 	})
 
@@ -52,8 +64,11 @@ describe('describeObject', () => {
 			sObjectName: 'ApexLog',
 			useToolingApi: true,
 		})
-		expect(result).toBeTruthy()
-		expect(result?.structuredContent).toBeTruthy()
+
+		// Validate MCP tool response structure
+		validateMcpToolResponse(result, 'describeObject with Tooling API')
+
+		// Validate specific content
 		expect(Array.isArray(result?.structuredContent?.fields)).toBe(true)
 		expect(result?.structuredContent?.fields.length).toBeGreaterThan(0)
 	})

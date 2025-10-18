@@ -1,13 +1,25 @@
-import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { createMcpClient, disconnectMcpClient, validateMcpToolResponse } from '../testMcpClient.js'
 
 describe('dmlOperation and getRecord', () => {
 	let client
 	let createdAccountId
 
 	beforeAll(async () => {
-		// Create and connect to the MCP server and create a test Account
-		client = await createMcpClient()
+		try {
+			// Create and connect to the MCP server
+			client = await createMcpClient()
+		} catch (error) {
+			console.error('Failed to create MCP client:', error)
+			// Re-throw to ensure test fails rather than skips
+			throw error
+		}
+	})
 
+	afterAll(async () => {
+		await disconnectMcpClient(client)
+	})
+
+	test('create Account', async () => {
 		// Create account used by tests
 		const createResult = await client.callTool('dmlOperation', {
 			operations: {
@@ -25,6 +37,9 @@ describe('dmlOperation and getRecord', () => {
 			},
 		})
 
+		// Validate MCP tool response structure
+		validateMcpToolResponse(createResult, 'dmlOperation create Account')
+
 		// Basic validations
 		expect(createResult?.structuredContent?.outcome).toBeTruthy()
 		expect(createResult.structuredContent.successes).toBeTruthy()
@@ -32,15 +47,6 @@ describe('dmlOperation and getRecord', () => {
 
 		// Store the created account ID for subsequent tests
 		createdAccountId = createResult.structuredContent.successes[0].id
-		expect(createdAccountId).toBeTruthy()
-	})
-
-	afterAll(async () => {
-		await disconnectMcpClient(client)
-	})
-
-	test('create Account', async () => {
-		// Ensure the account was created in beforeAll
 		expect(createdAccountId).toBeTruthy()
 	})
 
@@ -60,7 +66,9 @@ describe('dmlOperation and getRecord', () => {
 			},
 		})
 
-		expect(result).toBeTruthy()
+		// Validate MCP tool response structure
+		validateMcpToolResponse(result, 'dmlOperation update Account')
+
 		expect(result?.structuredContent?.outcome).toBeTruthyAndDump(result?.structuredContent)
 	})
 
@@ -70,7 +78,9 @@ describe('dmlOperation and getRecord', () => {
 			recordId: createdAccountId,
 		})
 
-		expect(result?.structuredContent).toBeTruthyAndDump(result)
+		// Validate MCP tool response structure
+		validateMcpToolResponse(result, 'getRecord retrieve Account')
+
 		expect(result.structuredContent.sObject).toBe('Account')
 		expect(result.structuredContent.fields).toBeTruthy()
 		expect(result.structuredContent.fields.Name).toBe('Test MCP Tool Account')

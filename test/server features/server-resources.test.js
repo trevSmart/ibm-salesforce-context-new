@@ -8,8 +8,14 @@ describe('Server Resources', () => {
         let mcpClient
 
         beforeAll(async () => {
-                // Get shared MCP client instance once for all tests
-                mcpClient = await createMcpClient()
+		try {
+			// Get shared MCP client instance once for all tests
+			mcpClient = await createMcpClient()
+		} catch (error) {
+			console.error('Failed to create MCP client:', error)
+			// Re-throw to ensure test fails rather than skips
+			throw error
+		}
         })
 
         afterAll(async () => {
@@ -84,7 +90,7 @@ describe('Server Resources', () => {
 			action: 'loadRecordPrefixesResource',
 		})
 
-		// Verify the tool call was successful
+		// Verify the tool call was successful caixa
 		expect(result).toBeTruthy()
 
 		// Wait a bit for the resource to be created and notification to be sent
