@@ -12,7 +12,7 @@ permissions:
 jobs:
   forbidden-literal-check:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v5
@@ -23,7 +23,7 @@ jobs:
       run: |
         FORBIDDEN_LITERAL="caixa"
         echo "🔍 Checking for forbidden literal: '$FORBIDDEN_LITERAL'"
-        
+
         # Get list of changed files in this push/PR
         if [ "${{ github.event_name }}" = "pull_request" ]; then
           # For PRs, check files changed in the PR
@@ -32,20 +32,20 @@ jobs:
           # For pushes, check files changed in the last commit
           CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
         fi
-        
+
         echo "📁 Changed files:"
         echo "$CHANGED_FILES"
-        
+
         # Filter out the pre-commit script itself and other excluded files
         FILTERED_FILES=$(echo "$CHANGED_FILES" | grep -v "dev/pre-commit.sh" | grep -v ".github/workflows/" || echo "")
-        
+
         if [ -n "$FILTERED_FILES" ]; then
           echo "🔎 Checking filtered files for forbidden literal..."
-          
+
           # Check each file individually to handle spaces in filenames
           FOUND_FORBIDDEN=false
           VIOLATIONS=""
-          
+
           while IFS= read -r file; do
             if [ -n "$file" ] && [ -f "$file" ]; then
               if grep -H -n -E -i "$FORBIDDEN_LITERAL" "$file" > /dev/null 2>&1; then
@@ -54,7 +54,7 @@ jobs:
               fi
             fi
           done <<< "$FILTERED_FILES"
-          
+
           if [ "$FOUND_FORBIDDEN" = true ]; then
             echo "❌ Forbidden literal '$FORBIDDEN_LITERAL' found in the following files:"
             echo -e "$VIOLATIONS"
