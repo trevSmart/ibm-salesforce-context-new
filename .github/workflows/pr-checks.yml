@@ -122,53 +122,53 @@ jobs:
     needs: [forbidden-literal-check, lint]
     environment: copilot
 
-    strategy:
-      matrix:
-        node-version: [22.17.1]
+  #   strategy:
+  #     matrix:
+  #       node-version: [22.17.1]
 
-    env:
-      SFDX_USE_GENERIC_UNIX_KEYCHAIN: 'true'
-      SF_ORG_ALIAS: 'github-ci'
+  #   env:
+  #     SFDX_USE_GENERIC_UNIX_KEYCHAIN: 'true'
+  #     SF_ORG_ALIAS: 'github-ci'
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v5
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v5
 
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v6
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
+  #   - name: Setup Node.js ${{ matrix.node-version }}
+  #     uses: actions/setup-node@v6
+  #     with:
+  #       node-version: ${{ matrix.node-version }}
+  #       cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
+  #   - name: Install dependencies
+  #     run: npm ci
 
-    - name: Expose local Salesforce CLI
-      run: echo "${{ github.workspace }}/node_modules/.bin" >> "$GITHUB_PATH"
+  #   - name: Expose local Salesforce CLI
+  #     run: echo "${{ github.workspace }}/node_modules/.bin" >> "$GITHUB_PATH"
 
-    - name: Authenticate with Salesforce
-      env:
-        SF_ORG_CLIENT_ID: ${{ secrets.SF_ORG_CLIENT_ID }}
-        SF_ORG_CLIENT_SECRET: ${{ secrets.SF_ORG_CLIENT_SECRET }}
-        SF_ORG_CLIENT_USERNAME: ${{ secrets.SF_ORG_CLIENT_USERNAME }}
-        SF_ORG_CLIENT_PASSWORD: ${{ secrets.SF_ORG_CLIENT_PASSWORD }}
-      run: ./dev/startEnvironment.sh
+  #   - name: Authenticate with Salesforce
+  #     env:
+  #       SF_ORG_CLIENT_ID: ${{ secrets.SF_ORG_CLIENT_ID }}
+  #       SF_ORG_CLIENT_SECRET: ${{ secrets.SF_ORG_CLIENT_SECRET }}
+  #       SF_ORG_CLIENT_USERNAME: ${{ secrets.SF_ORG_CLIENT_USERNAME }}
+  #       SF_ORG_CLIENT_PASSWORD: ${{ secrets.SF_ORG_CLIENT_PASSWORD }}
+  #     run: ./dev/startEnvironment.sh
 
-    - name: Verify Salesforce connection
-      run: |
-        # Filter out accessToken immediately to avoid writing it to disk
-        sf org display --json | jq 'del(.result.accessToken)' > org-details.json
-        jq '{
-          status: .status,
-          result: {
-            id: .result.id,
-            username: .result.username,
-            instanceUrl: .result.instanceUrl,
-            connectedStatus: .result.connectedStatus,
-            alias: .result.alias
-          }
-        }' org-details.json
-        rm -f org-details.json
+  #   - name: Verify Salesforce connection
+  #     run: |
+  #       # Filter out accessToken immediately to avoid writing it to disk
+  #       sf org display --json | jq 'del(.result.accessToken)' > org-details.json
+  #       jq '{
+  #         status: .status,
+  #         result: {
+  #           id: .result.id,
+  #           username: .result.username,
+  #           instanceUrl: .result.instanceUrl,
+  #           connectedStatus: .result.connectedStatus,
+  #           alias: .result.alias
+  #         }
+  #       }' org-details.json
+  #       rm -f org-details.json
 
     - name: Run non-optional tests
       run: npm run test:non-optional

@@ -60,7 +60,6 @@ jobs:
         else
           echo "ℹ️ No files to check (all changed files are excluded)"
         fi
-
   lint:
     runs-on: ubuntu-latest
     needs: [forbidden-literal-check]
