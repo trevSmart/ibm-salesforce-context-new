@@ -152,6 +152,9 @@ describe('HandlerRegistry', () => {
 		const mockErrorHandler = vi.fn().mockRejectedValue(new Error('Tool error'));
 		const staticHandlers = {testTool: mockErrorHandler};
 
+		// Set initialization complete to bypass initialization check
+		mockState.initializationComplete = true;
+
 		const handler = registry.createSecureToolHandler('testTool', staticHandlers);
 
 		const result = await handler({}, {});
