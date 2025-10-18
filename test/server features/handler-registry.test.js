@@ -149,6 +149,9 @@ describe('HandlerRegistry', () => {
 	});
 
 	it('should handle tool errors gracefully', async () => {
+		// Set initialization complete to avoid the initialization error
+		mockState.initializationComplete = true;
+
 		const mockErrorHandler = vi.fn().mockRejectedValue(new Error('Tool error'));
 		const staticHandlers = {testTool: mockErrorHandler};
 
