@@ -23,12 +23,20 @@ updates:
       - "npm"
     rebase-strategy: "auto"
     ignore:
-      - dependency-type: "development"
       # Ignore major version updates for critical dependencies
       - dependency-name: "@modelcontextprotocol/sdk"
         update-types: ["version-update:semver-major"]
       - dependency-name: "zod"
         update-types: ["version-update:semver-major"]
+      # Ignore transitive dependency vulnerabilities that cannot be resolved
+      - dependency-name: "path-to-regexp"
+        update-types: ["security"]
+      - dependency-name: "brace-expansion"
+        update-types: ["security"]
+      - dependency-name: "validator"
+        update-types: ["security"]
+      - dependency-name: "fast-redact"
+        update-types: ["security"]
       # Note: Nested vulnerabilities in @salesforce/cli (brace-expansion, path-to-regexp)
       # cannot be fixed via dependabot updates due to deep nesting constraints
       # See SECURITY.md for detailed analysis and mitigation strategies
