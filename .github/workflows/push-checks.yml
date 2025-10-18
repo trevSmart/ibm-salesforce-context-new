@@ -23,7 +23,7 @@ jobs:
         echo "🔍 Checking for forbidden literal: '$FORBIDDEN_LITERAL'"
 
         # Get list of changed files in this push
-        CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+        CHANGED_FILES=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
 
         echo "📁 Changed files:"
         echo "$CHANGED_FILES"
