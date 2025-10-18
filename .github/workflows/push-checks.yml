@@ -29,7 +29,7 @@ jobs:
         echo "$CHANGED_FILES"
 
         # Filter out the pre-commit script itself and other excluded files
-        FILTERED_FILES=$(echo "$CHANGED_FILES" | grep -v "dev/pre-commit.sh" | grep -v ".github/workflows/push-checks.yml" | grep -v ".github/workflows/pr-checks.yml" || echo "")
+        FILTERED_FILES=$(echo "$CHANGED_FILES" | grep -F -v "dev/pre-commit.sh" | grep -F -v ".github/workflows/push-checks.yml" | grep -F -v ".github/workflows/pr-checks.yml" || echo "")
 
         if [ -n "$FILTERED_FILES" ]; then
           echo "🔎 Checking filtered files for forbidden literal..."
