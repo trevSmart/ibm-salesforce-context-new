@@ -5,7 +5,7 @@ LITERAL="caixa"
 TMP_FILE=$(mktemp)
 
 # Només fitxers staged, evitant el propi script i els workflows
-FILES=$(git diff --cached --name-only | grep -v "dev/pre-commit.sh" | grep -v ".github/workflows/push-checks.yml" | grep -v ".github/workflows/pr-checks.yml" || true)
+FILES=$(git diff --cached --name-only | grep -F -v "dev/pre-commit.sh" | grep -F -v ".github/workflows/push-checks.yml" | grep -F -v ".github/workflows/pr-checks.yml" || true)
 
 if [ -n "$FILES" ]; then
   if grep -H -n -E -i "$LITERAL" $FILES > "$TMP_FILE"; then
