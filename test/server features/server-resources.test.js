@@ -114,7 +114,7 @@ describe('Server Resources', () => {
 			output: `Resource count: ${initialCount} -> ${initialCount} (may increase)`
 		})
 
-		// Verify the tool call was successful
+		// Verify the tool call was successful caixa ss
 		expect(result).toBeTruthy()
 
 		// Wait a bit for the resource to be created and notification to be sent
