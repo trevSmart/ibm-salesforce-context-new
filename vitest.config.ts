@@ -7,6 +7,8 @@ export default defineConfig({
 		testTimeout: 10000,
 		hookTimeout: 12000,
 		retry: 2,
+		// Enable tags support
+		tags: ['optional'],
 		// Force single worker to avoid multiple server instances
 		pool: 'threads',
 		poolOptions: {
