@@ -5,19 +5,11 @@ describe('dmlOperation and getRecord', () => {
 	let createdAccountId
 
 	beforeAll(async () => {
-		// Create and connect to the MCP server
+		// Create and connect to the MCP server and create a test Account
 		client = await createMcpClient()
-	})
 
-	afterAll(async () => {
-		await disconnectMcpClient(client)
-	})
-
-	test('create Account', async () => {
-		// Verify that the client is defined
-		expect(client).toBeTruthy()
-
-		const result = await client.callTool('dmlOperation', {
+		// Create account used by tests
+		const createResult = await client.callTool('dmlOperation', {
 			operations: {
 				create: [
 					{
@@ -33,12 +25,22 @@ describe('dmlOperation and getRecord', () => {
 			},
 		})
 
-		expect(result?.structuredContent?.outcome).toBeTruthyAndDump(result)
-		expect(result.structuredContent.successes).toBeTruthy()
-		expect(result.structuredContent.successes.length).toBeGreaterThan(0)
+		// Basic validations
+		expect(createResult?.structuredContent?.outcome).toBeTruthy()
+		expect(createResult.structuredContent.successes).toBeTruthy()
+		expect(createResult.structuredContent.successes.length).toBeGreaterThan(0)
 
 		// Store the created account ID for subsequent tests
-		createdAccountId = result.structuredContent.successes[0].id
+		createdAccountId = createResult.structuredContent.successes[0].id
+		expect(createdAccountId).toBeTruthy()
+	})
+
+	afterAll(async () => {
+		await disconnectMcpClient(client)
+	})
+
+	test('create Account', async () => {
+		// Ensure the account was created in beforeAll
 		expect(createdAccountId).toBeTruthy()
 	})
 
@@ -94,7 +96,7 @@ describe('dmlOperation and getRecord', () => {
 		expect(createdAccountId).toBeTruthy()
 		expect(typeof createdAccountId).toBe('string')
 		expect(createdAccountId.length).toBeGreaterThan(0)
-		expect(createdAccountId).toMatch(/^001[a-zA-Z0-9]{15}$/) // Salesforce Account ID format
+		expect(createdAccountId).toMatch(/^001[a-zA-Z0-9]{12}(?:[a-zA-Z0-9]{3})?$/) // Salesforce Account ID format (supports 15 or 18 char IDs)
 
 		// 2. Verify the account still exists before deletion
 		const preDeleteCheck = await client.callTool('getRecord', {

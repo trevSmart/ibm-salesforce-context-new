@@ -868,7 +868,7 @@ export async function generateMetadata({type, name, outputDir, triggerSObject, t
 			// No template parameter from tool; we'll inject content later for test class
 		} else if (type === 'apexTrigger') {
 			if (!triggerSObject || typeof triggerSObject !== 'string') {
-				throw new Error('triggerSObject is required and must be a string when type is apexTrigger');
+				throw new Error('triggerSObject is required and must be a string when	 type is apexTrigger');
 			}
 			const triggerFilePath = path.join(resolvedDir, `${name}.trigger`);
 			const metaFilePath = path.join(resolvedDir, `${name}.trigger-meta.xml`);
