@@ -8,17 +8,7 @@ TMP_FILE=$(mktemp)
 FILES=$(git diff --cached --name-only | grep -v "dev/pre-commit.sh" || echo "")
 
 if [ -n "$FILES" ]; then
-  # Process each file individually to handle filenames with spaces
-  FOUND_FORBIDDEN=false
-  while IFS= read -r file; do
-    if [ -n "$file" ] && [ -f "$file" ]; then
-      if grep -H -n -E -i "$LITERAL" "$file" >> "$TMP_FILE" 2>/dev/null; then
-        FOUND_FORBIDDEN=true
-      fi
-    fi
-  done <<< "$FILES"
-  
-  if [ "$FOUND_FORBIDDEN" = true ]; then
+  if echo "$FILES" | tr '\n' '\0' | xargs -0 grep -H -n -E -i "$LITERAL" > "$TMP_FILE" 2>/dev/null; then
     echo
     echo "🚫 Commit bloquejat: trobat el literal prohibit \"$LITERAL\"."
     echo "👀 Detalls:"
