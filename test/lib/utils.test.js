@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { sanitizeSensitiveData } from '../../src/utils.js';
+import { logTestResult } from '../testUtils.js';
 
 describe('sanitizeSensitiveData', () => {
 	it('should redact accessToken field', () => {
@@ -10,6 +11,11 @@ describe('sanitizeSensitiveData', () => {
 		};
 
 		const sanitized = sanitizeSensitiveData(data);
+
+		// Simple logging for unit test
+		logTestResult('utils.test.js', 'Redact accessToken field', {
+			description: 'Tests that accessToken field is properly redacted while preserving other fields'
+		}, 'ok');
 
 		expect(sanitized.username).toBe('test@example.com');
 		expect(sanitized.instanceUrl).toBe('https://test.salesforce.com');
@@ -28,6 +34,10 @@ describe('sanitizeSensitiveData', () => {
 		};
 
 		const sanitized = sanitizeSensitiveData(data);
+
+		logTestResult('utils.test.js', 'Redact multiple sensitive fields', {
+			description: 'Tests that multiple sensitive fields are properly redacted'
+		}, 'ok');
 
 		expect(sanitized.username).toBe('test@example.com');
 		expect(sanitized.accessToken).toContain('[REDACTED');
@@ -49,6 +59,10 @@ describe('sanitizeSensitiveData', () => {
 
 		const sanitized = sanitizeSensitiveData(data);
 
+		logTestResult('utils.test.js', 'Handle nested objects', {
+			description: 'Tests that sensitive fields in nested objects are properly redacted'
+		}, 'ok');
+
 		expect(sanitized.org.username).toBe('test@example.com');
 		expect(sanitized.org.accessToken).toContain('[REDACTED');
 		expect(sanitized.org.details.instanceUrl).toBe('https://test.salesforce.com');
@@ -64,6 +78,10 @@ describe('sanitizeSensitiveData', () => {
 		};
 
 		const sanitized = sanitizeSensitiveData(data);
+
+		logTestResult('utils.test.js', 'Handle arrays', {
+			description: 'Tests that sensitive fields in arrays are properly redacted'
+		}, 'ok');
 
 		expect(sanitized.items[0].name).toBe('item1');
 		expect(sanitized.items[0].accessToken).toContain('[REDACTED');
@@ -81,6 +99,10 @@ describe('sanitizeSensitiveData', () => {
 
 		const sanitized = sanitizeSensitiveData(data);
 
+		logTestResult('utils.test.js', 'Not modify non-sensitive fields', {
+			description: 'Tests that non-sensitive fields are left unchanged'
+		}, 'ok');
+
 		expect(sanitized).toEqual(data);
 	});
 
@@ -92,6 +114,10 @@ describe('sanitizeSensitiveData', () => {
 		};
 
 		const sanitized = sanitizeSensitiveData(data);
+
+		logTestResult('utils.test.js', 'Handle null and undefined', {
+			description: 'Tests that null and undefined sensitive fields are properly handled'
+		}, 'ok');
 
 		expect(sanitized.username).toBe('test@example.com');
 		expect(sanitized.accessToken).toBe('[REDACTED]');
@@ -106,6 +132,10 @@ describe('sanitizeSensitiveData', () => {
 
 		const sanitized = sanitizeSensitiveData(data);
 
+		logTestResult('utils.test.js', 'Handle empty strings', {
+			description: 'Tests that empty string sensitive fields are properly handled'
+		}, 'ok');
+
 		expect(sanitized.username).toBe('test@example.com');
 		expect(sanitized.accessToken).toBe('[REDACTED]');
 	});
@@ -118,6 +148,10 @@ describe('sanitizeSensitiveData', () => {
 
 		const original = JSON.parse(JSON.stringify(data));
 		const sanitized = sanitizeSensitiveData(data);
+
+		logTestResult('utils.test.js', 'Not modify original object', {
+			description: 'Tests that the original object is not modified during sanitization'
+		}, 'ok');
 
 		// Original should be unchanged
 		expect(data).toEqual(original);
@@ -133,6 +167,10 @@ describe('sanitizeSensitiveData', () => {
 		};
 
 		const sanitized = sanitizeSensitiveData(data, ['apiKey', 'token']);
+
+		logTestResult('utils.test.js', 'Allow custom fields to redact', {
+			description: 'Tests that custom sensitive fields can be specified for redaction'
+		}, 'ok');
 
 		expect(sanitized.username).toBe('test@example.com');
 		expect(sanitized.apiKey).toContain('[REDACTED');

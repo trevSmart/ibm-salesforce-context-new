@@ -1,4 +1,5 @@
 import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { logTestResult, validateMcpToolResponse } from '../testUtils.js'
 
 describe('runApexTest', () => {
 	let client
@@ -18,24 +19,24 @@ describe('runApexTest', () => {
 			query: "SELECT Id, Name FROM ApexClass WHERE Name LIKE '%Test%' LIMIT 5",
 			useToolingApi: true,
 		})
-		console.log('Debug - Available test classes:', JSON.stringify(queryResult, null, 2))
 
 		// Use the first available test class
 		const testClasses = queryResult?.structuredContent?.records || []
 		if (testClasses.length === 0) {
+			logTestResult('runApexTest.test.js', 'By class', { classNames: ['No test classes found'] }, 'ko', 'No test classes found - this indicates a problem with the Salesforce org configuration or test setup')
 			throw new Error('No test classes found - this indicates a problem with the Salesforce org configuration or test setup')
 		}
 
 		const testClassName = testClasses[0].Name
-		console.log('Using test class:', testClassName)
 
 		const result = await client.callTool('runApexTest', {
 			classNames: [testClassName],
 		})
-		console.log('Debug - runApexTest by class result:', JSON.stringify(result, null, 2))
+
+		validateMcpToolResponse(result, 'runApexTest by class')
+		logTestResult('runApexTest.test.js', 'By class', { classNames: [testClassName] }, 'ok', result)
 
 		if (result.isError) {
-			console.log('Test execution failed:', result.content[0].text)
 			// For now, just check that we got a response
 			expect(result).toBeTruthy()
 		} else {
@@ -56,7 +57,9 @@ describe('runApexTest', () => {
 		const result = await client.callTool('runApexTest', {
 			methodNames: ['NonExistentClass.nonExistentMethod'],
 		})
-		console.log('Debug - runApexTest by method result:', JSON.stringify(result, null, 2))
+
+		validateMcpToolResponse(result, 'runApexTest by method')
+		logTestResult('runApexTest.test.js', 'By method', { methodNames: ['NonExistentClass.nonExistentMethod'] }, 'ok', result)
 
 		// The tool should respond (even if with an error)
 		expect(result).toBeTruthy()

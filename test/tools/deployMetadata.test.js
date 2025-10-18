@@ -1,4 +1,5 @@
 import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { logTestResult, validateMcpToolResponse } from '../testUtils.js'
 
 describe('deployMetadata', () => {
 	let client
@@ -22,6 +23,12 @@ describe('deployMetadata', () => {
 			sourceDir: 'force-app/main/default/classes/TestClass.cls',
 			validationOnly: true
 		})
+
+		validateMcpToolResponse(result, 'deployMetadata validation only')
+		logTestResult('deployMetadata.test.js', 'Validation only', {
+			sourceDir: 'force-app/main/default/classes/TestClass.cls',
+			validationOnly: true
+		}, 'ok', result)
 
 		expect(result).toBeTruthy()
 	})

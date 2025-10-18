@@ -4,6 +4,7 @@
 
 import {describe, it, expect, beforeEach, vi} from 'vitest';
 import {InitializationPhases, WorkspacePathManager, ClientWorkspaceStrategy} from '../../src/lib/initialization.js';
+import { logTestResult } from '../testUtils.js';
 
 describe('WorkspacePathManager', () => {
 	let manager;
@@ -15,18 +16,36 @@ describe('WorkspacePathManager', () => {
 	it('should normalize file:// URIs correctly', () => {
 		const testPath = 'file:///home/user/project';
 		const normalized = manager.normalizeWorkspacePath(testPath);
-		
+
+		logTestResult('initialization-phases.test.js', 'Normalize file URI', {
+			inputPath: testPath
+		}, 'ok', {
+			description: 'Tests that WorkspacePathManager normalizes file:// URIs correctly',
+			output: `Normalized to: ${normalized}`
+		})
+
 		expect(normalized).toBe('/home/user/project');
 	});
 
 	it('should handle comma-separated paths by taking the first one', () => {
 		const testPath = '/home/user/project1,/home/user/project2';
 		const normalized = manager.normalizeWorkspacePath(testPath);
-		
+
+		logTestResult('initialization-phases.test.js', 'Handle comma-separated paths', {
+			inputPath: testPath
+		}, 'ok', {
+			description: 'Tests that WorkspacePathManager handles comma-separated paths by taking the first one',
+			output: `Normalized to: ${normalized}`
+		})
+
 		expect(normalized).toBe('/home/user/project1');
 	});
 
 	it('should handle null and undefined paths', () => {
+		logTestResult('initialization-phases.test.js', 'Handle null and undefined paths', {}, 'ok', {
+			description: 'Tests that WorkspacePathManager handles null and undefined paths correctly'
+		})
+
 		expect(manager.normalizeWorkspacePath(null)).toBeNull();
 		expect(manager.normalizeWorkspacePath(undefined)).toBeNull();
 		expect(manager.normalizeWorkspacePath('')).toBe('');
@@ -41,6 +60,13 @@ describe('WorkspacePathManager', () => {
 		const originalCwd = process.cwd;
 		process.chdir = vi.fn();
 		process.cwd = vi.fn(() => '/different/dir');
+
+		logTestResult('initialization-phases.test.js', 'Set path only once', {
+			firstPath: path1,
+			secondPath: path2
+		}, 'ok', {
+			description: 'Tests that WorkspacePathManager sets path only once, ignoring subsequent calls'
+		})
 
 		try {
 			await manager.setPath(path1);
@@ -58,7 +84,7 @@ describe('WorkspacePathManager', () => {
 
 	it('should resolve ready promise when path is set', async () => {
 		const path = '/home/user/project';
-		
+
 		// Mock process.chdir to avoid actual directory changes
 		const originalChdir = process.chdir;
 		const originalCwd = process.cwd;
@@ -68,7 +94,7 @@ describe('WorkspacePathManager', () => {
 		try {
 			const readyPromise = manager.waitForPath();
 			await manager.setPath(path);
-			
+
 			const result = await readyPromise;
 			expect(result).toBe(path);
 		} finally {
@@ -88,13 +114,13 @@ describe('ClientWorkspaceStrategy', () => {
 		mockClient = {
 			supportsCapability: vi.fn(),
 		};
-		
+
 		mockMcpServer = {
 			server: {
 				listRoots: vi.fn(),
 			},
 		};
-		
+
 		mockWorkspaceManager = {
 			setPath: vi.fn(),
 		};
@@ -170,13 +196,13 @@ describe('InitializationPhases', () => {
 		mockMcpServer = {
 			server: {},
 		};
-		
+
 		mockClient = {
 			initialize: vi.fn(),
 			clientInfo: {name: 'test', version: '1.0.0'},
 			capabilities: {},
 		};
-		
+
 		mockState = {
 			currentLogLevel: 'info',
 			org: {},
@@ -198,7 +224,7 @@ describe('InitializationPhases', () => {
 			clientInfo: params.clientInfo,
 			capabilities: params.capabilities,
 		});
-		
+
 		expect(result.protocolVersion).toBe('2025-06-18');
 		expect(result.clientInfo).toBe(params.clientInfo);
 		expect(result.capabilities).toBe(params.capabilities);
@@ -208,12 +234,12 @@ describe('InitializationPhases', () => {
 		// Mock the workspace manager
 		const mockSetPath = vi.fn();
 		const mockWaitForPath = vi.fn().mockResolvedValue('/test/path');
-		
+
 		phases.workspaceManager = {
 			setPath: mockSetPath,
 			waitForPath: mockWaitForPath,
 		};
-		
+
 		phases.workspaceStrategy = {
 			resolveWorkspacePath: vi.fn(),
 		};
@@ -237,11 +263,11 @@ describe('InitializationPhases', () => {
 	// Note: Post-initialization runs asynchronously, so we test its components separately
 	it('should start org watcher when org details are available', () => {
 		mockState.org.username = 'test@example.com';
-		
+
 		const mockTargetOrgWatcher = {
 			start: vi.fn(),
 		};
-		
+
 		const mockUpdateOrgAndUserDetails = vi.fn();
 
 		phases.startOrgWatcher(mockTargetOrgWatcher, mockUpdateOrgAndUserDetails);

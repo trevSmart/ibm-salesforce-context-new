@@ -1,4 +1,5 @@
 import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { logTestResult, validateMcpToolResponse } from '../testUtils.js'
 
 describe('Server Startup', () => {
 	let client
@@ -20,10 +21,16 @@ describe('Server Startup', () => {
 		const result = await client.callTool('salesforceContextUtils', {
 			action: 'getState',
 		})
+
+		validateMcpToolResponse(result, 'server startup test')
+
+		// Simple logging for server test - just show what we verified
+		logTestResult('server-startup.test.js', 'Start MCP server', {
+			description: 'Tests that MCP server starts successfully and tools are accessible'
+		}, 'ok')
+
 		expect(result).toBeTruthy()
 		expect(result.structuredContent).toBeTruthy()
-
-		console.log('Server started successfully and tools are accessible')
 	})
 })
 

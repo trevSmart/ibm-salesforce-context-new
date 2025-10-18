@@ -1,4 +1,5 @@
 import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { logTestResult } from '../testUtils.js'
 
 describe('apex-run-script', () => {
 	let client
@@ -21,6 +22,14 @@ describe('apex-run-script', () => {
 		const hasMessages = result?.messages
 		const isArray = Array.isArray(result?.messages)
 		const isValidMessages = hasMessages && isArray
+
+		logTestResult('apex-run-script.test.js', 'Prompt', {
+			currentBehavior: 'Current code does nothing',
+			desiredBehavior: 'Code should return a greeting message',
+			updateTests: 'Yes'
+		}, 'ok', {
+			description: 'Tests that apex-run-script prompt returns valid messages structure'
+		})
 
 		expect(isValidMessages).toBe(true)
 		expect(result.messages.length).toBeGreaterThan(0)

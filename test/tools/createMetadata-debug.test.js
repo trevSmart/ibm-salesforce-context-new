@@ -1,4 +1,5 @@
 import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { logTestResult, validateMcpToolResponse } from '../testUtils.js'
 
 describe('createMetadata Debug', () => {
 	let client
@@ -15,7 +16,11 @@ describe('createMetadata Debug', () => {
 		const result = await client.callTool('salesforceContextUtils', {
 			action: 'getState',
 		})
-		console.log('Server state:', JSON.stringify(result.structuredContent, null, 2))
+
+		// Validate MCP tool response structure
+		validateMcpToolResponse(result, 'salesforceContextUtils getState')
+
+		logTestResult('createMetadata-debug.test.js', 'Check server state', { action: 'getState' }, 'ok', result)
 		expect(result.structuredContent?.state?.org?.user?.id).toBeTruthy()
 	})
 
@@ -24,7 +29,11 @@ describe('createMetadata Debug', () => {
 			type: 'apexClass',
 			name: 'DebugTestClass',
 		})
-		console.log('Apex class result:', JSON.stringify(result, null, 2))
+
+		// Validate MCP tool response structure
+		validateMcpToolResponse(result, 'createMetadata Apex class')
+
+		logTestResult('createMetadata-debug.test.js', 'Create Apex class', { type: 'apexClass', name: 'DebugTestClass' }, 'ok', result)
 		expect(result?.structuredContent?.success).toBeTruthy()
 	})
 
@@ -32,7 +41,11 @@ describe('createMetadata Debug', () => {
 		const result = await client.callTool('salesforceContextUtils', {
 			action: 'getState',
 		})
-		console.log('Server state after Apex class:', JSON.stringify(result.structuredContent, null, 2))
+
+		// Validate MCP tool response structure
+		validateMcpToolResponse(result, 'salesforceContextUtils getState after Apex class')
+
+		logTestResult('createMetadata-debug.test.js', 'Check server state after Apex class', { action: 'getState' }, 'ok', result)
 		expect(result.structuredContent?.state?.org?.user?.id).toBeTruthy()
 	})
 
@@ -43,7 +56,16 @@ describe('createMetadata Debug', () => {
 			triggerSObject: 'Account',
 			triggerEvent: ['after insert'],
 		})
-		console.log('Apex trigger result:', JSON.stringify(result, null, 2))
+
+		// Validate MCP tool response structure
+		validateMcpToolResponse(result, 'createMetadata Apex trigger')
+
+		logTestResult('createMetadata-debug.test.js', 'Create Apex trigger', {
+			type: 'apexTrigger',
+			name: 'DebugTestTrigger',
+			triggerSObject: 'Account',
+			triggerEvent: ['after insert']
+		}, 'ok', result)
 		expect(result?.structuredContent?.success).toBeTruthy()
 	})
 })

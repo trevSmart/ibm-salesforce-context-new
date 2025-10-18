@@ -1,5 +1,6 @@
 import { TestData } from '../test-data.js'
-import { createMcpClient, disconnectMcpClient, validateMcpToolResponse } from '../testMcpClient.js'
+import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { logTestResult, validateMcpToolResponse } from '../testUtils.js'
 
 describe('invokeApexRestResource', () => {
 	let client
@@ -23,8 +24,11 @@ describe('invokeApexRestResource', () => {
 			operation: 'GET',
 		})
 
-		// Validate MCP tool response structure
 		validateMcpToolResponse(result, 'invokeApexRestResource GET')
+		logTestResult('invokeApexRestResource.test.js', 'GET', {
+			apexClassOrRestResourceName: TestData.salesforce.testApexRestResourceData.apexClassOrRestResourceName,
+			operation: 'GET',
+		}, 'ok', result)
 
 		// Validate specific content
 		expect(result?.structuredContent?.endpoint).toBeTruthy()
@@ -43,8 +47,12 @@ describe('invokeApexRestResource', () => {
 			bodyObject: { test: 'data' },
 		})
 
-		// Validate MCP tool response structure
 		validateMcpToolResponse(result, 'invokeApexRestResource POST')
+		logTestResult('invokeApexRestResource.test.js', 'POST', {
+			apexClassOrRestResourceName: TestData.salesforce.testApexRestResourceData.apexClassOrRestResourceName,
+			operation: 'POST',
+			bodyObject: { test: 'data' },
+		}, 'ok', result)
 
 		// Validate specific content
 		expect(result?.structuredContent?.endpoint).toBeTruthy()

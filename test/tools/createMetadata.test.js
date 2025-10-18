@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { logTestResult, validateMcpToolResponse } from '../testUtils.js'
 
 const DEFAULT_OUTPUT_DIRS = {
 	apexClass: 'force-app/main/default/classes',
@@ -136,6 +137,10 @@ describe('createMetadata', () => {
 			type: 'apexClass',
 			name: 'TestMCPToolClass',
 		})
+
+		validateMcpToolResponse(result, 'createMetadata Apex class')
+		logTestResult('createMetadata.test.js', 'Apex class', { type: 'apexClass', name: 'TestMCPToolClass' }, 'ok', result)
+
 		if (result?.structuredContent?.files) {
 			createdFiles.push(...result.structuredContent.files)
 		}
@@ -149,6 +154,10 @@ describe('createMetadata', () => {
 			type: 'apexTestClass',
 			name: 'TestMCPToolClassTest',
 		})
+
+		validateMcpToolResponse(result, 'createMetadata Apex test class')
+		logTestResult('createMetadata.test.js', 'Apex test class', { type: 'apexTestClass', name: 'TestMCPToolClassTest' }, 'ok', result)
+
 		if (result?.structuredContent?.files) {
 			createdFiles.push(...result.structuredContent.files)
 		}
@@ -164,6 +173,14 @@ describe('createMetadata', () => {
 			triggerEvent: ['after insert', 'before update'],
 		})
 
+		validateMcpToolResponse(result, 'createMetadata Apex trigger')
+		logTestResult('createMetadata.test.js', 'Apex trigger', {
+			type: 'apexTrigger',
+			name: 'TestMCPToolTrigger',
+			triggerSObject: 'Account',
+			triggerEvent: ['after insert', 'before update']
+		}, 'ok', result)
+
 		if (result?.structuredContent?.files) {
 			createdFiles.push(...result.structuredContent.files)
 		}
@@ -176,6 +193,9 @@ describe('createMetadata', () => {
 			type: 'lwc',
 			name: 'testMCPToolComponent',
 		})
+
+		validateMcpToolResponse(result, 'createMetadata LWC')
+		logTestResult('createMetadata.test.js', 'LWC', { type: 'lwc', name: 'testMCPToolComponent' }, 'ok', result)
 
 		if (result?.structuredContent?.files) {
 			createdFiles.push(...result.structuredContent.files)

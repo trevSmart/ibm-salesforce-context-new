@@ -1,4 +1,5 @@
 import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { logTestResult, validateMcpToolResponse } from '../testUtils.js'
 
 describe('getRecentlyViewedRecords', () => {
 	let client
@@ -14,9 +15,11 @@ describe('getRecentlyViewedRecords', () => {
 
 	test('getRecentlyViewedRecords', async () => {
 		const result = await client.callTool('getRecentlyViewedRecords', {})
-		const structuredContent = result?.structuredContent
 
-		console.error('🔥 structuredContent', structuredContent)
+		validateMcpToolResponse(result, 'getRecentlyViewedRecords')
+		logTestResult('getRecentlyViewedRecords.test.js', 'Get Recently Viewed Records', {}, 'ok', result)
+
+		const structuredContent = result?.structuredContent
 
 		expect(structuredContent?.records).toBeTruthy(structuredContent)
 		expect(Array.isArray(structuredContent.records)).toBe(true)

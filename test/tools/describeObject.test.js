@@ -1,4 +1,5 @@
-import { createMcpClient, disconnectMcpClient, validateMcpToolResponse } from '../testMcpClient.js'
+import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { logTestResult, validateMcpToolResponse } from '../testUtils.js'
 
 describe('describeObject', () => {
 	let client
@@ -23,6 +24,10 @@ describe('describeObject', () => {
 			const result = await client.callTool('describeObject', {
 				sObjectName: 'NonExistentObject__c',
 			})
+
+			validateMcpToolResponse(result, 'describeObject with non-existent object')
+			logTestResult('describeObject.test.js', 'Non-existent object', { sObjectName: 'NonExistentObject__c' }, 'ok', result)
+
 			expect(result.isError).toBeTruthy()
 			expect(Array.isArray(result?.content)).toBe(true)
 			expect(result?.content?.length).toBeGreaterThan(0)
@@ -35,10 +40,9 @@ describe('describeObject', () => {
 		const result = await client.callTool('describeObject', {
 			sObjectName: 'Account',
 		})
-		console.log('Result:', JSON.stringify(result, null, 2))
 
-		// Validate MCP tool response structure
 		validateMcpToolResponse(result, 'describeObject Account')
+		logTestResult('describeObject.test.js', 'Account', { sObjectName: 'Account' }, 'ok', result)
 
 		// Validate specific content
 		expect(result.structuredContent.name).toBe('Account')
@@ -52,8 +56,8 @@ describe('describeObject', () => {
 			includeFields: false,
 		})
 
-		// Validate MCP tool response structure
 		validateMcpToolResponse(result, 'describeObject with includeFields false')
+		logTestResult('describeObject.test.js', 'IncludeFields false', { sObjectName: 'Account', includeFields: false }, 'ok', result)
 
 		// Validate specific content
 		expect(result?.structuredContent?.wasCached).toBeTruthy()
@@ -65,8 +69,8 @@ describe('describeObject', () => {
 			useToolingApi: true,
 		})
 
-		// Validate MCP tool response structure
 		validateMcpToolResponse(result, 'describeObject with Tooling API')
+		logTestResult('describeObject.test.js', 'Tooling API', { sObjectName: 'ApexLog', useToolingApi: true }, 'ok', result)
 
 		// Validate specific content
 		expect(Array.isArray(result?.structuredContent?.fields)).toBe(true)

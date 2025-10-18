@@ -1,4 +1,5 @@
-import { createMcpClient, disconnectMcpClient, validateMcpToolResponse } from '../testMcpClient.js'
+import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { logTestResult, validateMcpToolResponse } from '../testUtils.js'
 
 describe('dmlOperation and getRecord', () => {
 	let client
@@ -37,8 +38,20 @@ describe('dmlOperation and getRecord', () => {
 			},
 		})
 
-		// Validate MCP tool response structure
 		validateMcpToolResponse(createResult, 'dmlOperation create Account')
+		logTestResult('dmlOperation.test.js', 'Create Account', {
+			operations: {
+				create: [
+					{
+						sObjectName: 'Account',
+						fields: {
+							Name: 'Test MCP Tool Account',
+							Description: 'Account created by MCP tool test',
+						},
+					},
+				],
+			},
+		}, 'ok', createResult)
 
 		// Basic validations
 		expect(createResult?.structuredContent?.outcome).toBeTruthy()
@@ -66,8 +79,20 @@ describe('dmlOperation and getRecord', () => {
 			},
 		})
 
-		// Validate MCP tool response structure
 		validateMcpToolResponse(result, 'dmlOperation update Account')
+		logTestResult('dmlOperation.test.js', 'Update Account', {
+			operations: {
+				update: [
+					{
+						sObjectName: 'Account',
+						recordId: createdAccountId,
+						fields: {
+							Description: `Updated by MCP Tool test at ${new Date().toISOString()}`,
+						},
+					},
+				],
+			},
+		}, 'ok', result)
 
 		expect(result?.structuredContent?.outcome).toBeTruthyAndDump(result?.structuredContent)
 	})
@@ -78,8 +103,8 @@ describe('dmlOperation and getRecord', () => {
 			recordId: createdAccountId,
 		})
 
-		// Validate MCP tool response structure
 		validateMcpToolResponse(result, 'getRecord retrieve Account')
+		logTestResult('dmlOperation.test.js', 'Get Record', { sObjectName: 'Account', recordId: createdAccountId }, 'ok', result)
 
 		expect(result.structuredContent.sObject).toBe('Account')
 		expect(result.structuredContent.fields).toBeTruthy()
@@ -92,6 +117,9 @@ describe('dmlOperation and getRecord', () => {
 			sObjectName: 'NonExistentObject__c',
 			recordId: '001000000000000AAA',
 		})
+
+		validateMcpToolResponse(result, 'getRecord with non-existent SObject')
+		logTestResult('dmlOperation.test.js', 'Get Record (error)', { sObjectName: 'NonExistentObject__c', recordId: '001000000000000AAA' }, 'ok', result)
 
 		// Verify that the result indicates an error
 		expect(result.isError).toBe(true)
@@ -128,6 +156,18 @@ describe('dmlOperation and getRecord', () => {
 				],
 			},
 		})
+
+		validateMcpToolResponse(result, 'dmlOperation delete Account')
+		logTestResult('dmlOperation.test.js', 'Delete Account', {
+			operations: {
+				delete: [
+					{
+						sObjectName: 'Account',
+						recordId: createdAccountId,
+					},
+				],
+			},
+		}, 'ok', result)
 
 		// 4. Validate DELETE operation success
 		expect(result?.structuredContent?.outcome).toBeTruthyAndDump(result)

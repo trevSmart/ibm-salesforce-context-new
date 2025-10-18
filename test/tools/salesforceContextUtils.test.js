@@ -1,4 +1,5 @@
 import {createMcpClient, disconnectMcpClient} from '../testMcpClient.js';
+import { logTestResult, validateMcpToolResponse } from '../testUtils.js';
 
 describe('salesforceContextUtils', () => {
 	let client;
@@ -15,11 +16,18 @@ describe('salesforceContextUtils', () => {
 		const result = await client.callTool('salesforceContextUtils', {
 			action: 'getOrgAndUserDetails'
 		});
+
+		validateMcpToolResponse(result, 'salesforceContextUtils getOrgAndUserDetails')
+		logTestResult('salesforceContextUtils.test.js', 'Get Org And User Details', { action: 'getOrgAndUserDetails' }, 'ok', result)
+
 		expect(result?.structuredContent?.user?.id).toBeTruthyAndDump(result?.structuredContent);
 	});
 
 	test('getState', async () => {
 		const result = await client.callTool('salesforceContextUtils', {action: 'getState'});
+
+		validateMcpToolResponse(result, 'salesforceContextUtils getState')
+		logTestResult('salesforceContextUtils.test.js', 'Get State', { action: 'getState' }, 'ok', result)
 
 		// USE OF CUSTOM MATCHER
 		// If not true, write structuredContent to .test-artifacts/
@@ -30,6 +38,10 @@ describe('salesforceContextUtils', () => {
 		const result = await client.callTool('salesforceContextUtils', {
 			action: 'loadRecordPrefixesResource'
 		});
+
+		validateMcpToolResponse(result, 'salesforceContextUtils loadRecordPrefixesResource')
+		logTestResult('salesforceContextUtils.test.js', 'Load Record Prefixes Resource', { action: 'loadRecordPrefixesResource' }, 'ok', result)
+
 		const content = result?.content;
 		expect(Array.isArray(content)).toBe(true);
 
@@ -46,6 +58,10 @@ describe('salesforceContextUtils', () => {
 		const result = await client.callTool('salesforceContextUtils', {
 			action: 'getCurrentDatetime'
 		});
+
+		validateMcpToolResponse(result, 'salesforceContextUtils getCurrentDatetime')
+		logTestResult('salesforceContextUtils.test.js', 'Get Current Datetime', { action: 'getCurrentDatetime' }, 'ok', result)
+
 		expect(result?.structuredContent?.now).toBeTruthy();
 		expect(result?.structuredContent?.timezone).toBeTruthy();
 	});
@@ -54,6 +70,10 @@ describe('salesforceContextUtils', () => {
 		const result = await client.callTool('salesforceContextUtils', {
 			action: 'clearCache'
 		});
+
+		validateMcpToolResponse(result, 'salesforceContextUtils clearCache')
+		logTestResult('salesforceContextUtils.test.js', 'Clear Cache', { action: 'clearCache' }, 'ok', result)
+
 		expect(result?.structuredContent?.status).toBe('success');
 		expect(result?.structuredContent?.action).toBe('clearCache');
 	});
@@ -64,6 +84,14 @@ describe('salesforceContextUtils', () => {
 			issueDescription: 'Test issue for validation',
 			issueToolName: 'testTool'
 		});
+
+		validateMcpToolResponse(result, 'salesforceContextUtils reportIssue')
+		logTestResult('salesforceContextUtils.test.js', 'Report Issue', {
+			action: 'reportIssue',
+			issueDescription: 'Test issue for validation',
+			issueToolName: 'testTool'
+		}, 'ok', result)
+
 		expect(result?.structuredContent?.success).toBe(true);
 		expect(result.structuredContent.issueId).toBeTruthy();
 	});

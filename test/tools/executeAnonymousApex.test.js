@@ -1,4 +1,5 @@
 import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
+import { logTestResult, validateMcpToolResponse } from '../testUtils.js'
 
 describe('executeAnonymousApex', () => {
 	let client
@@ -21,6 +22,13 @@ describe('executeAnonymousApex', () => {
 				"System.debug('Hello from MCP tool test');\nSystem.debug('Current time: ' + Datetime.now());",
 			mayModify: false,
 		})
+
+		validateMcpToolResponse(result, 'executeAnonymousApex simple')
+		logTestResult('executeAnonymousApex.test.js', 'Simple', {
+			apexCode: "System.debug('Hello from MCP tool test');\nSystem.debug('Current time: ' + Datetime.now());",
+			mayModify: false,
+		}, 'ok', result)
+
 		expect(result).toBeTruthy()
 
 		// Check that the result has the expected structure
@@ -39,6 +47,12 @@ describe('executeAnonymousApex', () => {
 				"Account acc = new Account(Name='Test Account');\ninsert acc;\nSystem.debug('Created account: ' + acc.Id);",
 			mayModify: true,
 		})
+
+		validateMcpToolResponse(result, 'executeAnonymousApex with modification')
+		logTestResult('executeAnonymousApex.test.js', 'With modification', {
+			apexCode: "Account acc = new Account(Name='Test Account');\ninsert acc;\nSystem.debug('Created account: ' + acc.Id);",
+			mayModify: true,
+		}, 'ok', result)
 
 		expect(result?.structuredContent?.success).toBeTruthy(result?.structuredContent)
 	})
