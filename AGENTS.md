@@ -145,7 +145,7 @@ When tests fail due to infrastructure issues (connection failures, server unavai
 **Test Validation Pattern**: All tool tests must use the `validateMcpToolResponse()` helper function:
 
 ```javascript
-import { validateMcpToolResponse } from '../testMcpClient.js'
+import { validateMcpToolResponse } from '../testUtils.js'
 
 test('tool test', async () => {
     const result = await client.callTool('toolName', { /* args */ })
@@ -166,7 +166,61 @@ test('tool test', async () => {
 - Maintains consistency across all test files
 - Future-proofs validation rules in one central location
 
-**Implementation Status**: The `validateMcpToolResponse()` function is available in `test/testMcpClient.js` and must be used in all tool tests. Any test that doesn't validate both fields is incomplete and may miss protocol violations.
+**Implementation Status**: The `validateMcpToolResponse()` function is available in `test/testUtils.js` and must be used in all tool tests. Any test that doesn't validate both fields is incomplete and may miss protocol violations.
+
+### Test Output and Evidence
+
+**CRITICAL**: All tests must provide clear, structured evidence of their execution using the `logTestResult()` function.
+
+**Test Output Requirements**:
+- **Structured Evidence**: All tests must use `logTestResult()` to provide clear, readable evidence of test execution
+- **Consistent Format**: Test output follows a standardized format with clear sections
+- **No Duplication**: Avoid duplicate logging between `logTestResult()` and manual `console.log()`
+- **Appropriate Sections**: Only show relevant sections (INPUT, OUTPUT, RESULT) based on test type
+
+**Test Output Pattern**: All tests must use the `logTestResult()` helper function:
+
+```javascript
+import { logTestResult } from '../testUtils.js'
+
+// For MCP tool tests
+test('tool test', async () => {
+    const result = await client.callTool('toolName', { param: 'value' })
+
+    logTestResult('toolName.test.js', 'Test description', { param: 'value' }, 'ok', result)
+
+    // Validate results
+    expect(result.structuredContent.field).toBeTruthy()
+})
+
+// For non-MCP tests
+test('unit test', async () => {
+    const output = someFunction(input)
+
+    logTestResult('unit.test.js', 'Test description', {
+        description: 'What this test validates',
+        output: `Processed ${output.length} items`
+    }, 'ok')
+
+    // Validate results
+    expect(output).toBeTruthy()
+})
+```
+
+**Test Output Format**:
+- **MCP Tool Tests**: Show INPUT (tool parameters), RESULT (content + structuredContent)
+- **Non-MCP Tests**: Show DESCRIPTION, OUTPUT (test results summary)
+- **Error Cases**: Show appropriate error messages with ✗ FAIL status
+- **Skip Cases**: Show skip reasons with ⏭ SKIP status
+
+**Why This Matters**:
+- Provides clear evidence of test execution and results
+- Makes test failures easier to debug and understand
+- Ensures consistent test output across all test files
+- Helps identify issues in CI/CD pipelines
+- Improves developer experience when running tests
+
+**Implementation Status**: The `logTestResult()` function is available in `test/testUtils.js` and must be used in all tests. Any test that doesn't provide structured evidence is incomplete.
 
 ### Testing prerequisites
 
